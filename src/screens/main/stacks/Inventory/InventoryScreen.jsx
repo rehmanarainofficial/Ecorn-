@@ -10,10 +10,21 @@ const buttons = [
   {name: 'Add Item', icon: 'plus-box', screen: 'AddItem'},
   {name: 'Search Item', icon: 'magnify', screen: 'ViewItem'},
   {name: 'Item Movement', icon: 'swap-horizontal', screen: 'StockMovements'},
-  {name: 'Location Transfer', icon: 'map-marker-multiple', screen: 'LocationTransfer'},
-  {name: 'Inventory Ajustment', icon: 'playlist-edit', screen: 'InventoryAjustment'},
-  {name: 'Dated Stock Sheet', icon: 'calendar-text', screen: 'StockSheetScreen'},
-  {name: 'Costed Inventory Movement', icon: 'finance', screen: 'InventoryMovementScreen'},
+  {
+    name: 'Location Transfer',
+    icon: 'map-marker-multiple',
+    screen: 'LocationTransfer',
+  },
+  {
+    name: 'Inventory Ajustment',
+    icon: 'playlist-edit',
+    screen: 'InventoryAjustment',
+  },
+  {
+    name: 'Dated Stock Sheet',
+    icon: 'calendar-text',
+    screen: 'StockSheetScreen',
+  },
 ];
 
 export default function InventoryScreen({navigation}) {

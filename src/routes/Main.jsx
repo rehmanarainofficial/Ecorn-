@@ -177,6 +177,7 @@ const Main = () => {
       <Stack.Screen name="StockSheetScreen" component={StockSheetScreen} />
       <Stack.Screen name="MechanicalProduce" component={MechanicalProduce} />
       <Stack.Screen name="ViewItem" component={ViewItem} />
+
       <Stack.Screen name="GrnAgainst" component={GrnAgainst} />
       <Stack.Screen name="ApprovalListScreen" component={ApprovalListScreen} />
       <Stack.Screen name="GrnDeliveryNote" component={GrnDeliveryNote} />

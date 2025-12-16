@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import * as Animatable from 'react-native-animatable';
+import {BASEURL} from '../../../../utils/BaseUrl';
 
 const PdcDetailScreen = () => {
   const [fromDate, setFromDate] = useState(null);
@@ -37,9 +38,7 @@ const PdcDetailScreen = () => {
 
   const fetchSuppliers = async () => {
     try {
-      const res = await axios.get(
-        'https://ercon.de2solutions.com/mobile_dash/suppliers.php',
-      );
+      const res = await axios.get(`${BASEURL}suppliers.php`);
       if (res.data?.status === 'true') {
         setCustomers(
           res.data.data.map(c => ({
@@ -69,7 +68,7 @@ const PdcDetailScreen = () => {
       formData.append('person', selectedCustomer || '');
 
       const res = await axios.post(
-        'https://ercon.de2solutions.com/mobile_dash/dash_post_dated_cheque.php',
+        `${BASEURL}dash_post_dated_cheque.php`,
         formData,
         {headers: {'Content-Type': 'multipart/form-data'}},
       );

@@ -67,11 +67,9 @@ const ViewItem = ({navigation}) => {
       formData.append('description', filters.description || '');
       formData.append('category_id', filters.category_id || '');
 
-      const res = await axios.post(
-        'https://ercon.de2solutions.com/mobile_dash/search_items.php',
-        formData,
-        {headers: {'Content-Type': 'multipart/form-data'}},
-      );
+      const res = await axios.post(`${BASEURL}search_items.php`, formData, {
+        headers: {'Content-Type': 'multipart/form-data'},
+      });
 
       if (res.data?.status === 'true' && Array.isArray(res.data.data)) {
         setItems(res.data.data);

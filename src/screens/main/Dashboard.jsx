@@ -1,10 +1,8 @@
 import {
   View,
-  Text,
   FlatList,
   Image,
   ScrollView,
-  Touchable,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
@@ -33,7 +31,6 @@ import {setUserAccess} from '../../redux/AuthSlice';
 const Dashboard = ({navigation}) => {
   const [visible, setVisible] = useState(false);
   const userData = useSelector(state => state.Data.currentData);
-  const [showAll, setShowAll] = useState(false);
   const [AllData, setAllData] = useState();
   const [Type, setType] = useState();
   const [firstLoad, setFirstLoad] = useState(true);
@@ -65,12 +62,6 @@ const Dashboard = ({navigation}) => {
       icon: 'shopping-bag',
       onPress: () => navigation.navigate('PurchaseScreen'),
     },
-    // {
-    //   id: 5,
-    //   name: 'HR & Payroll',
-    //   icon: 'users',
-    //   onPress: () => navigation.navigate('PayrollScreen'),
-    // },
     {
       id: 6,
       name: 'Inventory',
@@ -101,25 +92,13 @@ const Dashboard = ({navigation}) => {
       icon: 'file-plus',
       onPress: () => navigation.navigate('AttachDocumentScreen'),
     },
-    {
-      id: 10,
-      name: 'Download',
-      icon: 'download',
-      onPress: () => navigation.navigate('AttachDocumentScreen'),
-    },
-    {
-      id: 10,
-      name: 'More',
-      icon: 'more-horizontal',
-      onPress: () => navigation.navigate('AttachDocumentScreen'),
-    },
   ];
 
   useEffect(() => {
     if (firstLoad) {
       getMoneyData();
       getUserAccess();
-      setFirstLoad(false)
+      setFirstLoad(false);
     }
   }, [firstLoad]);
 
@@ -306,7 +285,7 @@ const Dashboard = ({navigation}) => {
             justifyContent: 'center',
             marginTop: 20,
           }}>
-          {(showAll ? companyData : companyData.slice(0, 8)).map(item => (
+          {companyData.map(item => (
             <DashboardTabs
               key={item.id}
               icon={item.icon}
@@ -314,14 +293,6 @@ const Dashboard = ({navigation}) => {
               onPress={item.onPress}
             />
           ))}
-
-          {!showAll && companyData.length > 6 && (
-            <DashboardTabs
-              icon="more-horizontal"
-              name="More"
-              onPress={() => setShowAll(true)}
-            />
-          )}
         </View>
 
         <View
