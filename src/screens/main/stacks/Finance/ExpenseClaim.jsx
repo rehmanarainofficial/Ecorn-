@@ -10,7 +10,6 @@ import {
   ToastAndroid,
   Image,
   Modal,
-  Alert,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
@@ -18,6 +17,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {launchImageLibrary} from 'react-native-image-picker';
 import axios from 'axios';
+import {BASEURL} from '../../../../utils/BaseUrl';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -25,8 +25,6 @@ const COLORS = {
   Primary: '#1a1c22',
   Secondary: '#5a5c6a',
 };
-
-const BASEURL = 'https://ercon.de2solutions.com/';
 
 export default function ExpenseClaim({navigation}) {
   const [date, setDate] = useState(new Date());
@@ -53,9 +51,7 @@ export default function ExpenseClaim({navigation}) {
   const fetchAccountTitles = async () => {
     setAccountsLoading(true);
     try {
-      const response = await axios.get(
-        `${BASEURL}mobile_dash/get_gl_account.php`,
-      );
+      const response = await axios.get(`${BASEURL}get_gl_account.php`);
 
       if (response.data.status === 'true') {
         const formattedAccounts = response.data.data.map(account => ({
@@ -148,31 +144,52 @@ export default function ExpenseClaim({navigation}) {
     setLoading(true);
 
     try {
-      // TODO: API integration will be added later
-      console.log('Expense Claim Data:', {
-        date: date.toISOString().split('T')[0],
-        items: items,
-        overallMemo: overallMemo,
-      });
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      ToastAndroid.show(
-        'Expense claim submitted successfully',
-        ToastAndroid.LONG,
+      const totalAmount = items.reduce(
+        (sum, item) => sum + parseFloat(item.amount || 0),
+        0,
       );
+      const glDetail = items.map(item => ({
+        type: '41',
+        account_code: item.accountCode,
+        amount: parseFloat(item.amount),
+        memo_: item.memo || '',
+      }));
 
-      // Reset form
-      setItems([]);
-      setAccountTitle(null);
-      setAmount('');
-      setMemo('');
-      setOverallMemo('');
-      setDate(new Date());
-      setSelectedImage(null);
+      const formData = new FormData();
+      formData.append('type', '41');
+      formData.append('comments', overallMemo || '');
+      formData.append('trans_date', date.toISOString().split('T')[0]);
+      formData.append('amount', totalAmount.toString());
+      formData.append('gl_detail', JSON.stringify(glDetail));
+
+      const response = await axios.post(
+        `${BASEURL}post_service_payments.php`,
+        formData,
+        {
+          headers: {'Content-Type': 'multipart/form-data'},
+        },
+      );
+      if (response.data?.status === true) {
+        ToastAndroid.show(
+          'Expense claim submitted successfully',
+          ToastAndroid.LONG,
+        );
+
+        setItems([]);
+        setAccountTitle(null);
+        setAmount('');
+        setMemo('');
+        setOverallMemo('');
+        setDate(new Date());
+        setSelectedImage(null);
+      } else {
+        ToastAndroid.show(
+          response.data?.message || 'Server rejected submission',
+          ToastAndroid.LONG,
+        );
+      }
     } catch (error) {
-      console.log('Error:', error);
+      console.log('Error:', error.response?.data || error.message);
       ToastAndroid.show('Submission failed', ToastAndroid.LONG);
     } finally {
       setLoading(false);
