@@ -9,6 +9,7 @@ import {
   Image,
 } from 'react-native';
 import React, {useState} from 'react';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import {useDispatch, useSelector} from 'react-redux';
 import {CurrentLogin, setLoader} from '../../redux/AuthSlice';
@@ -19,6 +20,7 @@ import {APPCOLORS} from '../../utils/APPCOLORS';
 const Login = ({navigation}) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const dispatch = useDispatch();
   const Loading = useSelector(state => state.Data.Loading);
@@ -117,14 +119,25 @@ const Login = ({navigation}) => {
             />
 
             {/* Password Input */}
-            <TextInput
-              placeholder="Password"
-              placeholderTextColor="rgba(255,255,255,0.6)"
-              secureTextEntry
-              style={styles.input}
-              onChangeText={txt => setPassword(txt)}
-              value={password}
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                placeholder="Password"
+                placeholderTextColor="rgba(255,255,255,0.6)"
+                secureTextEntry={!showPassword}
+                style={styles.passwordInput}
+                onChangeText={txt => setPassword(txt)}
+                value={password}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIcon}>
+                <Ionicons
+                  name={showPassword ? 'eye-off' : 'eye'}
+                  size={22}
+                  color="rgba(255,255,255,0.7)"
+                />
+              </TouchableOpacity>
+            </View>
 
             {/* Button with Loader */}
             <TouchableOpacity
@@ -157,6 +170,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.15)',
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+    marginBottom: 15,
+  },
+  passwordInput: {
+    flex: 1,
+    color: APPCOLORS.WHITE,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 16,
+  },
+  eyeIcon: {
+    padding: 12,
   },
   button: {
     backgroundColor: APPCOLORS.BLACK,

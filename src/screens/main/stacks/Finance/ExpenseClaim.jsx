@@ -18,7 +18,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import {launchImageLibrary} from 'react-native-image-picker';
 import axios from 'axios';
 import {BASEURL} from '../../../../utils/BaseUrl';
-
+import {useSelector} from 'react-redux';
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
@@ -27,6 +27,7 @@ const COLORS = {
 };
 
 export default function ExpenseClaim({navigation}) {
+  const {id} = useSelector(state => state.Data.currentData);
   const [date, setDate] = useState(new Date());
   const [showDate, setShowDate] = useState(false);
 
@@ -117,7 +118,6 @@ export default function ExpenseClaim({navigation}) {
         accountCode: selectedAccount?.account_code || '',
         amount: amount,
         memo: memo,
-        image: selectedImage,
       },
     ]);
 
@@ -125,7 +125,6 @@ export default function ExpenseClaim({navigation}) {
     setAccountTitle(null);
     setAmount('');
     setMemo('');
-    setSelectedImage(null);
   };
 
   const handleRemoveItem = id => {
@@ -161,6 +160,17 @@ export default function ExpenseClaim({navigation}) {
       formData.append('trans_date', date.toISOString().split('T')[0]);
       formData.append('amount', totalAmount.toString());
       formData.append('gl_detail', JSON.stringify(glDetail));
+      formData.append('user_id', id);
+
+      // Add image file if selected
+      if (selectedImage) {
+        const imageFile = {
+          uri: selectedImage,
+          type: 'image/jpeg',
+          name: `expense_${Date.now()}.jpg`,
+        };
+        formData.append('filename', imageFile);
+      }
 
       const response = await axios.post(
         `${BASEURL}post_service_payments.php`,
@@ -169,7 +179,12 @@ export default function ExpenseClaim({navigation}) {
           headers: {'Content-Type': 'multipart/form-data'},
         },
       );
-      if (response.data?.status === true) {
+
+      if (
+        response.data?.status === true ||
+        response.data?.status === 'true' ||
+        response.data?.status == 1
+      ) {
         ToastAndroid.show(
           'Expense claim submitted successfully',
           ToastAndroid.LONG,
@@ -183,13 +198,14 @@ export default function ExpenseClaim({navigation}) {
         setDate(new Date());
         setSelectedImage(null);
       } else {
+        console.log('⚠️ Server rejected submission');
         ToastAndroid.show(
           response.data?.message || 'Server rejected submission',
           ToastAndroid.LONG,
         );
       }
     } catch (error) {
-      console.log('Error:', error.response?.data || error.message);
+      console.log('❌ Error:', error.response?.data || error.message);
       ToastAndroid.show('Submission failed', ToastAndroid.LONG);
     } finally {
       setLoading(false);
@@ -222,7 +238,6 @@ export default function ExpenseClaim({navigation}) {
           <Text style={styles.dateText}>
             {date.toISOString().split('T')[0]}
           </Text>
-          <Ionicons name="calendar" color={COLORS.WHITE} size={20} />
         </TouchableOpacity>
 
         {showDate && (
@@ -257,17 +272,10 @@ export default function ExpenseClaim({navigation}) {
             selectedTextStyle={{color: COLORS.WHITE}}
             itemTextStyle={{color: COLORS.BLACK}}
             renderLeftIcon={() =>
-              accountsLoading ? (
+              accountsLoading && (
                 <ActivityIndicator
                   size="small"
                   color={COLORS.WHITE}
-                  style={{marginRight: 8}}
-                />
-              ) : (
-                <Ionicons
-                  name="business"
-                  color={COLORS.WHITE}
-                  size={18}
                   style={{marginRight: 8}}
                 />
               )
@@ -293,34 +301,10 @@ export default function ExpenseClaim({navigation}) {
             onChangeText={setMemo}
           />
 
-          <TouchableOpacity
-            onPress={handleImagePicker}
-            style={[styles.imageButton, {flex: 0.3}]}>
-            {imageLoading ? (
-              <ActivityIndicator size="small" color={COLORS.WHITE} />
-            ) : (
-              <Ionicons
-                name={selectedImage ? 'checkmark-circle' : 'camera'}
-                size={24}
-                color={selectedImage ? '#4CAF50' : COLORS.WHITE}
-              />
-            )}
-          </TouchableOpacity>
-
           <TouchableOpacity onPress={handleAddItem} style={styles.addButton}>
             <Ionicons name="add" size={24} color={COLORS.WHITE} />
           </TouchableOpacity>
         </View>
-
-        {/* Selected Image Preview */}
-        {selectedImage && (
-          <TouchableOpacity
-            style={styles.imagePreviewContainer}
-            onPress={() => setShowImageModal(true)}>
-            <Image source={{uri: selectedImage}} style={styles.imagePreview} />
-            <Text style={styles.imagePreviewText}>Tap to view</Text>
-          </TouchableOpacity>
-        )}
 
         {/* Expense Items Table */}
         {items.length > 0 && (
@@ -342,7 +326,6 @@ export default function ExpenseClaim({navigation}) {
                   <Text style={styles.tableText} numberOfLines={2}>
                     {item.accountTitleLabel}
                   </Text>
-                  <Text style={styles.accountCodeText}>{item.accountCode}</Text>
                 </View>
                 <Text style={[styles.tableText, {flex: 1}]}>{item.amount}</Text>
                 <Text style={[styles.tableText, {flex: 1.2}]} numberOfLines={2}>
@@ -375,6 +358,39 @@ export default function ExpenseClaim({navigation}) {
           value={overallMemo}
           onChangeText={setOverallMemo}
         />
+
+        {/* Attach Image Section */}
+        <Text style={styles.sectionTitle}>Attach Receipt/Document</Text>
+        <TouchableOpacity
+          onPress={handleImagePicker}
+          style={styles.attachImageButton}>
+          {imageLoading ? (
+            <ActivityIndicator size="small" color={COLORS.WHITE} />
+          ) : (
+            <>
+              <Ionicons
+                name={selectedImage ? 'checkmark-circle' : 'camera'}
+                size={28}
+                color={selectedImage ? '#4CAF50' : COLORS.WHITE}
+              />
+              <Text style={styles.attachImageText}>
+                {selectedImage
+                  ? 'Image Selected - Tap to Change'
+                  : 'Select Image'}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        {/* Selected Image Preview */}
+        {selectedImage && (
+          <TouchableOpacity
+            style={styles.imagePreviewContainer}
+            onPress={() => setShowImageModal(true)}>
+            <Image source={{uri: selectedImage}} style={styles.imagePreview} />
+            <Text style={styles.imagePreviewText}>Tap to view full image</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
       {/* Image Preview Modal */}
@@ -624,6 +640,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalCloseText: {
+    color: COLORS.WHITE,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  attachImageButton: {
+    height: 60,
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginBottom: 10,
+  },
+  attachImageText: {
     color: COLORS.WHITE,
     fontSize: 16,
     fontWeight: '600',

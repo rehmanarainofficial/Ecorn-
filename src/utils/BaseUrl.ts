@@ -1,1 +1,1 @@
-export const BASEURL: string = 'https://ercon.de2solutions.com/mobile_dash/';
+export const BASEURL: string = 'https://erconindustirespvt.com/mobile_dash/';
