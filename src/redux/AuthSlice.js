@@ -1,49 +1,59 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
 import axios from 'axios';
 import Toast from 'react-native-toast-message';
-import CryptoJS from 'crypto-js';
+import {BASEURL} from '../utils/BaseUrl';
 
 export const CurrentLogin = createAsyncThunk(
-  'user',
-  async ({config, username, password}) => {
-    return axios(config)
-      .then(data => {
-        const user = data?.data?.data?.find(user => user.user_id === username);
+  'user/login',
+  async ({username, password}, {rejectWithValue}) => {
+    try {
+      const response = await axios.post(`${BASEURL}users.php`, {
+        username,
+        password,
+      });
+      if (response.data.status === 'true') {
+        const user = response.data.data.find(u => u.user_id === username);
         if (user) {
-          const hashedPassword = CryptoJS.MD5(password).toString();
-
-          if (hashedPassword === user.password) {
-            console.log('Login successful');
-            return user;
-          } else {
-            console.log('Invalid password');
-            Toast.show({
-              type: 'error',
-              text1: 'Invalid password',
-              text2: 'Your password is incorrect',
-            });
-          }
+          Toast.show({
+            type: 'success',
+            text1: 'Login Successful',
+            text2: 'Welcome back!',
+          });
+          return user;
         } else {
-          console.log('Not Found User');
           Toast.show({
             type: 'error',
-            text1: 'Invalid username',
-            text2: 'Your username is invalid',
+            text1: 'Login Failed',
+            text2: 'Could not find user data in response.',
           });
+          return rejectWithValue('User not found in response data');
         }
-      })
-      .catch(error => {
-        console.log(error);
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: response.data.message || 'Login failed',
+          text2: 'Please check your credentials and try again.',
+        });
+        return rejectWithValue(response.data);
+      }
+    } catch (error) {
+      console.log('Login API Error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Login Error',
+        text2: 'An unexpected error occurred. Please try again later.',
       });
+      return rejectWithValue(error.response?.data || error.message);
+    }
   },
 );
 
 export const AuthSlice = createSlice({
   name: 'UsersData',
   initialState: {
-    currentData: [],
+    currentData: null,
     cartData: [],
-    token: '',
+    token: null,
     GrandCartTotalPrice: '0',
     Loading: false,
     AllProduct: [],
@@ -73,21 +83,25 @@ export const AuthSlice = createSlice({
     },
 
     setLogout: state => {
-      (state.token = ''), (state.currentData = []);
+      state.token = null;
+      state.currentData = null;
     },
   },
 
   extraReducers: builder => {
     builder
+      .addCase(CurrentLogin.pending, state => {
+        state.Loading = true;
+      })
       .addCase(CurrentLogin.fulfilled, (state, action) => {
         state.Loading = false;
-        if (action.payload) {
-          state.currentData = action.payload;
-          state.token = action.payload.password;
-        }
+        state.currentData = action.payload;
+        state.token = action.payload.user_id;
       })
-      .addCase(CurrentLogin.rejected, (state, action) => {
+      .addCase(CurrentLogin.rejected, state => {
         state.Loading = false;
+        state.currentData = null;
+        state.token = null;
       });
   },
 });

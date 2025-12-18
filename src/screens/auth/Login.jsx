@@ -26,13 +26,14 @@ const Login = ({navigation}) => {
   const Loading = useSelector(state => state.Data.Loading);
 
   const loginUser = () => {
-    if (username == '') {
+    if (username.trim() === '') {
       Toast.show({
         type: 'error',
         text1: 'Please enter a username',
       });
       return;
-    } else if (password == '') {
+    }
+    if (password.trim() === '') {
       Toast.show({
         type: 'error',
         text1: 'Please enter a password',
@@ -40,15 +41,7 @@ const Login = ({navigation}) => {
       return;
     }
 
-    dispatch(setLoader(true));
-    let config = {
-      method: 'get',
-      maxBodyLength: Infinity,
-      url: `${BASEURL}users.php`,
-      headers: {},
-    };
-
-    dispatch(CurrentLogin({config, username, password}));
+    dispatch(CurrentLogin({username, password}));
   };
 
   return (
