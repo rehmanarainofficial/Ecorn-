@@ -1,31 +1,34 @@
-import {View, TouchableOpacity} from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import React from 'react';
 import LinearGradient from 'react-native-linear-gradient';
-import {responsiveFontSize, responsiveHeight} from '../utils/Responsive';
-import {APPCOLORS} from '../utils/APPCOLORS';
+import { responsiveFontSize, responsiveHeight } from '../utils/Responsive';
+import { APPCOLORS } from '../utils/APPCOLORS';
 import AppText from './AppText';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Entypo from 'react-native-vector-icons/Entypo';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {useNavigation} from '@react-navigation/native';
-import {useDispatch, useSelector} from 'react-redux';
-import {setLogout} from '../redux/AuthSlice';
+import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { setLogout } from '../redux/AuthSlice';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const AppHeader = ({title, onPress}) => {
+const AppHeader = ({ title, onPress }) => {
   const userData = useSelector(state => state.Data.currentData);
   const dispatch = useDispatch();
   const nav = useNavigation();
+  const insets = useSafeAreaInsets();
 
   return (
     <LinearGradient
       colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-      start={{x: 0, y: 0}}
-      end={{x: 1, y: 0}}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
       style={{
-        height: responsiveHeight(23),
+        paddingTop: insets.top + 0,
+        paddingHorizontal: 20,
+        paddingBottom: 20,
         borderBottomRightRadius: 20,
-        padding: 20,
       }}>
       {/* --- Top Icons Row --- */}
       <View
@@ -33,7 +36,7 @@ const AppHeader = ({title, onPress}) => {
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginTop: 30,
+          marginTop: 10,
         }}>
         <AppText
           title="Ecorn Industry"
@@ -42,7 +45,7 @@ const AppHeader = ({title, onPress}) => {
           titleWeight
         />
 
-        <View style={{flexDirection: 'row', gap: 10}}>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
           <TouchableOpacity onPress={() => onPress?.('bell')}>
             <FontAwesome
               name="bell"
@@ -92,7 +95,7 @@ const AppHeader = ({title, onPress}) => {
           justifyContent: 'space-between',
           paddingTop: 30,
         }}>
-        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <View
             style={{
               height: responsiveHeight(5),
