@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, Platform } from 'react-native'
 import React from 'react'
 import AppText from './AppText'
 import { APPCOLORS } from '../utils/APPCOLORS'
@@ -12,8 +12,14 @@ const SimpleHeader = ({ title }) => {
     const nav = useNavigation()
     const insets = useSafeAreaInsets();
 
+    // iOS ke liye proper padding, Android ke liye extra vertical padding
+    const paddingTop = Platform.OS === 'ios' 
+        ? insets.top + 15 
+        : insets.top + 20; // Android ke liye extra padding
+    const paddingBottom = Platform.OS === 'ios' ? 20 : 25; // Android ke liye extra padding
+
     return (
-        <PlatformGradient colors={[APPCOLORS.Primary, APPCOLORS.Secondary]} style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: insets.top + 15, paddingBottom: 20}}>
+        <PlatformGradient colors={[APPCOLORS.Primary, APPCOLORS.Secondary]} style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: paddingTop, paddingBottom: paddingBottom}}>
             <TouchableOpacity onPress={() => nav.goBack()}>
                 <Ionicons
                     name={"arrow-back"}

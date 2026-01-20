@@ -1,4 +1,4 @@
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, Platform } from 'react-native';
 import React from 'react';
 import PlatformGradient from './PlatformGradient';
 import { responsiveFontSize, responsiveHeight } from '../utils/Responsive';
@@ -19,14 +19,20 @@ const AppHeader = ({ title, onPress }) => {
   const nav = useNavigation();
   const insets = useSafeAreaInsets();
 
+  // iOS ke liye proper padding, Android ke liye extra vertical padding
+  const paddingTop = Platform.OS === 'ios' 
+      ? insets.top + 10 
+      : insets.top + 15; // Android ke liye extra padding
+
   return (
     <PlatformGradient
       colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
       style={{
-        paddingTop: insets.top + 10,
+        paddingTop: paddingTop,
         paddingHorizontal: 20,
+        paddingBottom: Platform.OS === 'android' ? 10 : 0, // Android ke liye extra padding
       }}>
       {/* --- Top Icons Row --- */}
       <View

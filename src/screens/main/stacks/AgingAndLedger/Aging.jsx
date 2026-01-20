@@ -21,8 +21,10 @@ import Toast from 'react-native-toast-message';
 import PlatformGradient from '../../../../components/PlatformGradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const Aging = ({navigation, route}) => {
+  const insets = useSafeAreaInsets();
   const {name, item} = route.params;
   const [aging, setAgingData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -319,7 +321,11 @@ const generatePDF = async () => {
       {/* Custom Header */}
       <PlatformGradient
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-        style={styles.header}>
+        style={[styles.header, {
+          paddingTop: Platform.OS === 'ios' 
+            ? insets.top + 10 
+            : Math.max(insets.top, 24) + 10 // Android ke liye minimum 24px status bar height
+        }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={22} color={APPCOLORS.WHITE} />
         </TouchableOpacity>
@@ -483,10 +489,9 @@ const styles = {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    height: 80,
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
-    paddingTop: 10,
+    paddingBottom: Platform.OS === 'android' ? 20 : 15, // Android ke liye extra padding
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.1,

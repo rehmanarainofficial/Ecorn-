@@ -45,6 +45,8 @@ const Detail = ({navigation}) => {
   const [AllData, setAllData] = useState();
   const [expenseData, setExpenseData] = useState([]);
   const [loader, setLoader] = useState(false);
+  console.log('accessData', accessData);
+  console.log('AllData', AllData);
 
   const incomeData = [
     {
@@ -158,7 +160,6 @@ const Detail = ({navigation}) => {
 
   // Platform-specific colors for cards
   const cardColors = getCardColors();
-
 
   return (
     <PlatformGradient
