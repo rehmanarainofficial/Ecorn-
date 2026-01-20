@@ -2,6 +2,8 @@ import {PDFDocument, rgb, StandardFonts} from 'pdf-lib';
 import RNBlobUtil from 'react-native-blob-util';
 import {Platform} from 'react-native';
 import Toast from 'react-native-toast-message';
+import {formatDate, formatDateString} from '../utils/DateUtils';
+import {formatNumber, formatQuantity} from '../utils/NumberUtils';
 
 export const generateAndDownloadPDF = async (data, reference) => {
   try {
@@ -44,14 +46,14 @@ export const generateAndDownloadPDF = async (data, reference) => {
 
     const headerFields = [
       {label: 'Reference:', value: header?.reference},
-      {label: 'Date:', value: header?.trans_date},
-      {label: 'Due Date:', value: header?.due_date},
+      {label: 'Date:', value: formatDateString(header?.trans_date)},
+      {label: 'Due Date:', value: formatDateString(header?.due_date)},
       {label: 'Type:', value: header?.type},
       {label: 'Customer:', value: header?.name},
       {label: 'Location:', value: header?.location_name},
       {label: 'Salesman:', value: header?.salesman},
       {label: 'Payment Terms:', value: header?.payment_terms},
-      {label: 'Total Amount:', value: header?.total},
+      {label: 'Total Amount:', value: formatNumber(header?.total)},
     ];
 
     headerFields.forEach(field => {
@@ -142,20 +144,20 @@ export const generateAndDownloadPDF = async (data, reference) => {
         // Basic item information in two columns
         const leftColumn = [
           {label: 'Stock ID:', value: item.stock_id},
-          {label: 'Quantity:', value: item.quantity},
+          {label: 'Quantity:', value: formatQuantity(item.quantity)},
         ];
 
         const rightColumn = [
-          {label: 'Unit Price:', value: item.unit_price},
+          {label: 'Unit Price:', value: formatNumber(item.unit_price)},
           {
             label: 'Discount:',
             value: item.discount_percent ? `${item.discount_percent}%` : '0%',
           },
           {
             label: 'Total:',
-            value: (
-              parseFloat(item.quantity) * parseFloat(item.unit_price)
-            ).toFixed(2),
+            value: formatNumber(
+              parseFloat(item.quantity) * parseFloat(item.unit_price),
+            ),
           },
         ];
 
@@ -205,7 +207,7 @@ export const generateAndDownloadPDF = async (data, reference) => {
         });
 
         yPosition -= 10;
-        
+
         // Long Description with proper text wrapping
         if (item.long_description) {
           page.drawText('Detailed Description:', {
@@ -275,7 +277,7 @@ export const generateAndDownloadPDF = async (data, reference) => {
         color: rgb(0.5, 0.5, 0.5),
       });
 
-      page.drawText(`Generated on: ${new Date().toLocaleDateString()}`, {
+      page.drawText(`Generated on: ${formatDate(new Date())}`, {
         x: 50,
         y: 30,
         size: 8,
@@ -313,22 +315,24 @@ export const generateAndDownloadPDF = async (data, reference) => {
 };
 
 // Improved text cleaning function
-const cleanText = (text) => {
+const cleanText = text => {
   if (!text) return '';
-  
-  return text
-    // Replace HTML entities
-    .replace(/&#039;/g, "'")
-    .replace(/&quot;/g, '"')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    // Replace newline characters with spaces
-    .replace(/\n/g, ' ')
-    .replace(/\r/g, ' ')
-    // Remove multiple spaces
-    .replace(/\s+/g, ' ')
-    .trim();
+
+  return (
+    text
+      // Replace HTML entities
+      .replace(/&#039;/g, "'")
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      // Replace newline characters with spaces
+      .replace(/\n/g, ' ')
+      .replace(/\r/g, ' ')
+      // Remove multiple spaces
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 };
 
 // Improved wrapText function that handles special characters
@@ -340,12 +344,12 @@ const wrapText = (text, maxWidth, fontSize, font) => {
   words.forEach(word => {
     // Clean each word from any special characters
     const cleanWord = word.replace(/[^\x20-\x7E]/g, '');
-    
+
     if (cleanWord === '') return; // Skip empty words
 
     const testLine = currentLine ? `${currentLine} ${cleanWord}` : cleanWord;
     const testWidth = font.widthOfTextAtSize(testLine, fontSize);
-    
+
     if (testWidth <= maxWidth) {
       currentLine = testLine;
     } else {

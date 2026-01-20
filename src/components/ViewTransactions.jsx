@@ -13,7 +13,8 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SimpleHeader from '../components/SimpleHeader';
 import axios from 'axios';
-import {BASEURL} from '../utils/BaseUrl';
+import {formatDateString} from '../utils/DateUtils';
+import {formatNumber} from '../utils/NumberUtils';
 
 const ViewTransactions = ({navigation, route}) => {
   const {trans_no, type} = route.params || {};
@@ -62,23 +63,12 @@ const ViewTransactions = ({navigation, route}) => {
     }
   };
 
-  const formatAmount = amount => {
-    if (!amount) return '0.00';
-    const num = parseFloat(amount);
-    return num.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+  const formatAmountDisplay = amount => {
+    return formatNumber(amount);
   };
 
-  const formatDate = dateString => {
-    if (!dateString) return 'N/A';
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-GB');
-    } catch (e) {
-      return dateString;
-    }
+  const formatDateDisplay = dateString => {
+    return formatDateString(dateString);
   };
 
   const renderHeaderItem = () => {
@@ -101,11 +91,13 @@ const ViewTransactions = ({navigation, route}) => {
         <View style={styles.headerRow}>
           <View style={styles.headerField}>
             <Text style={styles.label}>Date:</Text>
-            <Text style={styles.value}>{formatDate(item.trans_date)}</Text>
+            <Text style={styles.value}>
+              {formatDateDisplay(item.trans_date)}
+            </Text>
           </View>
           <View style={styles.headerField}>
             <Text style={styles.label}>Due Date:</Text>
-            <Text style={styles.value}>{formatDate(item.due_date)}</Text>
+            <Text style={styles.value}>{formatDateDisplay(item.due_date)}</Text>
           </View>
         </View>
 
@@ -135,13 +127,13 @@ const ViewTransactions = ({navigation, route}) => {
           <View style={styles.summaryItem}>
             <Text style={styles.label}>Total Amount:</Text>
             <Text style={styles.totalAmount}>
-              Rs. {formatAmount(item.total)}
+              Rs. {formatAmountDisplay(item.total)}
             </Text>
           </View>
           <View style={styles.summaryItem}>
             <Text style={styles.label}>Discount:</Text>
             <Text style={styles.discount}>
-              Rs. {formatAmount(item.discount)}
+              Rs. {formatAmountDisplay(item.discount)}
             </Text>
           </View>
         </View>
@@ -172,7 +164,7 @@ const ViewTransactions = ({navigation, route}) => {
           {item.quantity || '0'}
         </Text>
         <Text style={[styles.detailText, {flex: 2, textAlign: 'right'}]}>
-          Rs. {formatAmount(item.unit_price)}
+          Rs. {formatAmountDisplay(item.unit_price)}
         </Text>
       </View>
       {item.long_description && (

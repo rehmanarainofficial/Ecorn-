@@ -24,8 +24,9 @@ import {useSelector} from 'react-redux';
 import moment from 'moment';
 import {BASEURL} from '../../../utils/BaseUrl';
 import Toast from 'react-native-toast-message';
-import { APPCOLORS } from '../../../utils/APPCOLORS';
-import { responsiveWidth } from '../../../utils/Responsive';
+import {APPCOLORS} from '../../../utils/APPCOLORS';
+import {formatNumber} from '../../../utils/NumberUtils';
+import {responsiveWidth} from '../../../utils/Responsive';
 const SupplierHome = ({navigation, route}) => {
   const CurrentUser = useSelector(state => state.Data.currentData);
   const day = moment().format('dddd');
@@ -34,7 +35,6 @@ const SupplierHome = ({navigation, route}) => {
 
   const {type} = route.params;
   const [offlineSyncLoader, setOfflineSyncLoader] = useState(false);
-
 
   const arr = [
     {id: 1},
@@ -83,7 +83,6 @@ const SupplierHome = ({navigation, route}) => {
 
   // Filter orders based on search input
   const filteredOrders = AllOrders?.filter(val => {
-
     const itemNameLowerCase = val?.supp_name?.toLowerCase();
     if (Search === '') {
       return val;
@@ -118,7 +117,7 @@ const SupplierHome = ({navigation, route}) => {
       .request(configs)
       .then(async response => {
         // setAllOrders(response?.data?.data);
-        console.log("first", response.data.data)
+        console.log('first', response.data.data);
         setAllOrders(response.data.data);
 
         await AsyncStorage.setItem(
@@ -129,10 +128,8 @@ const SupplierHome = ({navigation, route}) => {
         setLoadMore(false);
         setPage(prevPage => prevPage + 1);
         console.log('response: ' + response.data.data);
-        return
+        return;
         // setAllOrders(prevData => [...prevData, ...response.data.data]);
-        
-
       })
       .catch(async error => {
         console.log(error);
@@ -143,59 +140,58 @@ const SupplierHome = ({navigation, route}) => {
       });
   };
 
-//   const loaderMoreData = async (num = 0) => {
-//     setLoadMore(true);
-//     let datas = new FormData();
-//     datas.append('dim_id', CurrentUser?.dim_id);
-//     datas.append('area_code', CurrentUser?.area_code);
-//     datas.append('role_id', CurrentUser?.role_id);
-//     datas.append('week_day', day);
-//     datas.append('customer_status', num);
-//     datas.append('page', page);
+  //   const loaderMoreData = async (num = 0) => {
+  //     setLoadMore(true);
+  //     let datas = new FormData();
+  //     datas.append('dim_id', CurrentUser?.dim_id);
+  //     datas.append('area_code', CurrentUser?.area_code);
+  //     datas.append('role_id', CurrentUser?.role_id);
+  //     datas.append('week_day', day);
+  //     datas.append('customer_status', num);
+  //     datas.append('page', page);
 
-    
-//     console.log("datasdatasdatasdatasdatasdatas",datas)
-//     let configs = {
-//       method: 'post',
-//       maxBodyLength: Infinity,
-//       url: `${BASEURL}debtors_master.php`,
-//       headers: {
-//         'Content-Type': 'multipart/form-data',
-//       },
-//       data: datas,
-//     };
+  //     console.log("datasdatasdatasdatasdatasdatas",datas)
+  //     let configs = {
+  //       method: 'post',
+  //       maxBodyLength: Infinity,
+  //       url: `${BASEURL}debtors_master.php`,
+  //       headers: {
+  //         'Content-Type': 'multipart/form-data',
+  //       },
+  //       data: datas,
+  //     };
 
-//     axios
-//       .request(configs)
-//       .then(async response => {
-//         // setAllOrders(response?.data?.data);
-//         // setAllOrders(prevData => [...prevData, ...response.data.data]);
-//         setAllOrders(prevData => {
-//           const allOrders = [...prevData, ...response.data.data];
-//           const uniqueOrders = allOrders.filter(
-//             (order, index, self) => index === self.findIndex(o => o.debtor_ref === order.debtor_ref)
-//           );
-//           return uniqueOrders;
-//         });
-        
-//         setLoadMore(false);
-//         setPage(prevPage => prevPage + 1);
-//         console.log('response: ' + response.data.data);
+  //     axios
+  //       .request(configs)
+  //       .then(async response => {
+  //         // setAllOrders(response?.data?.data);
+  //         // setAllOrders(prevData => [...prevData, ...response.data.data]);
+  //         setAllOrders(prevData => {
+  //           const allOrders = [...prevData, ...response.data.data];
+  //           const uniqueOrders = allOrders.filter(
+  //             (order, index, self) => index === self.findIndex(o => o.debtor_ref === order.debtor_ref)
+  //           );
+  //           return uniqueOrders;
+  //         });
 
-//         await AsyncStorage.setItem(
-//           'GetAllCustomers',
-//           JSON.stringify(response?.data?.data),
-//         );
-//       })
-//       .catch(async error => {
-//         console.log(error);
-//         setLoader(false);
-//         setLoadMore(false);
+  //         setLoadMore(false);
+  //         setPage(prevPage => prevPage + 1);
+  //         console.log('response: ' + response.data.data);
 
-//         const getAllProducts = await AsyncStorage.getItem('GetAllCustomers');
-//         setAllOrders(JSON.parse(getAllProducts));
-//       });
-//   };
+  //         await AsyncStorage.setItem(
+  //           'GetAllCustomers',
+  //           JSON.stringify(response?.data?.data),
+  //         );
+  //       })
+  //       .catch(async error => {
+  //         console.log(error);
+  //         setLoader(false);
+  //         setLoadMore(false);
+
+  //         const getAllProducts = await AsyncStorage.getItem('GetAllCustomers');
+  //         setAllOrders(JSON.parse(getAllProducts));
+  //       });
+  //   };
 
   const processStoredVisits = async () => {
     setOfflineSyncLoader(true);
@@ -363,7 +359,7 @@ const SupplierHome = ({navigation, route}) => {
           </View>
         </View>
       </View>
-{/* 
+      {/* 
       <View
         style={{
           marginTop: 10,
@@ -511,9 +507,9 @@ const SupplierHome = ({navigation, route}) => {
                 // }}
                 // onEndReachedThreshold={1} // Trigger when 50% close to the end
                 renderItem={({item, index}) => {
-                  console.log("item", item.supp_name)
+                  console.log('item', item.supp_name);
 
-                //   return
+                  //   return
                   return (
                     <View
                       key={index}
@@ -588,7 +584,10 @@ const SupplierHome = ({navigation, route}) => {
                         }}>
                         <TouchableOpacity
                           onPress={() =>
-                            navigation.navigate('AddItems', {data: item, userType: type})
+                            navigation.navigate('AddItems', {
+                              data: item,
+                              userType: type,
+                            })
                           }
                           style={{width: '47%'}}>
                           <PlatformGradient
@@ -657,7 +656,10 @@ const SupplierHome = ({navigation, route}) => {
                         }}>
                         <TouchableOpacity
                           onPress={() =>
-                            navigation.navigate('PaymentScreen', {data: item, userType: type})
+                            navigation.navigate('PaymentScreen', {
+                              data: item,
+                              userType: type,
+                            })
                           }>
                           <PlatformGradient
                             colors={[
@@ -708,11 +710,7 @@ const SupplierHome = ({navigation, route}) => {
                               }}>
                               Total Order
                             </Text>
-                            <Text>
-                              {typeof item.last_order_total == 'string'
-                                ? JSON.parse(item?.last_order_total).toFixed(2)
-                                : item.last_order_total}
-                            </Text>
+                            <Text>{formatNumber(item.last_order_total)}</Text>
                           </View>
 
                           <View>
@@ -723,12 +721,7 @@ const SupplierHome = ({navigation, route}) => {
                               }}>
                               Total Pay
                             </Text>
-                            <Text>
-                              Rs{' '}
-                              {Number(JSON.parse(item.current_balance)).toFixed(
-                                2,
-                              )}
-                            </Text>
+                            <Text>Rs {formatNumber(item.current_balance)}</Text>
                           </View>
                         </View>
                       </View>
@@ -742,7 +735,6 @@ const SupplierHome = ({navigation, route}) => {
               </Text>
             )}
           </>
-          
         </View>
       )}
 

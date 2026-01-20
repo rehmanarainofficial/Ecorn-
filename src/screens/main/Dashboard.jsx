@@ -27,6 +27,7 @@ import moment from 'moment';
 import GetUserAccessData from '../../global/GetUserAccessData';
 import {useDispatch, useSelector} from 'react-redux';
 import {setUserAccess} from '../../redux/AuthSlice';
+import {formatNumber} from '../../utils/NumberUtils';
 
 const Dashboard = ({navigation}) => {
   const [visible, setVisible] = useState(false);
@@ -259,9 +260,7 @@ const Dashboard = ({navigation}) => {
                         titleSize={2}
                       />
                       <AppText
-                        title={Math.round(
-                          JSON.parse(item?.total),
-                        ).toLocaleString()}
+                        title={formatNumber(item?.total)}
                         titleColor={APPCOLORS.WHITE}
                         titleWeight
                         titleSize={1.8}

@@ -14,7 +14,8 @@ import {Dropdown} from 'react-native-element-dropdown';
 import PlatformGradient from '../../../../components/PlatformGradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
-import { BASEURL } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
+import {formatQuantity} from '../../../../utils/NumberUtils';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -267,7 +268,7 @@ export default function LocationTransfer({navigation}) {
           <View key={row.id} style={styles.tableRow}>
             <Text style={[styles.tableText, {flex: 7}]}>{row.description}</Text>
             <Text style={[styles.tableText, {flex: 2}]}>
-              {row.quantity_ordered}
+              {formatQuantity(row.quantity_ordered)}
             </Text>
             <TouchableOpacity
               style={{flex: 1, alignItems: 'center'}}

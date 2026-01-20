@@ -17,6 +17,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import {useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
 import {BASEURL} from '../../../../utils/BaseUrl';
+import {formatDate} from '../../../../utils/DateUtils';
+import {formatNumber} from '../../../../utils/NumberUtils';
 
 const ApprovalListScreen = ({route, navigation}) => {
   const {listKey, title} = route.params;
@@ -29,6 +31,8 @@ const ApprovalListScreen = ({route, navigation}) => {
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
   const [reference, setReference] = useState('');
+  const [searchName, setSearchName] = useState('');
+  const [searchLocation, setSearchLocation] = useState('');
   const [showDatePicker, setShowDatePicker] = useState({
     visible: false,
     type: null,
@@ -60,6 +64,10 @@ const ApprovalListScreen = ({route, navigation}) => {
     fetchInitialData(threeMonthsAgo, today, '');
   }, []);
 
+  const formatPrice = price => {
+    return formatNumber(price);
+  };
+
   const formatDateForAPI = date => {
     if (!date) return '';
     const year = date.getFullYear();
@@ -70,7 +78,7 @@ const ApprovalListScreen = ({route, navigation}) => {
 
   const formatDateForDisplay = date => {
     if (!date) return 'Select Date';
-    return date.toLocaleDateString('en-GB');
+    return formatDate(date);
   };
 
   // ✅ Initial data fetch (on component mount)
@@ -144,13 +152,35 @@ const ApprovalListScreen = ({route, navigation}) => {
 
       setData(newData);
 
-      // Apply local reference filter if needed
+      // Apply local filters (Reference & Name) if needed
       let filtered = [...newData];
       if (reference.trim() !== '') {
         filtered = filtered.filter(
           item =>
             item.reference &&
             item.reference.toLowerCase().includes(reference.toLowerCase()),
+        );
+      }
+
+      if (searchName.trim() !== '') {
+        filtered = filtered.filter(
+          item =>
+            item.name &&
+            item.name.toLowerCase().includes(searchName.toLowerCase()),
+        );
+      }
+
+      if (searchLocation.trim() !== '') {
+        filtered = filtered.filter(
+          item =>
+            (item.location_name &&
+              item.location_name
+                .toLowerCase()
+                .includes(searchLocation.toLowerCase())) ||
+            (item.loc_name &&
+              item.loc_name
+                .toLowerCase()
+                .includes(searchLocation.toLowerCase())),
         );
       }
 
@@ -176,6 +206,8 @@ const ApprovalListScreen = ({route, navigation}) => {
   // ✅ Clear filters handler
   const handleClearFilters = () => {
     setReference('');
+    setSearchName('');
+    setSearchLocation('');
     const today = new Date();
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(today.getMonth() - 3);
@@ -265,9 +297,9 @@ const ApprovalListScreen = ({route, navigation}) => {
           </TouchableOpacity>
         </View>
 
-        {/* Row 2: Reference Search */}
-        <View style={styles.searchRow}>
-          <View style={styles.searchContainer}>
+        {/* Row 2: Reference Search (Full Width) */}
+        <View style={[styles.searchRow, {marginBottom: 8}]}>
+          <View style={[styles.searchContainer, {marginRight: 0}]}>
             <Icon
               name="magnify"
               size={20}
@@ -280,6 +312,25 @@ const ApprovalListScreen = ({route, navigation}) => {
               placeholderTextColor="#888"
               value={reference}
               onChangeText={setReference}
+            />
+          </View>
+        </View>
+
+        {/* Row 3: Name Search and Buttons */}
+        <View style={styles.searchRow}>
+          <View style={styles.searchContainer}>
+            <Icon
+              name="account-search"
+              size={20}
+              color="#666"
+              style={styles.searchIcon}
+            />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search by name..."
+              placeholderTextColor="#888"
+              value={searchName}
+              onChangeText={setSearchName}
             />
           </View>
 
@@ -302,6 +353,27 @@ const ApprovalListScreen = ({route, navigation}) => {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Row 4: Cost Center Search (Full Width) */}
+        {listKey !== 'quotation_approval' && (
+          <View style={[styles.searchRow, {marginTop: 8}]}>
+            <View style={[styles.searchContainer, {marginRight: 0}]}>
+              <Icon
+                name="map-marker-outline"
+                size={20}
+                color="#666"
+                style={styles.searchIcon}
+              />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search by cost center..."
+                placeholderTextColor="#888"
+                value={searchLocation}
+                onChangeText={setSearchLocation}
+              />
+            </View>
+          </View>
+        )}
       </View>
 
       {/* Date Picker */}
@@ -370,11 +442,15 @@ const ApprovalListScreen = ({route, navigation}) => {
                 color: APPCOLORS.WHITE,
                 paddingHorizontal: 20,
               }}>
-              {reference || fromDate || toDate
+              {reference || searchName || searchLocation || fromDate || toDate
                 ? 'No records found matching your filters'
                 : 'There are no records pending for approval in this module.'}
             </Text>
-            {(reference || fromDate || toDate) && (
+            {(reference ||
+              searchName ||
+              searchLocation ||
+              fromDate ||
+              toDate) && (
               <TouchableOpacity
                 style={styles.retryButton}
                 onPress={handleClearFilters}>

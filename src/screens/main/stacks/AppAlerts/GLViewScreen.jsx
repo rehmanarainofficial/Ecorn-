@@ -4,6 +4,7 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import AppText from '../../../../components/AppText';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import PlatformGradient from '../../../../components/PlatformGradient';
+import {formatNumber} from '../../../../utils/NumberUtils';
 
 const GLViewScreen = ({route}) => {
   const {glData} = route.params;
@@ -11,8 +12,8 @@ const GLViewScreen = ({route}) => {
   const details = glData.data_detail || [];
 
   // Animation values
-  const fadeAnim = new Animated.Value(0);
-  const slideAnim = new Animated.Value(50);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const slideAnim = React.useRef(new Animated.Value(50)).current;
 
   React.useEffect(() => {
     Animated.parallel([
@@ -30,13 +31,8 @@ const GLViewScreen = ({route}) => {
   }, []);
 
   // Format amount display
-  const formatAmount = amount => {
-    if (!amount || amount === '0') return '-';
-    const num = parseFloat(amount);
-    return num.toLocaleString('en-PK', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+  const formatAmountDisplay = amount => {
+    return formatNumber(amount);
   };
 
   // Calculate totals
@@ -286,7 +282,7 @@ const GLViewScreen = ({route}) => {
                               titleWeight
                             />
                             <AppText
-                              title={formatAmount(entry.debit)}
+                              title={formatAmountDisplay(entry.debit)}
                               titleSize={2}
                               titleColor={APPCOLORS.WHITE}
                               titleWeight
@@ -303,7 +299,7 @@ const GLViewScreen = ({route}) => {
                               titleWeight
                             />
                             <AppText
-                              title={formatAmount(entry.credit)}
+                              title={formatAmountDisplay(entry.credit)}
                               titleSize={2}
                               titleColor={APPCOLORS.WHITE}
                               titleWeight
@@ -362,7 +358,7 @@ const GLViewScreen = ({route}) => {
                     titleWeight
                   />
                   <AppText
-                    title={formatAmount(totalDebit)}
+                    title={formatAmountDisplay(totalDebit)}
                     titleSize={2.2}
                     titleColor={APPCOLORS.WHITE}
                     titleWeight
@@ -376,7 +372,7 @@ const GLViewScreen = ({route}) => {
                     titleWeight
                   />
                   <AppText
-                    title={formatAmount(totalCredit)}
+                    title={formatAmountDisplay(totalCredit)}
                     titleSize={2.2}
                     titleColor={APPCOLORS.WHITE}
                     titleWeight

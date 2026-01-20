@@ -11,11 +11,8 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
 import PlatformGradient from '../../../../components/PlatformGradient';
-import {
-  GetBankBalance,
-  GetPayable,
-  GetReceivable,
-} from '../../../../global/ChartApisCall';
+import {GetReceivable} from '../../../../global/ChartApisCall';
+import {formatNumber} from '../../../../utils/NumberUtils';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -206,7 +203,7 @@ const MoreDetail = ({navigation, route}) => {
               <View style={styles.summaryCard}>
                 <Text style={styles.summaryTitle}>{getTitle()}</Text>
                 <Text style={styles.summaryAmount}>
-                  {totalBalance.toLocaleString()}
+                  {formatNumber(totalBalance)}
                 </Text>
                 <Text style={styles.summarySubtitle}>
                   Total from {listData.length} accounts

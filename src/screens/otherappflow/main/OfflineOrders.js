@@ -1,46 +1,49 @@
-import {View, Text, TouchableOpacity, TextInput, FlatList, ScrollView, ActivityIndicator} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  FlatList,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
 import React, {useEffect, useState} from 'react';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
-import { useDispatch, useSelector } from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import axios from 'axios';
 import {BASEURL} from '../../../utils/BaseUrl';
-import { APPCOLORS } from '../../../utils/APPCOLORS';
+import {APPCOLORS} from '../../../utils/APPCOLORS';
+import {formatNumber, formatQuantity} from '../../../utils/NumberUtils';
 
 const OfflineOrders = ({navigation}) => {
   const [Search, setSearch] = useState('');
   const [fetchAllOffline, setFetchOffLine] = useState([]);
-  const [loading, setloading] = useState(false)
+  const [loading, setloading] = useState(false);
   const CurrentUser = useSelector(state => state.Data.currentData);
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   useEffect(() => {
     getSavedData();
   }, []);
 
   const getSavedData = async () => {
-    setloading(true)
+    setloading(true);
     const res = await AsyncStorage.getItem('setUserOr');
 
     const parsed = JSON.parse(res);
     setFetchOffLine(parsed);
-    setloading(false)
+    setloading(false);
   };
 
-  
-
   const confirm_Order = () => {
-
     const date = Date.now();
     const formattedDate = moment(date).format('YYYY-MM-DD');
-    
-   
 
-    fetchAllOffline.forEach((data)=>{
-
-      console.log("data",data.purch_order_details)
+    fetchAllOffline.forEach(data => {
+      console.log('data', data.purch_order_details);
 
       // return
 
@@ -81,23 +84,19 @@ const OfflineOrders = ({navigation}) => {
           console.log(JSON.stringify(response.data));
           // dispatch(setLoader(false));
           // dispatch(setCartData([]));
-          console.log("successfulyy uploaded")
+          console.log('successfulyy uploaded');
           await AsyncStorage.removeItem(`${data?.debtor_no}`);
           await AsyncStorage.removeItem(`${data?.debtor_no}_GrandTotal`);
           await AsyncStorage.removeItem(`setUserOr`);
-          getSavedData()
+          getSavedData();
         })
-        .catch(async(error) => {
+        .catch(async error => {
           console.log(error);
-        
 
           // dispatch(setLoader(false));
-      
         });
-
-
-  })
-  }
+    });
+  };
   return (
     <View>
       <View
@@ -116,7 +115,7 @@ const OfflineOrders = ({navigation}) => {
         </TouchableOpacity>
 
         <TouchableOpacity
-        onPress={()=> confirm_Order()}
+          onPress={() => confirm_Order()}
           style={{
             height: 40,
             width: '85%',
@@ -125,24 +124,31 @@ const OfflineOrders = ({navigation}) => {
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            justifyContent:'center',
+            justifyContent: 'center',
             paddingHorizontal: 10,
           }}>
-            <Text style={{color:APPCOLORS.BLACK, fontWeight:'bold', fontSize:18}}>Confirm Order</Text>
+          <Text
+            style={{color: APPCOLORS.BLACK, fontWeight: 'bold', fontSize: 18}}>
+            Confirm Order
+          </Text>
         </TouchableOpacity>
       </View>
-          {
-            loading &&
-            <ActivityIndicator size={'large'} color={'black'}/>
-          }
-    <ScrollView contentContainerStyle={{flexGrow:1,paddingBottom:120}}>
+      {loading && <ActivityIndicator size={'large'} color={'black'} />}
+      <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: 120}}>
         <FlatList
           data={fetchAllOffline}
           renderItem={({item}) => {
-            console.log("item", item)
+            console.log('item', item);
             return (
-              <View style={{padding:20,}}>
-                <Text style={{fontSize:20, fontWeight:'bold', color:APPCOLORS.BLACK}}>{item?.CustName}</Text>
+              <View style={{padding: 20}}>
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 'bold',
+                    color: APPCOLORS.BLACK,
+                  }}>
+                  {item?.CustName}
+                </Text>
                 {
                   <FlatList
                     data={JSON.parse(item.purch_order_details)}
@@ -156,10 +162,6 @@ const OfflineOrders = ({navigation}) => {
                             borderRadius: 10,
                             padding: 10,
                           }}>
-                          
-
-                          
-
                           <View
                             style={{
                               flexDirection: 'row',
@@ -197,7 +199,7 @@ const OfflineOrders = ({navigation}) => {
 
                             <Text
                               style={{color: APPCOLORS.BLACK, fontSize: 15}}>
-                              {item?.quantity_ordered}
+                              {formatQuantity(item?.quantity_ordered)}
                             </Text>
                           </View>
 
@@ -217,7 +219,7 @@ const OfflineOrders = ({navigation}) => {
                             </Text>
                             <Text
                               style={{color: APPCOLORS.BLACK, fontSize: 15}}>
-                              Rs {item?.unit_price}
+                              Rs {formatNumber(item?.unit_price)}
                             </Text>
                           </View>
 
@@ -237,7 +239,7 @@ const OfflineOrders = ({navigation}) => {
                             </Text>
                             <Text
                               style={{color: APPCOLORS.BLACK, fontSize: 15}}>
-                              Rs {item?.ProductDiscount}
+                              Rs {formatNumber(item?.ProductDiscount)}
                             </Text>
                           </View>
 
@@ -258,10 +260,7 @@ const OfflineOrders = ({navigation}) => {
 
                             <Text
                               style={{color: APPCOLORS.BLACK, fontSize: 15}}>
-                              Rs{' '}
-                              {typeof item.GrandTotal == 'number'
-                                ? item.GrandTotal.toFixed(2)
-                                : item.GrandTotal}
+                              Rs {formatNumber(item.GrandTotal)}
                             </Text>
                           </View>
                         </View>
@@ -273,7 +272,7 @@ const OfflineOrders = ({navigation}) => {
             );
           }}
         />
-        </ScrollView>
+      </ScrollView>
     </View>
   );
 };

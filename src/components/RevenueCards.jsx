@@ -5,6 +5,7 @@ import PlatformGradient from './PlatformGradient';
 import {responsiveFontSize, responsiveWidth} from '../utils/Responsive';
 import {APPCOLORS} from '../utils/APPCOLORS';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import {formatNumber} from '../utils/NumberUtils';
 
 const RevenueCards = ({
   amount,
@@ -43,7 +44,7 @@ const RevenueCards = ({
               alignItems: 'center',
             }}>
             <AppText
-              title={`Rs.${Math.round(amount).toLocaleString()}`}
+              title={`Rs.${formatNumber(amount)}`}
               titleSize={2}
               titleColor={APPCOLORS.WHITE}
               titleWeight

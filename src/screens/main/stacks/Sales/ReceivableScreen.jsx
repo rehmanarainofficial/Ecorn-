@@ -1,10 +1,10 @@
 import {
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
   FlatList,
-  ActivityIndicator
+  ActivityIndicator,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
@@ -12,6 +12,7 @@ import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
 import {GetReceivable} from '../../../../global/ChartApisCall';
 import PlatformGradient from '../../../../components/PlatformGradient';
+import {formatNumber} from '../../../../utils/NumberUtils';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -50,7 +51,7 @@ const ReceivableScreen = ({navigation}) => {
   const fetchData = async () => {
     console.log('🔄 [Receivable DEBUG] Fetching receivable data...');
     setLoading(true);
-    
+
     try {
       const apiResponse = await GetReceivable();
       console.log('✅ [Receivable DEBUG] API Response:', apiResponse);
@@ -69,7 +70,6 @@ const ReceivableScreen = ({navigation}) => {
 
       setDataState(apiResponse);
       setLoading(false);
-      
     } catch (error) {
       console.error('❌ [Receivable DEBUG] API Error:', error);
       setLoading(false);
@@ -101,41 +101,40 @@ const ReceivableScreen = ({navigation}) => {
           <Text style={styles.loaderText}>Loading Receivable Data...</Text>
         </View>
       ) : (
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={true}>
           <View style={styles.container}>
-
             {/* Summary Section - PieChart ki jagah */}
             <View style={styles.summaryContainer}>
               <View style={styles.summaryCard}>
                 <Text style={styles.summaryTitle}>Total Receivable</Text>
                 <Text style={styles.summaryAmount}>
-                  {totalBalance.toLocaleString()}
+                  {formatNumber(totalBalance)}
                 </Text>
                 <Text style={styles.summarySubtitle}>
                   From {listData.length} customers
                 </Text>
               </View>
-              
+
               {/* Top Customers Legend */}
               {listData.length > 0 && (
                 <View style={styles.legendContainer}>
                   <Text style={styles.legendTitle}>Top Customers:</Text>
                   {listData.slice(0, 5).map((item, index) => (
                     <View key={index} style={styles.legendItem}>
-                      <View 
+                      <View
                         style={[
-                          styles.legendColor, 
-                          {backgroundColor: colors[index % colors.length]}
-                        ]} 
+                          styles.legendColor,
+                          {backgroundColor: colors[index % colors.length]},
+                        ]}
                       />
                       <Text style={styles.legendText} numberOfLines={1}>
                         {item?.name || 'Unknown Customer'}
                       </Text>
                       <Text style={styles.legendBalance}>
-                        {parseFloat(item?.Balance || 0).toLocaleString()}
+                        {formatNumber(item?.Balance)}
                       </Text>
                     </View>
                   ))}
@@ -168,7 +167,7 @@ const ReceivableScreen = ({navigation}) => {
                   data={listData.slice(0, 10)}
                   contentContainerStyle={styles.listContent}
                   scrollEnabled={false}
-                  keyExtractor={(item, index) => 
+                  keyExtractor={(item, index) =>
                     `receivable-${index}-${item.name || 'customer'}`
                   }
                   renderItem={({item, index}) => {
@@ -178,19 +177,27 @@ const ReceivableScreen = ({navigation}) => {
                       0,
                     );
                     const perc =
-                      total !== 0 ? ((Math.abs(balance) / Math.abs(total)) * 100).toFixed(2) : 0;
+                      total !== 0
+                        ? ((Math.abs(balance) / Math.abs(total)) * 100).toFixed(
+                            2,
+                          )
+                        : 0;
 
                     console.log(`📊 [Receivable DEBUG] Customer ${index}:`, {
                       name: item.name,
                       balance,
-                      perc
+                      perc,
                     });
 
                     return (
-                      <View style={[
-                        styles.card,
-                        {borderLeftColor: colors[index % colors.length], borderLeftWidth: 4}
-                      ]}>
+                      <View
+                        style={[
+                          styles.card,
+                          {
+                            borderLeftColor: colors[index % colors.length],
+                            borderLeftWidth: 4,
+                          },
+                        ]}>
                         <NameBalanceContainer
                           Name={item?.name || 'Unknown Customer'}
                           balance={balance}
@@ -201,7 +208,9 @@ const ReceivableScreen = ({navigation}) => {
                   }}
                   ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                      <Text style={styles.emptyText}>No receivable data available</Text>
+                      <Text style={styles.emptyText}>
+                        No receivable data available
+                      </Text>
                     </View>
                   }
                 />

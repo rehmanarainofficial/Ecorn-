@@ -13,6 +13,7 @@ import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 import SimpleHeader from '../../../../../components/SimpleHeader';
 import {BASEURL} from '../../../../../utils/BaseUrl';
+import {formatQuantity} from '../../../../../utils/NumberUtils';
 
 const DeliveryNote = ({route}) => {
   const navigation = useNavigation();
@@ -216,15 +217,21 @@ const DeliveryNote = ({route}) => {
               <View style={styles.dataRow}>
                 <View style={styles.dataBox}>
                   <Text style={styles.label}>Ord.Qty</Text>
-                  <Text style={styles.value}>{item.quantity}</Text>
+                  <Text style={styles.value}>
+                    {formatQuantity(item.quantity)}
+                  </Text>
                 </View>
                 <View style={styles.dataBox}>
                   <Text style={styles.label}>Pro.Qty</Text>
-                  <Text style={styles.value}>{item.pro_qty ?? 0}</Text>
+                  <Text style={styles.value}>
+                    {formatQuantity(item.pro_qty ?? 0)}
+                  </Text>
                 </View>
                 <View style={styles.dataBox}>
                   <Text style={styles.label}>Del.Qty</Text>
-                  <Text style={styles.value}>{item.out_qty}</Text>
+                  <Text style={styles.value}>
+                    {formatQuantity(item.out_qty)}
+                  </Text>
                 </View>
                 <View style={styles.dataBox}>
                   <Text style={styles.label}>Out.Qty</Text>

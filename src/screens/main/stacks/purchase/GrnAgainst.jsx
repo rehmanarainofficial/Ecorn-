@@ -13,7 +13,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import * as Animatable from 'react-native-animatable';
-import {BASEURL} from '../../../../utils/BaseUrl';
+import {formatDate, formatDateString} from '../../../../utils/DateUtils';
+import {formatNumber} from '../../../../utils/NumberUtils';
 
 const GrnAgainst = ({navigation, route}) => {
   const [fromDate, setFromDate] = useState(null);
@@ -131,15 +132,12 @@ const GrnAgainst = ({navigation, route}) => {
   };
 
   // 🔹 Formatters
-  const formatDate = dateStr => {
-    if (!dateStr) return '-';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-GB');
+  const formatDateDisplay = dateStr => {
+    return formatDateString(dateStr);
   };
 
-  const formatAmount = amt => {
-    if (!amt) return '0';
-    return parseFloat(amt).toLocaleString();
+  const formatAmountDisplay = amt => {
+    return formatNumber(amt);
   };
 
   const renderItem = ({item, index}) => (
@@ -153,11 +151,11 @@ const GrnAgainst = ({navigation, route}) => {
       </View>
 
       <View style={styles.cellWrapper}>
-        <Text style={styles.cell}>{formatDate(item.ord_date)}</Text>
+        <Text style={styles.cell}>{formatDateDisplay(item.ord_date)}</Text>
       </View>
 
       <View style={styles.cellWrapper}>
-        <Text style={styles.cell}>{formatAmount(item.total)}</Text>
+        <Text style={styles.cell}>{formatAmountDisplay(item.total)}</Text>
       </View>
 
       <View style={[styles.cellWrapper, {borderRightWidth: 0}]}>
@@ -237,17 +235,13 @@ const GrnAgainst = ({navigation, route}) => {
           <TouchableOpacity
             style={styles.morphButton}
             onPress={() => setShowFromPicker(true)}>
-            <Text style={styles.dateText}>
-              From: {fromDate ? fromDate.toLocaleDateString() : 'Date'}
-            </Text>
+            <Text style={styles.dateText}>From: {formatDate(fromDate)}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.morphButton}
             onPress={() => setShowToPicker(true)}>
-            <Text style={styles.dateText}>
-              To: {toDate ? toDate.toLocaleDateString() : 'Date'}
-            </Text>
+            <Text style={styles.dateText}>To: {formatDate(toDate)}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

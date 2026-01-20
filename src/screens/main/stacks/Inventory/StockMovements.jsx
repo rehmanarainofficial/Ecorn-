@@ -18,6 +18,7 @@ import Toast from 'react-native-toast-message';
 
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {BASEURL} from '../../../../utils/BaseUrl';
+import {formatNumber, formatQuantity} from '../../../../utils/NumberUtils';
 
 const StockMovements = ({navigation}) => {
   const [locations, setLocations] = useState([]);
@@ -108,14 +109,15 @@ const StockMovements = ({navigation}) => {
   // ------------------------------
   // SEARCH STOCKS
   // ------------------------------
-  const searchStocks = (query) => {
+  const searchStocks = query => {
     setStockSearchQuery(query);
     if (query.trim() === '') {
       setFilteredStocks(stocks);
     } else {
-      const filtered = stocks.filter(stock => 
-        stock.description?.toLowerCase().includes(query.toLowerCase()) ||
-        stock.stock_id?.toLowerCase().includes(query.toLowerCase())
+      const filtered = stocks.filter(
+        stock =>
+          stock.description?.toLowerCase().includes(query.toLowerCase()) ||
+          stock.stock_id?.toLowerCase().includes(query.toLowerCase()),
       );
       setFilteredStocks(filtered);
     }
@@ -124,14 +126,15 @@ const StockMovements = ({navigation}) => {
   // ------------------------------
   // SEARCH LOCATIONS
   // ------------------------------
-  const searchLocations = (query) => {
+  const searchLocations = query => {
     setLocationSearchQuery(query);
     if (query.trim() === '') {
       setFilteredLocations(locations);
     } else {
-      const filtered = locations.filter(location => 
-        location.location_name?.toLowerCase().includes(query.toLowerCase()) ||
-        location.loc_code?.toLowerCase().includes(query.toLowerCase())
+      const filtered = locations.filter(
+        location =>
+          location.location_name?.toLowerCase().includes(query.toLowerCase()) ||
+          location.loc_code?.toLowerCase().includes(query.toLowerCase()),
       );
       setFilteredLocations(filtered);
     }
@@ -164,19 +167,19 @@ const StockMovements = ({navigation}) => {
 
       if (responseText.startsWith('{') || responseText.startsWith('[')) {
         const json = JSON.parse(responseText);
-        
+
         if (json.status === 'true') {
           setMovementData(json.data || []);
           const opening = json.opening !== null ? parseFloat(json.opening) : 0;
           setOpeningBalance(opening);
-          
+
           let closing = opening;
           if (json.data && json.data.length > 0) {
             const lastTransaction = json.data[json.data.length - 1];
             closing = parseFloat(lastTransaction.balance) || opening;
           }
           setClosingBalance(closing);
-          
+
           if (json.data.length === 0) {
             showToast('info', 'No movements found', 'Try different filters');
           } else {
@@ -186,7 +189,11 @@ const StockMovements = ({navigation}) => {
           setMovementData([]);
           setOpeningBalance(0);
           setClosingBalance(0);
-          showToast('info', 'No data found', json.message || 'Try different dates');
+          showToast(
+            'info',
+            'No data found',
+            json.message || 'Try different dates',
+          );
         }
       } else {
         setMovementData([]);
@@ -194,7 +201,6 @@ const StockMovements = ({navigation}) => {
         setClosingBalance(0);
         showToast('error', 'Server error', 'Please check API endpoint');
       }
-
     } catch (e) {
       console.log('❌ Fetch error:', e);
       showToast('error', 'Network error', e.message);
@@ -229,13 +235,6 @@ const StockMovements = ({navigation}) => {
   // ------------------------------
   // FORMAT NUMBER WITH COMMAS
   // ------------------------------
-  const formatNumber = (num) => {
-    if (num === null || num === undefined) return '0';
-    const number = typeof num === 'string' ? parseFloat(num) : num;
-    if (isNaN(number)) return '0';
-    
-    return Math.round(number).toLocaleString('en-US');
-  };
 
   // ------------------------------
   // RENDER EACH TRANSACTION CARD
@@ -243,7 +242,7 @@ const StockMovements = ({navigation}) => {
   const renderCard = ({item: transaction, index}) => {
     const qty = parseFloat(transaction.qty || 0);
     const isPositive = qty > 0;
-    
+
     const balance = parseFloat(transaction.balance) || 0;
 
     return (
@@ -263,7 +262,7 @@ const StockMovements = ({navigation}) => {
             <Text
               style={[styles.qtyText, {color: isPositive ? 'green' : 'red'}]}>
               {isPositive ? '+' : ''}
-              {formatNumber(qty)}
+              {formatQuantity(qty)}
             </Text>
             <Text style={styles.balanceText}>
               Balance: {formatNumber(balance)}
@@ -331,7 +330,9 @@ const StockMovements = ({navigation}) => {
               <>
                 <Text
                   style={
-                    selectedLocation ? styles.dropdownText : styles.placeholderText
+                    selectedLocation
+                      ? styles.dropdownText
+                      : styles.placeholderText
                   }>
                   {selectedLocation
                     ? locations.find(x => x.loc_code === selectedLocation)
@@ -362,10 +363,7 @@ const StockMovements = ({navigation}) => {
 
           {/* Apply Button */}
           <TouchableOpacity
-            style={[
-              styles.applyBtn,
-              {opacity: selectedStock ? 1 : 0.6}
-            ]}
+            style={[styles.applyBtn, {opacity: selectedStock ? 1 : 0.6}]}
             onPress={fetchStockMovement}
             disabled={loading || !selectedStock}>
             {loading ? (
@@ -377,7 +375,9 @@ const StockMovements = ({navigation}) => {
         </View>
 
         {/* BALANCE ROW */}
-        {(movementData.length > 0 || openingBalance !== 0 || closingBalance !== 0) && (
+        {(movementData.length > 0 ||
+          openingBalance !== 0 ||
+          closingBalance !== 0) && (
           <View style={styles.balanceRow}>
             <View style={styles.balanceItem}>
               <Text style={styles.balanceLabel}>Opening Balance</Text>
@@ -408,15 +408,16 @@ const StockMovements = ({navigation}) => {
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Select Stock</Text>
-                <TouchableOpacity onPress={() => {
-                  setShowStockModal(false);
-                  setStockSearchQuery('');
-                  setFilteredStocks(stocks);
-                }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowStockModal(false);
+                    setStockSearchQuery('');
+                    setFilteredStocks(stocks);
+                  }}>
                   <Ionicons name="close" size={24} color="#000" />
                 </TouchableOpacity>
               </View>
-              
+
               {/* Search Bar */}
               <View style={styles.searchContainer}>
                 <Ionicons name="search" size={20} color="#666" />
@@ -498,15 +499,16 @@ const StockMovements = ({navigation}) => {
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Select Location</Text>
-                <TouchableOpacity onPress={() => {
-                  setShowLocationModal(false);
-                  setLocationSearchQuery('');
-                  setFilteredLocations(locations);
-                }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowLocationModal(false);
+                    setLocationSearchQuery('');
+                    setFilteredLocations(locations);
+                  }}>
                   <Ionicons name="close" size={24} color="#000" />
                 </TouchableOpacity>
               </View>
-              
+
               {/* Search Bar */}
               <View style={styles.searchContainer}>
                 <Ionicons name="search" size={20} color="#666" />
@@ -563,7 +565,8 @@ const StockMovements = ({navigation}) => {
                     <TouchableOpacity
                       style={[
                         styles.modalItem,
-                        selectedLocation === item.loc_code && styles.selectedItem,
+                        selectedLocation === item.loc_code &&
+                          styles.selectedItem,
                       ]}
                       onPress={() => {
                         setSelectedLocation(item.loc_code);
@@ -633,9 +636,8 @@ const StockMovements = ({navigation}) => {
               <MaterialIcons name="inventory-2" size={60} color="#ccc" />
               <Text style={styles.noData}>
                 {selectedStock
-                  ? 'No movement found for selected filters' 
-                  : 'Please select a stock to view movements'
-                }
+                  ? 'No movement found for selected filters'
+                  : 'Please select a stock to view movements'}
               </Text>
             </View>
           }

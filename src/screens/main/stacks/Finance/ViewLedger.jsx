@@ -20,6 +20,7 @@ import {BASEURL} from '.././../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {generateLedgerPDF} from '.././../../../components/LedgerPDFGenerator';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {formatNumber} from '../../../../utils/NumberUtils';
 
 const ViewLedger = ({navigation}) => {
   const insets = useSafeAreaInsets();
@@ -283,10 +284,10 @@ const ViewLedger = ({navigation}) => {
                 {color: isCredit ? '#009900' : '#FF0000'},
               ]}>
               {isCredit ? '+' : '-'}
-              {Math.abs(amount).toFixed(2)}
+              {formatNumber(Math.abs(amount))}
             </Text>
             <Text style={styles.balanceText}>
-              Balance: {currentBalance.toFixed(2)}
+              Balance: {formatNumber(currentBalance)}
             </Text>
           </View>
         </View>
@@ -325,11 +326,15 @@ const ViewLedger = ({navigation}) => {
       {/* Custom Header */}
       <PlatformGradient
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-        style={[styles.header, {
-          paddingTop: Platform.OS === 'ios' 
-            ? insets.top + 10 
-            : Math.max(insets.top, 24) + 10 // Android ke liye minimum 24px status bar height
-        }]}>
+        style={[
+          styles.header,
+          {
+            paddingTop:
+              Platform.OS === 'ios'
+                ? insets.top + 10
+                : Math.max(insets.top, 24) + 10, // Android ke liye minimum 24px status bar height
+          },
+        ]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={22} color={APPCOLORS.WHITE} />
         </TouchableOpacity>
@@ -503,14 +508,14 @@ const ViewLedger = ({navigation}) => {
             <View style={styles.balanceInfo}>
               <Text style={styles.balanceLabel}>Opening Balance</Text>
               <Text style={styles.balanceValue}>
-                {openingBalance.toFixed(2)}
+                {formatNumber(openingBalance)}
               </Text>
             </View>
             {ledgerData.length > 0 && (
               <View style={styles.balanceInfo}>
                 <Text style={styles.balanceLabel}>Closing Balance</Text>
                 <Text style={styles.balanceValue}>
-                  {closingBalance.toFixed(2)}
+                  {formatNumber(closingBalance)}
                 </Text>
               </View>
             )}

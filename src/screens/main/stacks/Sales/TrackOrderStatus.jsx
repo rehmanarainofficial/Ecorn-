@@ -18,7 +18,8 @@ import axios from 'axios';
 import {Dropdown} from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Toast from 'react-native-toast-message';
-import { BASEURL } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
+import {formatDate, formatDateString} from '../../../../utils/DateUtils';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -58,9 +59,7 @@ const TrackOrderStatus = ({navigation}) => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(
-        `${BASEURL}track_orders_data.php`,
-      );
+      const res = await axios.get(`${BASEURL}track_orders_data.php`);
       if (Array.isArray(res.data)) {
         setOrders(res.data);
         setFilteredOrders(res.data);
@@ -79,9 +78,7 @@ const TrackOrderStatus = ({navigation}) => {
   // Fetch locations
   const fetchLocations = async () => {
     try {
-      const res = await axios.get(
-        `${BASEURL}locations.php`,
-      );
+      const res = await axios.get(`${BASEURL}locations.php`);
       if (res.data?.status === 'true') {
         const formatted = res.data.data.map(loc => ({
           label: loc.location_name,
@@ -157,12 +154,8 @@ const TrackOrderStatus = ({navigation}) => {
     });
   };
 
-  const formatDate = dateStr => {
-    const d = new Date(dateStr);
-    if (isNaN(d)) return dateStr;
-    return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1)
-      .toString()
-      .padStart(2, '0')}/${d.getFullYear().toString().slice(-2)}`;
+  const formatDateDisplay = dateStr => {
+    return formatDateString(dateStr);
   };
 
   const renderCard = ({item, index}) => (
@@ -188,7 +181,7 @@ const TrackOrderStatus = ({navigation}) => {
       </View>
       <View style={styles.kvRow}>
         <Text style={styles.kvKey}>Date:</Text>
-        <Text style={styles.kvValue}>{formatDate(item.ord_date)}</Text>
+        <Text style={styles.kvValue}>{formatDateDisplay(item.ord_date)}</Text>
       </View>
 
       {/* Status Rows */}
@@ -297,7 +290,7 @@ const TrackOrderStatus = ({navigation}) => {
           style={styles.filterBtn}
           onPress={() => setShowPicker({show: true, type: 'from'})}>
           <Text style={styles.filterBtnText}>
-            {fromDate ? new Date(fromDate).toLocaleDateString() : 'From Date'}
+            {formatDate(fromDate) || 'From Date'}
           </Text>
         </TouchableOpacity>
 
@@ -305,7 +298,7 @@ const TrackOrderStatus = ({navigation}) => {
           style={styles.filterBtn}
           onPress={() => setShowPicker({show: true, type: 'to'})}>
           <Text style={styles.filterBtnText}>
-            {toDate ? new Date(toDate).toLocaleDateString() : 'To Date'}
+            {formatDate(toDate) || 'To Date'}
           </Text>
         </TouchableOpacity>
 
@@ -369,7 +362,9 @@ const TrackOrderStatus = ({navigation}) => {
               </View>
               <View style={styles.kvRow}>
                 <Text style={styles.kvKey}>Date:</Text>
-                <Text style={styles.kvValue}>{formatDate(item.ord_date)}</Text>
+                <Text style={styles.kvValue}>
+                  {formatDateDisplay(item.ord_date)}
+                </Text>
               </View>
 
               {/* Status Rows */}

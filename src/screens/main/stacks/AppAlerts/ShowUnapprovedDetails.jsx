@@ -6,11 +6,12 @@ import AppText from '../../../../components/AppText';
 import AppButton from '../../../../components/AppButton';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import axios from 'axios';
+import {formatNumber} from '../../../../utils/NumberUtils';
 
 const ShowUnapprovedDetails = ({route, navigation}) => {
   const {dataDetail, type} = route.params;
 
-  console.log("dataDetail", dataDetail)
+  console.log('dataDetail', dataDetail);
 
   const [filteredData, setFilteredData] = useState(dataDetail);
   const [searchText, setSearchText] = useState('');
@@ -39,8 +40,6 @@ const ShowUnapprovedDetails = ({route, navigation}) => {
   };
 
   const HandleApproveAndUnApprove = (status, item) => {
-
-
     let data = new FormData();
     data.append('trans_no', item?.trans_no);
     data.append('type', item?.type);
@@ -59,9 +58,9 @@ const ShowUnapprovedDetails = ({route, navigation}) => {
     axios
       .request(config)
       .then(response => {
-        if(response.data.status == true){
-          Alert.alert(`Status ${status == 0 ? "UnApproved" : "Approved"}`)
-          navigation.goBack()
+        if (response.data.status == true) {
+          Alert.alert(`Status ${status == 0 ? 'UnApproved' : 'Approved'}`);
+          navigation.goBack();
         }
       })
       .catch(error => {
@@ -154,7 +153,7 @@ const ShowUnapprovedDetails = ({route, navigation}) => {
                         justifyContent: 'space-between',
                       }}>
                       <AppText title={'amount'} titleSize={2} />
-                      <AppText title={item.amount} />
+                      <AppText title={formatNumber(item.amount)} />
                     </View>
 
                     <View
@@ -210,7 +209,7 @@ const ShowUnapprovedDetails = ({route, navigation}) => {
                         justifyContent: 'space-between',
                       }}>
                       <AppText title={'Total'} titleSize={2} />
-                      <AppText title={item.total} />
+                      <AppText title={formatNumber(item.total)} />
                     </View>
                   </>
                 ) : type == 'Delivery' ? (
@@ -248,7 +247,7 @@ const ShowUnapprovedDetails = ({route, navigation}) => {
                         justifyContent: 'space-between',
                       }}>
                       <AppText title={'OV Amount'} titleSize={2} />
-                      <AppText title={item.ov_amount} />
+                      <AppText title={formatNumber(item.ov_amount)} />
                     </View>
                   </>
                 ) : (
@@ -305,7 +304,7 @@ const ShowUnapprovedDetails = ({route, navigation}) => {
                   <AppButton
                     title="Unapprove"
                     btnWidth={38}
-                    onPress={() => HandleApproveAndUnApprove(0,item)}
+                    onPress={() => HandleApproveAndUnApprove(0, item)}
                   />
                 </View>
               </View>

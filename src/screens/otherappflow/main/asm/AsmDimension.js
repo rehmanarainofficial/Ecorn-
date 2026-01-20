@@ -1,21 +1,26 @@
-import {View, Text, FlatList, ActivityIndicator, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 
-
-import { setLogout } from '../../../../redux/AuthSlice';
-import { useSelector, useDispatch } from 'react-redux';
+import {setLogout} from '../../../../redux/AuthSlice';
+import {useSelector, useDispatch} from 'react-redux';
 import moment from 'moment';
-import { APPCOLORS } from '../../../../utils/APPCOLORS';
+import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import NameandValue from '../../../../components/NameandValue';
-
+import {formatNumber} from '../../../../utils/NumberUtils';
 
 const AsmDimension = ({navigation}) => {
   const [AllDimensions, setAllDimensions] = useState([]);
   const [Loader, setLoader] = useState(false);
-  const userData = useSelector(state => state.Data.currentData)
-  console.log("userData: " , userData)
+  const userData = useSelector(state => state.Data.currentData);
+  console.log('userData: ', userData);
 
   useEffect(() => {
     const nav = navigation.addListener('focus', () => {
@@ -53,102 +58,149 @@ const AsmDimension = ({navigation}) => {
       });
   };
 
-
-  const dispatch = useDispatch()
-  const data = useSelector(state => state.Data.currentData)
-
-
-
+  const dispatch = useDispatch();
+  const data = useSelector(state => state.Data.currentData);
 
   const logout = () => {
-      const currentTime = moment().format('HH:mm:ss');
-      setLoader(true)
+    const currentTime = moment().format('HH:mm:ss');
+    setLoader(true);
 
-      let datas = new FormData();
-      datas.append('user_id', data.id);
-      datas.append('time_in_out', currentTime);
-      datas.append('type', 1);
+    let datas = new FormData();
+    datas.append('user_id', data.id);
+    datas.append('time_in_out', currentTime);
+    datas.append('type', 1);
 
-      let config = {
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: `${BASEURL}user_attendance_post.php`,
-        headers: {
-            'Content-Type': 'multipart/form-data'
+    let config = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: `${BASEURL}user_attendance_post.php`,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      data: datas,
+    };
 
-        },
-        data: datas,
-      };
-
-      axios
-        .request(config)
-        .then(response => {
-          console.log(JSON.stringify(response.data));
-          setLoader(false)
-          dispatch(setLogout())
-          
-        })
-        .catch(error => {
-          setLoader(false)
-          console.log(error);
-        });
-  }
-
-
+    axios
+      .request(config)
+      .then(response => {
+        console.log(JSON.stringify(response.data));
+        setLoader(false);
+        dispatch(setLogout());
+      })
+      .catch(error => {
+        setLoader(false);
+        console.log(error);
+      });
+  };
 
   return (
-    <View style={{flex: 1, backgroundColor: '#FFFFFF', padding:20}}>
-
-      <TouchableOpacity onPress={()=>logout()} style={{padding:10, backgroundColor:'red', borderRadius:10}}>
-        <Text style={{color:'white', fontWeight:'bold', fontSize:20}}>Logout</Text>
+    <View style={{flex: 1, backgroundColor: '#FFFFFF', padding: 20}}>
+      <TouchableOpacity
+        onPress={() => logout()}
+        style={{padding: 10, backgroundColor: 'red', borderRadius: 10}}>
+        <Text style={{color: 'white', fontWeight: 'bold', fontSize: 20}}>
+          Logout
+        </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={()=> navigation.navigate("MainRoute")} style={{padding:10, backgroundColor:APPCOLORS.SKY_BLUE, borderRadius:10,marginTop:5, alignItems:'center' ,justifyContent:'center'}}>
-        <Text style={{color:'white', fontWeight:'bold', fontSize:20}}>Home</Text>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('MainRoute')}
+        style={{
+          padding: 10,
+          backgroundColor: APPCOLORS.SKY_BLUE,
+          borderRadius: 10,
+          marginTop: 5,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <Text style={{color: 'white', fontWeight: 'bold', fontSize: 20}}>
+          Home
+        </Text>
       </TouchableOpacity>
       {Loader === true ? (
         <View
           style={{
             flex: 1,
-            alignItems:'center',
-            justifyContent:'center'
+            alignItems: 'center',
+            justifyContent: 'center',
           }}>
           <ActivityIndicator size={'large'} color={'#000000'} />
         </View>
       ) : (
         <FlatList
-        showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
           data={AllDimensions}
           renderItem={({item}) => {
+            const partDTarget = formatNumber(item?.daily_target);
+            const partMTarget = formatNumber(item?.monthly_target);
+            const partMSales = formatNumber(item?.monthly_sale);
+            const partDSales = formatNumber(item?.daily_sale);
 
-              const partDTarget = item?.daily_target ? JSON.parse(parseFloat(item?.daily_target).toFixed(0)) : 0
-              const partMTarget =  item?.monthly_target ? JSON.parse(parseFloat(item?.monthly_target).toFixed(0)) : 0
-              const partMSales = item?.monthly_target ? JSON.parse(parseFloat(item?.monthly_sale).toFixed(0)) : 0
-              const partDSales = item.daily_sale ? JSON.parse(parseFloat(item.daily_sale).toFixed(0)) : 0
+            return (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('AsmSalesman', {item: item})}
+                style={{
+                  padding: 20,
+                  marginTop: 20,
+                  backgroundColor: 'lightblue',
+                  marginTop: 20,
+                  borderRadius: 20,
+                  gap: 5,
+                }}>
+                <NameandValue title={'Name'} value={item.name} />
 
+                <View
+                  style={{
+                    width: '100%',
+                    height: 1,
+                    backgroundColor: 'black',
+                    marginTop: 5,
+                    marginBottom: 5,
+                  }}
+                />
+                {/* <NameandValue title={"Area"} value={item.name}/> */}
+                {/* <NameandValue title={"Shift Start"} value={item.name}/> */}
 
-            return (<TouchableOpacity onPress={()=> navigation.navigate("AsmSalesman",{item: item})} style={{padding:20, marginTop:20, backgroundColor:'lightblue', marginTop:20, borderRadius:20, gap:5}}>
-              <NameandValue title={"Name"} value={item.name} />
-              
-              <View style={{width:'100%',height:1, backgroundColor:'black', marginTop:5, marginBottom:5}}/>
-              {/* <NameandValue title={"Area"} value={item.name}/> */}
-              {/* <NameandValue title={"Shift Start"} value={item.name}/> */}
+                <Text
+                  style={{fontSize: 20, fontWeight: 'bold', color: 'black'}}>
+                  Daily
+                </Text>
+                <NameandValue title={'Target'} value={`Rs ${partDTarget}`} />
+                <NameandValue title={'Sale'} value={`Rs ${partDSales}`} />
+                <NameandValue
+                  title={'Status'}
+                  value={item.daily_status}
+                  valColour={
+                    item.monthly_status == 'Not Achieved' ? 'red' : 'lightgreen'
+                  }
+                />
 
-              <Text style={{fontSize:20, fontWeight:'bold', color:'black'}}>Daily</Text>
-              <NameandValue title={"Target"} value={`Rs ${ partDTarget.toLocaleString()} `}/>
-              <NameandValue title={"Sale"} value={`Rs ${partDSales ? partDSales.toLocaleString() : "0"}`}/>    
-              <NameandValue title={"Status"} value={item.daily_status} valColour={item.monthly_status == "Not Achieved" ? "red": "lightgreen"}/>
+                <View
+                  style={{
+                    width: '100%',
+                    height: 1,
+                    backgroundColor: 'black',
+                    marginTop: 5,
+                    marginBottom: 5,
+                  }}
+                />
+                {/* <NameandValue title={"Shift end"} value={item.name}/> */}
 
-              <View style={{width:'100%',height:1, backgroundColor:'black', marginTop:5, marginBottom:5}}/>
-              {/* <NameandValue title={"Shift end"} value={item.name}/> */}
-
-
-              <Text style={{fontSize:20, fontWeight:'bold', color:'black'}}>Monthly</Text>
-              <NameandValue title={"Target"} value={`Rs ${partMTarget.toLocaleString()} `}/>
-              <NameandValue title={"Sale"} value={`Rs ${partMSales.toLocaleString()} `}/>
-              <NameandValue title={"Status"} value={item.monthly_status} valColour={item.monthly_status == "Not Achieved" ? "red": "lightgreen"}/>
-
-            </TouchableOpacity>);
+                <Text
+                  style={{fontSize: 20, fontWeight: 'bold', color: 'black'}}>
+                  Monthly
+                </Text>
+                <NameandValue title={'Target'} value={`Rs ${partMTarget}`} />
+                <NameandValue title={'Sale'} value={`Rs ${partMSales}`} />
+                <NameandValue
+                  title={'Status'}
+                  value={item.monthly_status}
+                  valColour={
+                    item.monthly_status == 'Not Achieved' ? 'red' : 'lightgreen'
+                  }
+                />
+              </TouchableOpacity>
+            );
           }}
         />
       )}

@@ -30,6 +30,7 @@ import moment from 'moment';
 import NetInfo from '@react-native-community/netinfo';
 import {BASEURL} from '../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../utils/APPCOLORS';
+import {formatNumber, formatQuantity} from '../../../utils/NumberUtils';
 import {responsiveWidth} from '../../../utils/Responsive';
 
 const AddItems = ({navigation, route}) => {
@@ -189,7 +190,10 @@ const AddItems = ({navigation, route}) => {
         if (cart?.length > 0) {
           let datas = new FormData();
           datas.append('CustName', data?.name);
-          datas.append('trans_type', paymentType ? JSON.stringify(paymentType) : '30');
+          datas.append(
+            'trans_type',
+            paymentType ? JSON.stringify(paymentType) : '30',
+          );
           datas.append('person_id', data?.debtor_no);
           datas.append('ord_date', formattedDate);
           datas.append('payments', '1');
@@ -538,10 +542,12 @@ const AddItems = ({navigation, route}) => {
                 marginTop: 10,
                 alignSelf: 'center',
                 marginBottom: 20,
-                gap:20
+                gap: 20,
               }}>
               <TouchableOpacity
-                onPress={() => setpaymentType(userType == "supplier" ? "18": '30')}
+                onPress={() =>
+                  setpaymentType(userType == 'supplier' ? '18' : '30')
+                }
                 style={{flexDirection: 'row'}}>
                 <View
                   style={{
@@ -560,7 +566,7 @@ const AddItems = ({navigation, route}) => {
                         width: 20,
                         borderRadius: 2000,
                         backgroundColor: APPCOLORS.WHITE,
-                      }} 
+                      }}
                     />
                   ) : null}
                 </View>
@@ -572,13 +578,14 @@ const AddItems = ({navigation, route}) => {
                     marginLeft: 5,
                     fontWeight: 'bold',
                   }}>
-                    {userType == "supplier" ? "Po" : "Quotation"}
-
+                  {userType == 'supplier' ? 'Po' : 'Quotation'}
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => setpaymentType(userType == "supplier" ? "25": '30')}
+                onPress={() =>
+                  setpaymentType(userType == 'supplier' ? '25' : '30')
+                }
                 style={{flexDirection: 'row'}}>
                 <View
                   style={{
@@ -609,7 +616,7 @@ const AddItems = ({navigation, route}) => {
                     marginLeft: 5,
                     fontWeight: 'bold',
                   }}>
-                                  {userType == "supplier" ? "Grn" : "Order"}
+                  {userType == 'supplier' ? 'Grn' : 'Order'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -620,11 +627,13 @@ const AddItems = ({navigation, route}) => {
                 marginTop: 10,
                 alignSelf: 'center',
                 marginBottom: 20,
-                gap:20
+                gap: 20,
               }}>
               <TouchableOpacity
-                onPress={() =>  setpaymentType(userType == "supplier" ? "20": '10')}
-                        style={{flexDirection: 'row'}}>
+                onPress={() =>
+                  setpaymentType(userType == 'supplier' ? '20' : '10')
+                }
+                style={{flexDirection: 'row'}}>
                 <View
                   style={{
                     height: 30,
@@ -658,43 +667,42 @@ const AddItems = ({navigation, route}) => {
                 </Text>
               </TouchableOpacity>
 
-              {userType == "supplier" ? null : (
+              {userType == 'supplier' ? null : (
+                <TouchableOpacity
+                  onPress={() => setpaymentType('13')}
+                  style={{flexDirection: 'row'}}>
+                  <View
+                    style={{
+                      height: 30,
+                      width: 30,
+                      borderWidth: 2,
+                      borderRadius: 200,
+                      borderColor: APPCOLORS.WHITE,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                    {paymentType == '13' ? (
+                      <View
+                        style={{
+                          height: 20,
+                          width: 20,
+                          borderRadius: 2000,
+                          backgroundColor: APPCOLORS.WHITE,
+                        }}
+                      />
+                    ) : null}
+                  </View>
+                  <Text
+                    style={{
+                      color: APPCOLORS.WHITE,
 
-              <TouchableOpacity
-                onPress={() => setpaymentType('13')}
-                style={{flexDirection: 'row'}}>
-                <View
-                  style={{
-                    height: 30,
-                    width: 30,
-                    borderWidth: 2,
-                    borderRadius: 200,
-                    borderColor: APPCOLORS.WHITE,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                  {paymentType == '13' ? (
-                    <View
-                      style={{
-                        height: 20,
-                        width: 20,
-                        borderRadius: 2000,
-                        backgroundColor: APPCOLORS.WHITE,
-                      }}
-                    />
-                  ) : null}
-                </View>
-                <Text
-                  style={{
-                    color: APPCOLORS.WHITE,
-
-                    fontSize: 23,
-                    marginLeft: 5,
-                    fontWeight: 'bold',
-                  }}>
-                  Delivery
-                </Text>
-              </TouchableOpacity>
+                      fontSize: 23,
+                      marginLeft: 5,
+                      fontWeight: 'bold',
+                    }}>
+                    Delivery
+                  </Text>
+                </TouchableOpacity>
               )}
             </View>
           </>
@@ -893,7 +901,7 @@ const AddItems = ({navigation, route}) => {
                 Subtotal
               </Text>
               <Text style={{color: APPCOLORS.BLACK, fontSize: 17}}>
-                Rs {(ProductPrice * total).toFixed(2)}
+                Rs {formatNumber(ProductPrice * total)}
               </Text>
             </View>
 
@@ -903,7 +911,7 @@ const AddItems = ({navigation, route}) => {
                 Discount
               </Text>
               <Text style={{color: APPCOLORS.BLACK, fontSize: 17}}>
-                Rs {ProductDiscount}
+                Rs {formatNumber(ProductDiscount)} ({ProductDiscount}%)
               </Text>
             </View>
 
@@ -925,7 +933,7 @@ const AddItems = ({navigation, route}) => {
                 Grand Total
               </Text>
               <Text style={{color: APPCOLORS.BLACK, fontSize: 17}}>
-                {totalSum.toFixed(2)}
+                {formatNumber(totalSum)}
               </Text>
             </View>
           </View>
@@ -1063,7 +1071,7 @@ const AddItems = ({navigation, route}) => {
                               ? 'white'
                               : 'black',
                         }}>
-                        Stock : {item?.qoh}
+                        Stock : {formatQuantity(item?.qoh)}
                       </Text>
 
                       <Text
@@ -1074,7 +1082,7 @@ const AddItems = ({navigation, route}) => {
                               : 'black',
                           fontWeight: 'bold',
                         }}>
-                        Price : {item.price}
+                        Price : {formatNumber(item.price)}
                       </Text>
 
                       <Text
@@ -1085,7 +1093,7 @@ const AddItems = ({navigation, route}) => {
                               : 'black',
                           fontWeight: 'bold',
                         }}>
-                        discount : {item.discount}
+                        discount : {formatNumber(item.discount)}%
                       </Text>
                     </TouchableOpacity>
                   );

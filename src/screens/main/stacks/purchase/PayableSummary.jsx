@@ -12,6 +12,7 @@ import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
 import {GetPayable} from '../../../../global/ChartApisCall';
 import PlatformGradient from '../../../../components/PlatformGradient';
+import {formatNumber} from '../../../../utils/NumberUtils';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -92,13 +93,12 @@ const PayableScreen = ({navigation}) => {
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={true}>
           <View style={styles.container}>
-
             {/* 🔹 Summary Section */}
             <View style={styles.summaryContainer}>
               <View style={styles.summaryCard}>
                 <Text style={styles.summaryTitle}>Total Payable</Text>
                 <Text style={styles.summaryAmount}>
-                  {totalBalance.toLocaleString()}
+                  {formatNumber(totalBalance)}
                 </Text>
                 <Text style={styles.summarySubtitle}>
                   To {listData.length} suppliers
@@ -121,7 +121,7 @@ const PayableScreen = ({navigation}) => {
                         {item?.supp_name || 'Unknown Supplier'}
                       </Text>
                       <Text style={styles.legendBalance}>
-                        {parseFloat(item?.Balance || 0).toLocaleString()}
+                        {formatNumber(item?.Balance)}
                       </Text>
                     </View>
                   ))}
@@ -164,7 +164,9 @@ const PayableScreen = ({navigation}) => {
                     );
                     const perc =
                       total !== 0
-                        ? ((Math.abs(balance) / Math.abs(total)) * 100).toFixed(2)
+                        ? ((Math.abs(balance) / Math.abs(total)) * 100).toFixed(
+                            2,
+                          )
                         : 0;
 
                     return (

@@ -13,6 +13,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SimpleHeader from '../components/SimpleHeader';
 import axios from 'axios';
 import {BASEURL} from '../utils/BaseUrl';
+import {formatDateString} from '../utils/DateUtils';
+import {formatNumber} from '../utils/NumberUtils';
 
 const ManufacturingView = ({navigation, route}) => {
   const {trans_no} = route.params || {};
@@ -68,23 +70,12 @@ const ManufacturingView = ({navigation, route}) => {
     }
   };
 
-  const formatDate = dateString => {
-    if (!dateString) return 'N/A';
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-GB');
-    } catch (e) {
-      return dateString;
-    }
+  const formatDateDisplay = dateString => {
+    return formatDateString(dateString);
   };
 
   const formatAmount = amount => {
-    if (!amount) return '0.00';
-    const num = parseFloat(amount);
-    return num.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+    return formatNumber(amount);
   };
 
   // Function to format key names in proper readable format
@@ -114,7 +105,7 @@ const ManufacturingView = ({navigation, route}) => {
       key.toLowerCase().includes('date') ||
       key.toLowerCase().includes('time')
     ) {
-      return formatDate(stringValue);
+      return formatDateDisplay(stringValue);
     }
 
     // Check for amount/price/total keys
@@ -160,7 +151,8 @@ const ManufacturingView = ({navigation, route}) => {
               {item.reference || `Record ${index + 1}`}
             </Text>
             <Text style={styles.cardSubtitle}>
-              {item.type || 'Manufacturing'} • {formatDate(item.trans_date)}
+              {item.type || 'Manufacturing'} •{' '}
+              {formatDateDisplay(item.trans_date)}
             </Text>
           </View>
           {item.total && (

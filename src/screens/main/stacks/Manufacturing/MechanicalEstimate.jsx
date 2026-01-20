@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Dropdown} from 'react-native-element-dropdown';
 import Toast from 'react-native-toast-message';
 import {BASEURL} from '../../../../utils/BaseUrl';
+import {formatNumber, formatQuantity} from '../../../../utils/NumberUtils';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -169,10 +170,10 @@ const MechanicalEstimate = ({navigation, route}) => {
         {item.item}
       </Text>
       <Text style={[styles.cell, {flex: 1, textAlign: 'center'}]}>
-        {item.qty}
+        {formatQuantity(item.qty)}
       </Text>
       <Text style={[styles.cell, {flex: 2, textAlign: 'center'}]}>
-        {item.price}
+        {formatNumber(item.price)}
       </Text>
     </View>
   );

@@ -15,6 +15,7 @@ import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import * as Animatable from 'react-native-animatable';
 import {BASEURL} from '../../../../utils/BaseUrl';
+import {formatDateString} from '../../../../utils/DateUtils';
 
 const PdcDetailScreen = () => {
   const [fromDate, setFromDate] = useState(null);
@@ -110,10 +111,19 @@ const PdcDetailScreen = () => {
               ? 'Issue Date'
               : key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
+          let displayValue = String(value || '-');
+          if (
+            key === 'tran_date' ||
+            key === 'due_date' ||
+            key.includes('_date')
+          ) {
+            displayValue = formatDateString(value);
+          }
+
           return (
             <View key={idx} style={styles.cardRow}>
               <Text style={styles.cardKey}>{displayKey}</Text>
-              <Text style={styles.cardValue}>{String(value || '-')}</Text>
+              <Text style={styles.cardValue}>{displayValue}</Text>
             </View>
           );
         })}
@@ -148,17 +158,13 @@ const PdcDetailScreen = () => {
           <TouchableOpacity
             style={styles.morphButton}
             onPress={() => setShowFromPicker(true)}>
-            <Text style={styles.dateText}>
-              From: {fromDate ? fromDate.toLocaleDateString() : 'Select'}
-            </Text>
+            <Text style={styles.dateText}>From: {formatDate(fromDate)}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.morphButton}
             onPress={() => setShowToPicker(true)}>
-            <Text style={styles.dateText}>
-              To: {toDate ? toDate.toLocaleDateString() : 'Select'}
-            </Text>
+            <Text style={styles.dateText}>To: {formatDate(toDate)}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

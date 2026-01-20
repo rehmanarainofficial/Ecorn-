@@ -14,6 +14,8 @@ import axios from 'axios';
 import Toast from 'react-native-toast-message';
 import {generateAndDownloadPDF} from '../../../../components/PDFGenerator';
 import {BASEURL} from '../../../../utils/BaseUrl';
+import {formatDateString} from '../../../../utils/DateUtils';
+import {formatNumber} from '../../../../utils/NumberUtils';
 
 const ApprovalCard = ({
   reference,
@@ -39,6 +41,10 @@ const ApprovalCard = ({
 
   // ✅ Check if this is Location Transfer screen
   const isLocationTransferScreen = screenType === 'location_transfer_app';
+
+  const formatAmount = amount => {
+    return formatNumber(amount);
+  };
 
   const handleGLView = async () => {
     if (!isVoucherScreen) return;
@@ -93,6 +99,7 @@ const ApprovalCard = ({
 
         navigation.navigate('ViewDetailsScreen', {
           viewData: response.data,
+          screenType: screenType,
         });
       } else {
         // For other screens (Quotation, Order, PO, etc.)
@@ -108,6 +115,7 @@ const ApprovalCard = ({
 
         navigation.navigate('ViewDetailsScreen', {
           viewData: response.data,
+          screenType: screenType,
         });
       }
     } catch (error) {
@@ -185,7 +193,7 @@ const ApprovalCard = ({
             {/* Details */}
             <View style={styles.detailsContainer}>
               <AppText
-                title={`Date: ${ord_date}`}
+                title={`Date: ${formatDateString(ord_date)}`}
                 titleSize={2}
                 titleColor={APPCOLORS.WHITE}
               />
@@ -195,7 +203,7 @@ const ApprovalCard = ({
                 titleColor={APPCOLORS.WHITE}
               />
               <AppText
-                title={`Total: ${total}`}
+                title={`Total: ${formatNumber(total)}`}
                 titleSize={2}
                 titleColor={APPCOLORS.WHITE}
                 titleWeight

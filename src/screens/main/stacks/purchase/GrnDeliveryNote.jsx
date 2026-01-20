@@ -14,6 +14,7 @@ import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {useSelector} from 'react-redux';
 import {BASEURL} from '../../../../utils/BaseUrl';
+import {formatQuantity} from '../../../../utils/NumberUtils';
 
 const GrnDeliveryNote = ({route}) => {
   const navigation = useNavigation();
@@ -191,11 +192,11 @@ const GrnDeliveryNote = ({route}) => {
                 </Text>
 
                 <Text style={[styles.cell, styles.labelCell, {flex: 0.8}]}>
-                  {item.quantity_ordered}
+                  {formatQuantity(item.quantity_ordered)}
                 </Text>
 
                 <Text style={[styles.cell, styles.labelCell, {flex: 0.6}]}>
-                  {item.pending_qty}
+                  {formatQuantity(item.pending_qty)}
                 </Text>
 
                 {/* Delivered Qty */}

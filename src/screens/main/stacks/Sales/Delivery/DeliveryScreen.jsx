@@ -13,7 +13,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import SimpleHeader from '../../../../../components/SimpleHeader';
 import * as Animatable from 'react-native-animatable';
-import {BASEURL} from '../../../../../utils/BaseUrl';
+import {formatDate, formatDateString} from '../../../../../utils/DateUtils';
+import {formatNumber} from '../../../../../utils/NumberUtils';
 
 const DeliveryScreen = ({navigation}) => {
   const [fromDate, setFromDate] = useState(null);
@@ -124,12 +125,10 @@ const DeliveryScreen = ({navigation}) => {
     }
   };
 
-  const formatDisplayDate = date =>
-    date ? date.toLocaleDateString('en-GB') : 'Date';
+  const formatDisplayDateForHeader = date => formatDate(date);
 
-  const formatAmount = amt => {
-    if (!amt) return '0';
-    return parseFloat(amt).toLocaleString();
+  const formatAmountDisplay = amt => {
+    return formatNumber(amt);
   };
 
   const renderItem = ({item, index}) => (
@@ -143,13 +142,11 @@ const DeliveryScreen = ({navigation}) => {
       </View>
 
       <View style={styles.cellWrapper}>
-        <Text style={styles.cell}>
-          {new Date(item.ord_date).toLocaleDateString('en-GB')}
-        </Text>
+        <Text style={styles.cell}>{formatDateString(item.ord_date)}</Text>
       </View>
 
       <View style={styles.cellWrapper}>
-        <Text style={styles.cell}>{formatAmount(item.total)}</Text>
+        <Text style={styles.cell}>{formatAmountDisplay(item.total)}</Text>
       </View>
 
       <View style={[styles.cellWrapper, {borderRightWidth: 0}]}>
@@ -233,14 +230,16 @@ const DeliveryScreen = ({navigation}) => {
             style={styles.morphButton}
             onPress={() => setShowFromPicker(true)}>
             <Text style={styles.dateText}>
-              From: {formatDisplayDate(fromDate)}
+              From: {formatDisplayDateForHeader(fromDate)}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.morphButton}
             onPress={() => setShowToPicker(true)}>
-            <Text style={styles.dateText}>To: {formatDisplayDate(toDate)}</Text>
+            <Text style={styles.dateText}>
+              To: {formatDisplayDateForHeader(toDate)}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity

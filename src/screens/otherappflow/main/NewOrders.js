@@ -13,8 +13,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useSelector} from 'react-redux';
 
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { APPCOLORS } from '../../../utils/APPCOLORS';
+import {APPCOLORS} from '../../../utils/APPCOLORS';
 import {BASEURL} from '../../../utils/BaseUrl';
+import {formatNumber} from '../../../utils/NumberUtils';
 const NewOrders = ({navigation}) => {
   const CurrentUser = useSelector(state => state.Data.currentData);
 
@@ -23,14 +24,13 @@ const NewOrders = ({navigation}) => {
   const [loader, setLoader] = useState(false);
   useEffect(() => {
     const nav = navigation.addListener('focus', () => {
-
       getTodaysOrder();
-    })
+    });
 
-    return nav
+    return nav;
   }, []);
 
-  console.log("CurrentUser?.id",CurrentUser?.id)
+  console.log('CurrentUser?.id', CurrentUser?.id);
 
   const getTodaysOrder = () => {
     setLoader(true);
@@ -99,45 +99,44 @@ const NewOrders = ({navigation}) => {
       });
   };
 
+  //   const editOrder = item => {
+  //     let datas = new FormData();
+  //     datas.append('CustName', item?.br_name);
+  //     datas.append('trans_type', '30');
+  //     datas.append('person_id', '');
+  //     datas.append('ord_date', item.ord_date);
+  //     datas.append('payments', '');
+  //     datas.append('order_no', item.order_no);
+  //     datas.append('order_status', '1');
+  //     datas.append('location', 'DEF');
+  //     datas.append('dimension', '0');
+  //     datas.append('price_list', '');
+  //     datas.append('comments', '');
+  //     datas.append('tax_included', '');
+  //     datas.append('total', item?.order_total);
+  //     datas.append('total_disc', '');
+  //     datas.append('freight_cost', '');
 
-//   const editOrder = item => {
-//     let datas = new FormData();
-//     datas.append('CustName', item?.br_name);
-//     datas.append('trans_type', '30');
-//     datas.append('person_id', '');
-//     datas.append('ord_date', item.ord_date);
-//     datas.append('payments', '');
-//     datas.append('order_no', item.order_no);
-//     datas.append('order_status', '1');
-//     datas.append('location', 'DEF');
-//     datas.append('dimension', '0');
-//     datas.append('price_list', '');
-//     datas.append('comments', '');
-//     datas.append('tax_included', '');
-//     datas.append('total', item?.order_total);
-//     datas.append('total_disc', '');
-//     datas.append('freight_cost', '');
+  //     let config = {
+  //       method: 'post',
+  //       maxBodyLength: Infinity,
+  //       url: `${BASEURL}mobile/post_service_purch_sale.php`,
+  //       headers: {
+  //         'Content-Type': 'multipart/form-data',
+  //       },
+  //       data: datas,
+  //     };
 
-//     let config = {
-//       method: 'post',
-//       maxBodyLength: Infinity,
-//       url: `${BASEURL}mobile/post_service_purch_sale.php`,
-//       headers: {
-//         'Content-Type': 'multipart/form-data',
-//       },
-//       data: datas,
-//     };
-
-//     axios
-//       .request(config)
-//       .then(async response => {
-//         console.log(JSON.stringify(response.data));
-//         getTodaysOrder();
-//       })
-//       .catch(async error => {
-//         console.log(error);
-//       });
-//   };
+  //     axios
+  //       .request(config)
+  //       .then(async response => {
+  //         console.log(JSON.stringify(response.data));
+  //         getTodaysOrder();
+  //       })
+  //       .catch(async error => {
+  //         console.log(error);
+  //       });
+  //   };
 
   const confirmDelete = item => {
     Alert.alert(
@@ -224,12 +223,20 @@ const NewOrders = ({navigation}) => {
                     <Text>Delete</Text>
                   </TouchableOpacity>
 
-
                   <TouchableOpacity
-                    onPress={() => navigation.navigate("TodayOrderDetails",{item: item})}
-                    style={{alignItems: 'center', justifyContent: 'center', backgroundColor:APPCOLORS.SKY_BLUE, padding:10, borderRadius:200}}>
-            
-                    <Text style={{color:APPCOLORS.WHITE, fontWeight:'bold'}}>View Detail</Text>
+                    onPress={() =>
+                      navigation.navigate('TodayOrderDetails', {item: item})
+                    }
+                    style={{
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: APPCOLORS.SKY_BLUE,
+                      padding: 10,
+                      borderRadius: 200,
+                    }}>
+                    <Text style={{color: APPCOLORS.WHITE, fontWeight: 'bold'}}>
+                      View Detail
+                    </Text>
                   </TouchableOpacity>
                 </View>
 
@@ -266,7 +273,7 @@ const NewOrders = ({navigation}) => {
                   <Text style={{color: APPCOLORS.BLACK, fontWeight: 'bold'}}>
                     Total Amount :
                   </Text>{' '}
-                  {Number(JSON.parse(item.total)).toFixed(2)}
+                  {formatNumber(item.total)}
                 </Text>
               </View>
             );

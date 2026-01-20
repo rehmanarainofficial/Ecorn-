@@ -15,6 +15,7 @@ import {Dropdown, MultiSelect} from 'react-native-element-dropdown';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import {BASEURL} from '../../../../utils/BaseUrl';
+import {formatDateString} from '../../../../utils/DateUtils';
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
@@ -258,7 +259,7 @@ const AddLeadScreen = ({navigation, route}) => {
       style={styles.input}
       onPress={() => setShowPicker({show: true, key})}>
       <Text style={styles.dateText}>
-        {form[key] ? new Date(form[key]).toLocaleDateString() : label}
+        {form[key] ? formatDateString(form[key]) : label}
       </Text>
     </TouchableOpacity>
   );

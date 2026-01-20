@@ -13,6 +13,7 @@ import PlatformGradient from '../../../../components/PlatformGradient';
 import axios from 'axios';
 import {Dropdown} from 'react-native-element-dropdown';
 import {BASEURL} from '../../../../utils/BaseUrl';
+import {formatNumber, formatQuantity} from '../../../../utils/NumberUtils';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -146,11 +147,11 @@ const ViewItem = ({navigation}) => {
         </View>
         <View style={styles.kvRow}>
           <Text style={styles.kvKey}>Price:</Text>
-          <Text style={styles.kvValue}>{item.price || '-'}</Text>
+          <Text style={styles.kvValue}>{formatNumber(item.price)}</Text>
         </View>
         <View style={styles.kvRow}>
           <Text style={styles.kvKey}>QOH:</Text>
-          <Text style={styles.kvValue}>{item.qoh || '-'}</Text>
+          <Text style={styles.kvValue}>{formatQuantity(item.qoh)}</Text>
         </View>
       </View>
     );

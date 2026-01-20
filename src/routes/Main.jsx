@@ -3,6 +3,11 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 import Dashboard from '../screens/main/Dashboard';
 import Detail from '../screens/main/stacks/DetailScreens/Detail';
+import IncomeDetail from '../screens/main/stacks/DetailScreens/IncomeDetail';
+import ExpenseDetail from '../screens/main/stacks/DetailScreens/ExpenseDetail';
+import PayrollExpenseDetail from '../screens/main/stacks/DetailScreens/PayrollExpenseDetail';
+import AdminExpenseDetail from '../screens/main/stacks/DetailScreens/AdminExpenseDetail';
+import SellingExpenseDetail from '../screens/main/stacks/DetailScreens/SellingExpenseDetail';
 import NotificationScreen from '../screens/main/stacks/NotificationScreen';
 import MoreDetail from '../screens/main/stacks/DetailScreens/MoreDetail';
 import ViewAll from '../screens/main/stacks/DetailScreens/ViewAll';
@@ -91,6 +96,17 @@ const Main = () => {
       screenOptions={{headerShown: false}}>
       <Stack.Screen name="Dashboard" component={Dashboard} />
       <Stack.Screen name="Detail" component={Detail} />
+      <Stack.Screen name="IncomeDetail" component={IncomeDetail} />
+      <Stack.Screen name="ExpenseDetail" component={ExpenseDetail} />
+      <Stack.Screen
+        name="PayrollExpenseDetail"
+        component={PayrollExpenseDetail}
+      />
+      <Stack.Screen name="AdminExpenseDetail" component={AdminExpenseDetail} />
+      <Stack.Screen
+        name="SellingExpenseDetail"
+        component={SellingExpenseDetail}
+      />
       <Stack.Screen name="MoreDetail" component={MoreDetail} />
       <Stack.Screen name="ViewAll" component={ViewAll} />
       <Stack.Screen name="NotificationScreen" component={NotificationScreen} />

@@ -22,6 +22,8 @@ import PlatformGradient from '../../../../components/PlatformGradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {formatDate, formatDateString} from '../../../../utils/DateUtils';
+import {formatNumber} from '../../../../utils/NumberUtils';
 
 const Aging = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
@@ -111,7 +113,7 @@ const Aging = ({navigation, route}) => {
   };
 
   // Function to convert Uint8Array to base64
-  const uint8ArrayToBase64 = (uint8Array) => {
+  const uint8ArrayToBase64 = uint8Array => {
     let binary = '';
     const len = uint8Array.byteLength;
     for (let i = 0; i < len; i++) {
@@ -120,183 +122,190 @@ const Aging = ({navigation, route}) => {
     return btoa(binary);
   };
 
-const generatePDF = async () => {
-  setLoading(true);
-  try {
-    const hasPermission = await requestStoragePermission();
-    if (!hasPermission) {
-      Toast.show({
-        type: 'error',
-        text1: 'Permission Denied',
-        text2: 'Storage permission is required to save PDF',
-      });
-      return;
-    }
+  const generatePDF = async () => {
+    setLoading(true);
+    try {
+      const hasPermission = await requestStoragePermission();
+      if (!hasPermission) {
+        Toast.show({
+          type: 'error',
+          text1: 'Permission Denied',
+          text2: 'Storage permission is required to save PDF',
+        });
+        return;
+      }
 
-    // Create a new PDF document
-    const pdfDoc = await PDFDocument.create();
-    
-    // Create a larger page to avoid page breaks
-    const page = pdfDoc.addPage([595.28, 2000]); // Taller page
-    const {width, height} = page.getSize();
+      // Create a new PDF document
+      const pdfDoc = await PDFDocument.create();
 
-    // Load fonts
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      // Create a larger page to avoid page breaks
+      const page = pdfDoc.addPage([595.28, 2000]); // Taller page
+      const {width, height} = page.getSize();
 
-    // Set initial y position
-    let y = height - 50;
+      // Load fonts
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    // Add title
-    page.drawText('AGING REPORT', {
-      x: 50,
-      y,
-      size: 18,
-      font: boldFont,
-      color: rgb(0, 0, 0),
-    });
-    y -= 30;
+      // Set initial y position
+      let y = height - 50;
 
-    // Add customer/supplier name
-    const entityName = item?.name || item?.customer_name || item?.supplier_name || 'Unknown';
-    page.drawText(`Name: ${entityName}`, {
-      x: 50,
-      y,
-      size: 12,
-      font: font,
-      color: rgb(0, 0, 0),
-    });
-    y -= 20;
-
-    // Add date
-    const currentDate = new Date().toLocaleDateString();
-    page.drawText(`Date: ${currentDate}`, {
-      x: 50,
-      y,
-      size: 12,
-      font: font,
-      color: rgb(0, 0, 0),
-    });
-    y -= 40;
-
-    // Table headers
-    const headers = ['Reference', 'Tran Date', 'Days', 'Allocated', 'Invoice Amt', 'Balance'];
-    const columnWidths = [80, 80, 50, 80, 80, 80];
-    
-    // Draw table headers
-    let x = 50;
-    headers.forEach((header, index) => {
-      page.drawText(header, {
-        x,
+      // Add title
+      page.drawText('AGING REPORT', {
+        x: 50,
         y,
-        size: 10,
+        size: 18,
         font: boldFont,
         color: rgb(0, 0, 0),
       });
-      x += columnWidths[index];
-    });
-    y -= 20;
+      y -= 30;
 
-    // Draw table rows (simplified without page breaks)
-    aging.forEach((row, index) => {
-      x = 50;
-      const rowData = [
-        row.reference || '-',
-        row.tran_date || '-',
-        row.days || '-',
-        parseFloat(row.Allocated || 0).toFixed(2),
-        parseFloat(row.Invoice_amount || 0).toFixed(2),
-        parseFloat(row.invoce_balance || 0).toFixed(2),
+      // Add customer/supplier name
+      const entityName =
+        item?.name || item?.customer_name || item?.supplier_name || 'Unknown';
+      page.drawText(`Name: ${entityName}`, {
+        x: 50,
+        y,
+        size: 12,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      y -= 20;
+
+      // Add date
+      const currentDate = formatDate(new Date());
+      page.drawText(`Date: ${currentDate}`, {
+        x: 50,
+        y,
+        size: 12,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      y -= 40;
+
+      // Table headers
+      const headers = [
+        'Reference',
+        'Tran Date',
+        'Days',
+        'Allocated',
+        'Invoice Amt',
+        'Balance',
       ];
+      const columnWidths = [80, 80, 50, 80, 80, 80];
 
-      rowData.forEach((data, colIndex) => {
-        page.drawText(data, {
+      // Draw table headers
+      let x = 50;
+      headers.forEach((header, index) => {
+        page.drawText(header, {
           x,
           y,
-          size: 8,
-          font: font,
+          size: 10,
+          font: boldFont,
           color: rgb(0, 0, 0),
         });
-        x += columnWidths[colIndex];
+        x += columnWidths[index];
       });
-      y -= 15;
-    });
+      y -= 20;
 
-    // Draw totals
-    y -= 10;
-    x = 50;
+      // Draw table rows (simplified without page breaks)
+      aging.forEach((row, index) => {
+        x = 50;
+        const rowData = [
+          row.reference || '-',
+          formatDateString(row.tran_date),
+          row.days || '-',
+          formatNumber(row.Allocated || 0),
+          formatNumber(row.Invoice_amount || 0),
+          formatNumber(row.invoce_balance || 0),
+        ];
 
-    page.drawText('TOTAL', {
-      x,
-      y,
-      size: 10,
-      font: boldFont,
-      color: rgb(0, 0, 0),
-    });
-    x += 210; // Skip first three columns
+        rowData.forEach((data, colIndex) => {
+          page.drawText(data, {
+            x,
+            y,
+            size: 8,
+            font: font,
+            color: rgb(0, 0, 0),
+          });
+          x += columnWidths[colIndex];
+        });
+        y -= 15;
+      });
 
-    const totals = [
-      totalAllocated.toFixed(2),
-      totalInvoice.toFixed(2),
-      totalBalance.toFixed(2),
-    ];
+      // Draw totals
+      y -= 10;
+      x = 50;
 
-    totals.forEach((total) => {
-      page.drawText(total, {
+      page.drawText('TOTAL', {
         x,
         y,
         size: 10,
         font: boldFont,
         color: rgb(0, 0, 0),
       });
-      x += 80;
-    });
+      x += 210; // Skip first three columns
 
-    // Save PDF as bytes
-    const pdfBytes = await pdfDoc.save();
-    
-    // Convert Uint8Array to base64 without using Buffer
-    const base64PDF = uint8ArrayToBase64(pdfBytes);
+      const totals = [
+        formatNumber(totalAllocated),
+        formatNumber(totalInvoice),
+        formatNumber(totalBalance),
+      ];
 
-    // Generate file name
-    const customerName = entityName.replace(/[^a-zA-Z0-9_]/g, '_');
-    const fileName = `${customerName}_Aging_${Date.now()}.pdf`;
+      totals.forEach(total => {
+        page.drawText(total, {
+          x,
+          y,
+          size: 10,
+          font: boldFont,
+          color: rgb(0, 0, 0),
+        });
+        x += 80;
+      });
 
-    // Use public Downloads directory path
-    let downloadPath;
-    
-    if (Platform.OS === 'android') {
-      // Direct path to public Downloads folder
-      downloadPath = '/storage/emulated/0/Download';
-    } else {
-      downloadPath = RNFetchBlob.fs.dirs.DocumentDir;
+      // Save PDF as bytes
+      const pdfBytes = await pdfDoc.save();
+
+      // Convert Uint8Array to base64 without using Buffer
+      const base64PDF = uint8ArrayToBase64(pdfBytes);
+
+      // Generate file name
+      const customerName = entityName.replace(/[^a-zA-Z0-9_]/g, '_');
+      const fileName = `${customerName}_Aging_${Date.now()}.pdf`;
+
+      // Use public Downloads directory path
+      let downloadPath;
+
+      if (Platform.OS === 'android') {
+        // Direct path to public Downloads folder
+        downloadPath = '/storage/emulated/0/Download';
+      } else {
+        downloadPath = RNFetchBlob.fs.dirs.DocumentDir;
+      }
+
+      const filePath = `${downloadPath}/${fileName}`;
+
+      // Write file using RNFetchBlob
+      await RNFetchBlob.fs.writeFile(filePath, base64PDF, 'base64');
+
+      Toast.show({
+        type: 'success',
+        text1: 'PDF Saved Successfully',
+        text2: `File saved to Downloads folder`,
+        visibilityTime: 3000,
+      });
+
+      console.log('✅ PDF saved at:', filePath);
+    } catch (error) {
+      console.error('❌ PDF generation error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'PDF Generation Failed',
+        text2: 'Please try again',
+      });
+    } finally {
+      setLoading(false);
     }
-
-    const filePath = `${downloadPath}/${fileName}`;
-
-    // Write file using RNFetchBlob
-    await RNFetchBlob.fs.writeFile(filePath, base64PDF, 'base64');
-
-    Toast.show({
-      type: 'success',
-      text1: 'PDF Saved Successfully',
-      text2: `File saved to Downloads folder`,
-      visibilityTime: 3000,
-    });
-
-    console.log('✅ PDF saved at:', filePath);
-
-  } catch (error) {
-    console.error('❌ PDF generation error:', error);
-    Toast.show({
-      type: 'error',
-      text1: 'PDF Generation Failed',
-      text2: 'Please try again',
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+  };
   if (dataLoading) {
     return (
       <View
@@ -321,17 +330,22 @@ const generatePDF = async () => {
       {/* Custom Header */}
       <PlatformGradient
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-        style={[styles.header, {
-          paddingTop: Platform.OS === 'ios' 
-            ? insets.top + 10 
-            : Math.max(insets.top, 24) + 10 // Android ke liye minimum 24px status bar height
-        }]}>
+        style={[
+          styles.header,
+          {
+            paddingTop:
+              Platform.OS === 'ios'
+                ? insets.top + 10
+                : Math.max(insets.top, 24) + 10, // Android ke liye minimum 24px status bar height
+          },
+        ]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={22} color={APPCOLORS.WHITE} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>
-          Aging - {item?.name || item?.customer_name || item?.supplier_name || ''}
+          Aging -{' '}
+          {item?.name || item?.customer_name || item?.supplier_name || ''}
         </Text>
 
         <TouchableOpacity
@@ -381,7 +395,7 @@ const generatePDF = async () => {
                 borderRightWidth: 1,
                 borderColor: '#ccc',
               }}>
-              {item.tran_date}
+              {formatDateString(item.tran_date)}
             </Text>
             <Text
               style={{
@@ -394,7 +408,7 @@ const generatePDF = async () => {
               {item.days}
             </Text>
             <Text style={{flex: 1, textAlign: 'center', fontSize: 12}}>
-              {item.Invoice_amount || '-'}
+              {formatNumber(item.Invoice_amount)}
             </Text>
           </View>
         )}
@@ -474,7 +488,7 @@ const generatePDF = async () => {
                 fontSize: 14,
                 fontWeight: 'bold',
               }}>
-              {totalInvoice.toLocaleString()}
+              {formatNumber(totalInvoice)}
             </Text>
           </View>
         )}

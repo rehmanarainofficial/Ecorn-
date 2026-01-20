@@ -14,8 +14,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import { BASEURL } from '../../../../utils/BaseUrl';
-import { downloadFile } from '../../../../components/DownloadFile'; 
+import {BASEURL} from '../../../../utils/BaseUrl';
+import {downloadFile} from '../../../../components/DownloadFile';
+import {formatDate} from '../../../../utils/DateUtils';
+import {formatNumber} from '../../../../utils/NumberUtils';
 
 export default function VoucherScreen({navigation}) {
   const [allData, setAllData] = useState([]);
@@ -66,7 +68,7 @@ export default function VoucherScreen({navigation}) {
   // ✅ Download handler
   const handleDownload = async (trans_no, type) => {
     if (downloading) return;
-    
+
     setDownloading(true);
     try {
       await downloadFile(trans_no, type);
@@ -110,14 +112,6 @@ export default function VoucherScreen({navigation}) {
     setData(allData.slice(-30));
   };
 
-  const formatAmount = value => {
-    if (!value) return '0';
-    return new Intl.NumberFormat('en-IN', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(Number(value));
-  };
-
   return (
     <View style={styles.container}>
       <SimpleHeader title="Voucher" />
@@ -128,7 +122,7 @@ export default function VoucherScreen({navigation}) {
           onPress={() => setShowPicker({visible: true, type: 'from'})}>
           <Icon name="calendar" size={18} color="#fff" />
           <Text style={styles.buttonText}>
-            {fromDate ? fromDate.toDateString() : 'From Date'}
+            {fromDate ? formatDate(fromDate) : 'From Date'}
           </Text>
         </TouchableOpacity>
 
@@ -137,7 +131,7 @@ export default function VoucherScreen({navigation}) {
           onPress={() => setShowPicker({visible: true, type: 'to'})}>
           <Icon name="calendar" size={18} color="#fff" />
           <Text style={styles.buttonText}>
-            {toDate ? toDate.toDateString() : 'To Date'}
+            {toDate ? formatDate(toDate) : 'To Date'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -223,7 +217,7 @@ export default function VoucherScreen({navigation}) {
               </Text>
               <Text style={[styles.cell, {flex: 1.5}]}>{item.tran_date}</Text>
               <Text style={[styles.cell, {flex: 1.5}]}>
-                {formatAmount(item.amount)}
+                {formatNumber(item.amount)}
               </Text>
               <View
                 style={[

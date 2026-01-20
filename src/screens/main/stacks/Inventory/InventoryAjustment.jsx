@@ -14,7 +14,8 @@ import {Dropdown} from 'react-native-element-dropdown';
 import PlatformGradient from '../../../../components/PlatformGradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
-import { BASEURL } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
+import {formatNumber, formatQuantity} from '../../../../utils/NumberUtils';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -277,9 +278,9 @@ export default function InventoryAjustment({navigation}) {
         {items.map(row => (
           <View key={row.id} style={styles.tableRow}>
             <Text style={styles.tableText}>{row.productName}</Text>
-            <Text style={styles.tableText}>{row.qty}</Text>
-            <Text style={styles.tableText}>{row.unitCost}</Text>
-            <Text style={styles.tableText}>{row.total}</Text>
+            <Text style={styles.tableText}>{formatQuantity(row.qty)}</Text>
+            <Text style={styles.tableText}>{formatNumber(row.unitCost)}</Text>
+            <Text style={styles.tableText}>{formatNumber(row.total)}</Text>
           </View>
         ))}
 
@@ -322,7 +323,7 @@ export default function InventoryAjustment({navigation}) {
             onChangeText={setUnitCost}
           />
           <View style={[styles.textInput, {flex: 1, justifyContent: 'center'}]}>
-            <Text style={{color: COLORS.WHITE}}>{total}</Text>
+            <Text style={{color: COLORS.WHITE}}>{formatNumber(total)}</Text>
           </View>
           <TouchableOpacity
             onPress={handleAdd}

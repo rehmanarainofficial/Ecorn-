@@ -15,6 +15,8 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {BASEURL} from '../../../../utils/BaseUrl';
+import {formatDate} from '../../../../utils/DateUtils';
+import {formatNumber} from '../../../../utils/NumberUtils';
 import {downloadFile} from '../../../../components/DownloadFile'; //
 
 export default function PurchaseOrder({navigation}) {
@@ -135,14 +137,6 @@ export default function PurchaseOrder({navigation}) {
     setData(allData);
   };
 
-  const formatAmount = value => {
-    if (!value) return '0';
-    return new Intl.NumberFormat('en-IN', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(Number(value));
-  };
-
   return (
     <View style={styles.container}>
       <SimpleHeader title="Purchase Order" />
@@ -153,7 +147,7 @@ export default function PurchaseOrder({navigation}) {
           onPress={() => setShowPicker({visible: true, type: 'from'})}>
           <Icon name="calendar" size={18} color="#fff" />
           <Text style={styles.buttonText}>
-            {fromDate ? fromDate.toDateString() : 'From Date'}
+            {fromDate ? formatDate(fromDate) : 'From Date'}
           </Text>
         </TouchableOpacity>
 
@@ -162,7 +156,7 @@ export default function PurchaseOrder({navigation}) {
           onPress={() => setShowPicker({visible: true, type: 'to'})}>
           <Icon name="calendar" size={18} color="#fff" />
           <Text style={styles.buttonText}>
-            {toDate ? toDate.toDateString() : 'To Date'}
+            {toDate ? formatDate(toDate) : 'To Date'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -248,7 +242,7 @@ export default function PurchaseOrder({navigation}) {
               </Text>
               <Text style={[styles.cell, {flex: 1.5}]}>{item.tran_date}</Text>
               <Text style={[styles.cell, {flex: 1.5}]}>
-                {formatAmount(item.amount)}
+                {formatNumber(item.amount)}
               </Text>
               <View
                 style={[

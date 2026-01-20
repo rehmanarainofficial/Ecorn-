@@ -19,6 +19,7 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import axios from 'axios';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {useSelector} from 'react-redux';
+import {formatNumber} from '../../../../utils/NumberUtils';
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
@@ -213,9 +214,9 @@ export default function ExpenseClaim({navigation}) {
   };
 
   const calculateTotal = () => {
-    return items
-      .reduce((sum, item) => sum + parseFloat(item.amount || 0), 0)
-      .toFixed(2);
+    return formatNumber(
+      items.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0),
+    );
   };
 
   return (
@@ -327,7 +328,9 @@ export default function ExpenseClaim({navigation}) {
                     {item.accountTitleLabel}
                   </Text>
                 </View>
-                <Text style={[styles.tableText, {flex: 1}]}>{item.amount}</Text>
+                <Text style={[styles.tableText, {flex: 1}]}>
+                  {formatNumber(item.amount)}
+                </Text>
                 <Text style={[styles.tableText, {flex: 1.2}]} numberOfLines={2}>
                   {item.memo}
                 </Text>

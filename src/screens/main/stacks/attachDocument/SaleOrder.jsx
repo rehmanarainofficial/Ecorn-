@@ -16,6 +16,8 @@ import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {downloadFile} from '../../../../components/DownloadFile'; // ✅ Import downloadFile component
+import {formatDate, formatDateString} from '../../../../utils/DateUtils';
+import {formatNumber} from '../../../../utils/NumberUtils';
 
 export default function SaleOrder({navigation}) {
   const [allData, setAllData] = useState([]);
@@ -145,11 +147,7 @@ export default function SaleOrder({navigation}) {
 
   // ✅ Memoized formatAmount function
   const formatAmount = React.useCallback(value => {
-    if (!value) return '0';
-    return new Intl.NumberFormat('en-IN', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(Number(value));
+    return formatNumber(value);
   }, []);
 
   // ✅ Memoized renderItem for better performance
@@ -159,7 +157,9 @@ export default function SaleOrder({navigation}) {
         <Text style={[styles.cell, {flex: 1}]}>
           {item.reference?.slice(0, 6) + '..' || 'N/A'}
         </Text>
-        <Text style={[styles.cell, {flex: 1.5}]}>{item.tran_date}</Text>
+        <Text style={[styles.cell, {flex: 1.5}]}>
+          {formatDateString(item.tran_date)}
+        </Text>
         <Text style={[styles.cell, {flex: 1.5}]}>
           {formatAmount(item.amount)}
         </Text>
@@ -235,7 +235,7 @@ export default function SaleOrder({navigation}) {
           onPress={() => setShowPicker({visible: true, type: 'from'})}>
           <Icon name="calendar" size={18} color="#fff" />
           <Text style={styles.buttonText}>
-            {fromDate ? fromDate.toLocaleDateString('en-GB') : 'From Date'}
+            {formatDate(fromDate) || 'From Date'}
           </Text>
         </TouchableOpacity>
 
@@ -244,7 +244,7 @@ export default function SaleOrder({navigation}) {
           onPress={() => setShowPicker({visible: true, type: 'to'})}>
           <Icon name="calendar" size={18} color="#fff" />
           <Text style={styles.buttonText}>
-            {toDate ? toDate.toLocaleDateString('en-GB') : 'To Date'}
+            {formatDate(toDate) || 'To Date'}
           </Text>
         </TouchableOpacity>
       </View>

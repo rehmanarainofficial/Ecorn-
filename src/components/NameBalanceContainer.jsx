@@ -5,6 +5,7 @@ import {APPCOLORS} from '../utils/APPCOLORS';
 import PlatformGradient from './PlatformGradient';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import {formatNumber} from '../utils/NumberUtils';
 
 const NameBalanceContainer = ({Name, type, balance, item}) => {
   const navigation = useNavigation();
@@ -52,7 +53,7 @@ const NameBalanceContainer = ({Name, type, balance, item}) => {
             marginHorizontal: 8,
           }}>
           <AppText
-            title={Math.round(balance).toLocaleString()}
+            title={formatNumber(balance)}
             titleSize={1.6}
             titleColor={APPCOLORS.WHITE}
           />

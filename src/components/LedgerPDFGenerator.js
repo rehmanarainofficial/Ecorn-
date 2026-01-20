@@ -1,6 +1,8 @@
 import {PDFDocument, StandardFonts, rgb} from 'pdf-lib';
 import RNFetchBlob from 'react-native-blob-util';
 import {ToastAndroid, PermissionsAndroid, Platform} from 'react-native';
+import {formatDate, formatDateString} from '../utils/DateUtils';
+import {formatNumber} from '../utils/NumberUtils';
 
 export const generateLedgerPDF = async (
   ledgerData,
@@ -64,7 +66,7 @@ export const generateLedgerPDF = async (
 
     const firstTx = ledgerData?.[0]?.transactions?.[0]?.person_name || 'N/A';
     const customerName = firstTx;
-    const currentDate = new Date().toLocaleDateString();
+    const currentDate = formatDate(new Date());
 
     drawText(`Customer: ${customerName}`, 50, y, 12, true);
     drawText(`Company: Ercon Industries Pvt. Ltd`, 300, y, 12, true);
@@ -92,11 +94,11 @@ export const generateLedgerPDF = async (
     // --- Table Rows ---
     ledgerData.forEach(section => {
       section.transactions.forEach(tx => {
-        drawText(section.date, colX[0], y, 10);
+        drawText(formatDateString(section.date), colX[0], y, 10);
         drawText(tx.reference || '-', colX[1], y, 10);
         drawText(tx.person_name.slice(0, 20) + '..' || '-', colX[2], y, 10);
-        drawText(parseFloat(tx.amount || 0).toFixed(2), colX[3], y, 10);
-        drawText(parseFloat(tx.balance || 0).toFixed(2), colX[4], y, 10);
+        drawText(formatNumber(tx.amount || 0), colX[3], y, 10);
+        drawText(formatNumber(tx.balance || 0), colX[4], y, 10);
         addSpace(15);
 
         if (tx.memo) {
