@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Animated, {FadeInUp} from 'react-native-reanimated';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import AppText from '../../../../components/AppText';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import axios from 'axios';
@@ -158,7 +158,7 @@ const ApprovalCard = ({
   };
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
       start={{x: 0, y: 0}}
       end={{x: 1, y: 1}}
@@ -167,7 +167,7 @@ const ApprovalCard = ({
         <Animated.View
           entering={FadeInUp.delay(200)}
           style={styles.cardWrapper}>
-          <LinearGradient
+          <PlatformGradient
             colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
@@ -212,7 +212,7 @@ const ApprovalCard = ({
                   styles.buttonWrapper,
                   isVoucherScreen ? styles.fourButton : styles.threeButton,
                 ]}>
-                <LinearGradient
+                <PlatformGradient
                   colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
                   start={{x: 0, y: 0}}
                   end={{x: 1, y: 0}}
@@ -227,7 +227,7 @@ const ApprovalCard = ({
                       titleWeight
                     />
                   )}
-                </LinearGradient>
+                </PlatformGradient>
               </TouchableOpacity>
 
               {/* View Button */}
@@ -238,7 +238,7 @@ const ApprovalCard = ({
                   styles.buttonWrapper,
                   isVoucherScreen ? styles.fourButton : styles.threeButton,
                 ]}>
-                <LinearGradient
+                <PlatformGradient
                   colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
                   start={{x: 0, y: 0}}
                   end={{x: 1, y: 0}}
@@ -253,7 +253,7 @@ const ApprovalCard = ({
                       titleWeight
                     />
                   )}
-                </LinearGradient>
+                </PlatformGradient>
               </TouchableOpacity>
 
               {/* PDF Button */}
@@ -264,7 +264,7 @@ const ApprovalCard = ({
                   styles.buttonWrapper,
                   isVoucherScreen ? styles.fourButton : styles.threeButton,
                 ]}>
-                <LinearGradient
+                <PlatformGradient
                   colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
                   start={{x: 0, y: 0}}
                   end={{x: 1, y: 0}}
@@ -279,7 +279,7 @@ const ApprovalCard = ({
                       titleWeight
                     />
                   )}
-                </LinearGradient>
+                </PlatformGradient>
               </TouchableOpacity>
 
               {/* GL View Button - Only show for Voucher screen */}
@@ -288,7 +288,7 @@ const ApprovalCard = ({
                   onPress={handleGLView}
                   disabled={glViewLoading}
                   style={styles.fourButton}>
-                  <LinearGradient
+                  <PlatformGradient
                     colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
                     start={{x: 0, y: 0}}
                     end={{x: 1, y: 0}}
@@ -303,14 +303,14 @@ const ApprovalCard = ({
                         titleWeight
                       />
                     )}
-                  </LinearGradient>
+                  </PlatformGradient>
                 </TouchableOpacity>
               )}
             </View>
-          </LinearGradient>
+          </PlatformGradient>
         </Animated.View>
       </ScrollView>
-    </LinearGradient>
+    </PlatformGradient>
   );
 };
 

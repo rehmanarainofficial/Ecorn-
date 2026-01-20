@@ -8,7 +8,7 @@ import {
 import React, {useEffect, useState} from 'react';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../components/PlatformGradient';
 import {useDispatch, useSelector} from 'react-redux';
 // import {setAllProducts, setLoader} from '../../redux/AuthSlice';
 import axios from 'axios';
@@ -202,7 +202,7 @@ const Home = ({navigation, route}) => {
 
       {currentData.role_id == 17 ? (
         <TouchableOpacity onPress={() => navigation.navigate('SalesmanList')}>
-          <LinearGradient
+          <PlatformGradient
             colors={['#9BC8E2', APPCOLORS.BTN_COLOR]}
             style={{
               width: '90%',
@@ -222,7 +222,7 @@ const Home = ({navigation, route}) => {
               }}>
               Salesman List
             </Text>
-          </LinearGradient>
+          </PlatformGradient>
         </TouchableOpacity>
       ) : null}
 
@@ -231,7 +231,7 @@ const Home = ({navigation, route}) => {
           <TouchableOpacity
             onPress={() => navigation.navigate('NewOrders')}
             style={{height: 300, width: '43%'}}>
-            <LinearGradient
+            <PlatformGradient
               colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
               style={{
                 height: 270,
@@ -267,7 +267,7 @@ const Home = ({navigation, route}) => {
                     : '0.00'}
                 </Text>
               )}
-            </LinearGradient>
+            </PlatformGradient>
           </TouchableOpacity>
           {/* {
                     console.log("order", JSON.parse((OderTotel)).toFixed(2))
@@ -276,7 +276,7 @@ const Home = ({navigation, route}) => {
           <TouchableOpacity
             onPress={() => navigation.navigate(type == "supplier" ? 'SupplierHome' : 'AddNewCustomer', {type: type})}
             style={{height: 300, width: '43%'}}>
-            <LinearGradient
+            <PlatformGradient
               colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
               style={{
                 height: 270,
@@ -295,7 +295,7 @@ const Home = ({navigation, route}) => {
                   {type == "supplier" ? "New Po":  "New Order"}
                 
               </Text>
-            </LinearGradient>
+            </PlatformGradient>
           </TouchableOpacity>
         </View>
 
@@ -303,7 +303,7 @@ const Home = ({navigation, route}) => {
           <TouchableOpacity
             onPress={() => navigation.navigate('RecoveryOrder')}
             style={{height: 300, width: '43%'}}>
-            <LinearGradient
+            <PlatformGradient
               colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
               style={{
                 height: 270,
@@ -334,11 +334,11 @@ const Home = ({navigation, route}) => {
                   Rs {!RecoverTotal ? '0' : RecoverTotal}
                 </Text>
               )}
-            </LinearGradient>
+            </PlatformGradient>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={()=> navigation.navigate("Incentive", {TargetIncentive:  TargetIncentive})} style={{height: 300, width: '43%'}}>
-            <LinearGradient
+            <PlatformGradient
               colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
               style={{
                 height: 270,
@@ -357,7 +357,7 @@ const Home = ({navigation, route}) => {
                 {type == "supplier" ? "Supplier Inquiry":  "Customer Transction"}
               </Text>
               <Text style={{color: APPCOLORS.WHITE, marginTop: 20, fontSize: 20}}>Rs {formattedTarget}</Text>
-            </LinearGradient>
+            </PlatformGradient>
           </TouchableOpacity>
         </View>
       </View>

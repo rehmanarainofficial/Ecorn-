@@ -12,7 +12,7 @@ import { responsiveHeight, responsiveWidth } from '../../../../utils/Responsive'
 import {BASEURL} from '../../../../utils/BaseUrl';
 import moment from 'moment';
 import axios from 'axios';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -35,23 +35,22 @@ const ProfitAndLossScreen = ({ navigation }) => {
   const getMoneyData = async () => {
     try {
       setLoading(true);
-      const form = new FormData();
       const currentDate = new Date();
       const todayDate = moment(currentDate).format('YYYY-MM-DD');
 
-      form.append('current_date', todayDate);
-      form.append('pre_month_date', '2025-04-19');
+      const params = new URLSearchParams();
+      params.append('current_date', todayDate);
+      params.append('pre_month_date', '2025-04-19');
 
-      const options = {
-        method: 'GET',
-        url: `${BASEURL}dashboard_view.php`,
-        headers: {
-          'content-type': 'multipart/form-data',
+      const { data } = await axios.post(
+        `${BASEURL}dashboard_view.php`,
+        params.toString(),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
         },
-        data: form,
-      };
-
-      const { data } = await axios.request(options);
+      );
       setAllData(data);
     } catch (error) {
       console.log('Error', error);
@@ -106,7 +105,7 @@ const ProfitAndLossScreen = ({ navigation }) => {
   );
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       style={{ flex: 1 }}
     >
@@ -204,7 +203,7 @@ const ProfitAndLossScreen = ({ navigation }) => {
           </>
         )}
       </ScrollView>
-    </LinearGradient>
+    </PlatformGradient>
   );
 };
 

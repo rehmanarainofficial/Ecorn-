@@ -11,7 +11,7 @@ import {
 import React, {useEffect, useState} from 'react';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../components/PlatformGradient';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import axios from 'axios';
 import Modal from 'react-native-modal';
@@ -390,7 +390,7 @@ const AddItems = ({navigation, route}) => {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => navigation.navigate('ItemList', {data: data})}>
-              <LinearGradient
+              <PlatformGradient
                 colors={['#9BC8E2', '#007BC1']}
                 style={{
                   height: 40,
@@ -409,7 +409,7 @@ const AddItems = ({navigation, route}) => {
                   }}>
                   Total Items
                 </Text>
-              </LinearGradient>
+              </PlatformGradient>
             </TouchableOpacity>
           </View>
         </View>
@@ -859,7 +859,7 @@ const AddItems = ({navigation, route}) => {
           <TouchableOpacity
             onPress={() => addToCart()}
             style={{alignSelf: 'flex-end'}}>
-            <LinearGradient
+            <PlatformGradient
               colors={['#9BC8E2', '#007BC1']}
               style={{
                 height: 40,
@@ -877,7 +877,7 @@ const AddItems = ({navigation, route}) => {
                 }}>
                 Add Item
               </Text>
-            </LinearGradient>
+            </PlatformGradient>
           </TouchableOpacity>
 
           <View

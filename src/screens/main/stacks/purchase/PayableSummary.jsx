@@ -11,7 +11,7 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
 import {GetPayable} from '../../../../global/ChartApisCall';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -76,7 +76,7 @@ const PayableScreen = ({navigation}) => {
   }, 0);
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       style={{flex: 1}}>
       <SimpleHeader title="Payable Balance" />
@@ -204,7 +204,7 @@ const PayableScreen = ({navigation}) => {
           </View>
         </ScrollView>
       )}
-    </LinearGradient>
+    </PlatformGradient>
   );
 };
 

@@ -1,6 +1,6 @@
 import {View, TouchableOpacity} from 'react-native';
 import React from 'react';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from './PlatformGradient';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import AppText from './AppText';
 import {APPCOLORS} from '../utils/APPCOLORS';
@@ -30,7 +30,7 @@ const AlertCards = ({
         elevation: 2,
         marginBottom: 20,
       }}>
-      <LinearGradient
+      <PlatformGradient
         colors={[APPCOLORS.BLACK, APPCOLORS.Secondary]}
         style={{padding: 20, alignItems: 'center', justifyContent: 'center'}}>
         <AppText
@@ -39,7 +39,7 @@ const AlertCards = ({
           titleSize={2}
           titleWeight
         />
-      </LinearGradient>
+      </PlatformGradient>
 
       <View style={{padding: 20, gap: 20}}>
         {HeadingOne && (

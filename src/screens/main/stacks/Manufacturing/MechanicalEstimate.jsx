@@ -9,7 +9,7 @@ import {
   TextInput,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Dropdown} from 'react-native-element-dropdown';
 import Toast from 'react-native-toast-message';
@@ -178,7 +178,7 @@ const MechanicalEstimate = ({navigation, route}) => {
   );
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       style={{flex: 1}}>
       {/* Header */}
@@ -265,7 +265,7 @@ const MechanicalEstimate = ({navigation, route}) => {
       </View>
 
       <Toast />
-    </LinearGradient>
+    </PlatformGradient>
   );
 };
 

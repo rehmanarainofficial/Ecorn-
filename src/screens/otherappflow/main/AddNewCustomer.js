@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../components/PlatformGradient';
 import axios from 'axios';
 import LottieView from 'lottie-react-native';
 import {useSelector} from 'react-redux';
@@ -132,7 +132,7 @@ const AddNewCustomer = ({navigation}) => {
           <Ionicons name="arrow-back" size={22} color="#333" />
         </TouchableOpacity>
 
-        <LinearGradient
+        <PlatformGradient
           colors={['#000000', '#434343']}
           start={{x: 0, y: 0}}
           end={{x: 1, y: 1}}
@@ -157,7 +157,7 @@ const AddNewCustomer = ({navigation}) => {
             onChangeText={txt => setSearch(txt)}
             value={Search}
           />
-        </LinearGradient>
+        </PlatformGradient>
       </View>
 
       {/* Loader */}
@@ -185,7 +185,7 @@ const AddNewCustomer = ({navigation}) => {
               onEndReached={loaderMoreData}
               onEndReachedThreshold={1}
               renderItem={({item}) => (
-                <LinearGradient
+                <PlatformGradient
                   colors={[APPCOLORS.Primary, APPCOLORS.Secondary, APPCOLORS.BLACK]}
                   style={{
                     borderRadius: 15,
@@ -220,7 +220,7 @@ const AddNewCustomer = ({navigation}) => {
                     <Text style={styles.label}>5. Contact No</Text>
                     <Text style={styles.value}>{item?.contact_no || 'N/A'}</Text>
                   </View>
-                </LinearGradient>
+                </PlatformGradient>
               )}
             />
           ) : (
@@ -245,7 +245,7 @@ const AddNewCustomer = ({navigation}) => {
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-        <LinearGradient
+        <PlatformGradient
           colors={[APPCOLORS.BLACK, APPCOLORS.Secondary, APPCOLORS.BLACK]}
           style={{
             height: 50,
@@ -256,7 +256,7 @@ const AddNewCustomer = ({navigation}) => {
           <Text style={{color: APPCOLORS.WHITE, fontSize: 20, fontWeight: 'bold'}}>
             Add new customer
           </Text>
-        </LinearGradient>
+        </PlatformGradient>
       </TouchableOpacity>
     </View>
   );

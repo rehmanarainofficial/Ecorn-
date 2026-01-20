@@ -1,6 +1,6 @@
 import {View, FlatList, TextInput} from 'react-native';
 import React, {useState, useEffect} from 'react';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
@@ -67,7 +67,7 @@ const NormalViewAll = ({navigation, route}) => {
   };
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={['#f6f7fb', '#dfe9f3']}
       style={{flex: 1, paddingBottom: 10}}>
       <SimpleHeader title="View All" />
@@ -127,7 +127,7 @@ const NormalViewAll = ({navigation, route}) => {
           );
         }}
       />
-    </LinearGradient>
+    </PlatformGradient>
   );
 };
 

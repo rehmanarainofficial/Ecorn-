@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import AppText from '../../../../components/AppText';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 
 const ViewDetailsScreen = ({route}) => {
   const {viewData} = route.params;
@@ -89,7 +89,7 @@ const ViewDetailsScreen = ({route}) => {
                 transform: [{translateY: slideAnim}],
               },
             ]}>
-            <LinearGradient
+            <PlatformGradient
               colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
               start={{x: 0, y: 0}}
               end={{x: 1, y: 1}}
@@ -248,7 +248,7 @@ const ViewDetailsScreen = ({route}) => {
                   />
                 </View>
               )}
-            </LinearGradient>
+            </PlatformGradient>
           </Animated.View>
         )}
 
@@ -262,7 +262,7 @@ const ViewDetailsScreen = ({route}) => {
                 transform: [{translateY: slideAnim}],
               },
             ]}>
-            <LinearGradient
+            <PlatformGradient
               colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
               start={{x: 0, y: 0}}
               end={{x: 1, y: 1}}
@@ -289,7 +289,7 @@ const ViewDetailsScreen = ({route}) => {
                       ],
                     },
                   ]}>
-                  <LinearGradient
+                  <PlatformGradient
                     colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
                     style={styles.itemGradient}>
                     <View style={styles.itemDetails}>
@@ -352,10 +352,10 @@ const ViewDetailsScreen = ({route}) => {
                         </View>
                       )}
                     </View>
-                  </LinearGradient>
+                  </PlatformGradient>
                 </Animated.View>
               ))}
-            </LinearGradient>
+            </PlatformGradient>
           </Animated.View>
         )}
       </ScrollView>

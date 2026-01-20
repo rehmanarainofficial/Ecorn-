@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
@@ -253,27 +253,27 @@ export default function SaleOrder({navigation}) {
         <TouchableOpacity
           onPress={applyFilter}
           style={{flex: 1, marginRight: 6}}>
-          <LinearGradient
+          <PlatformGradient
             colors={['#28a745', '#218838']}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
             style={styles.gradientButton}>
             <Icon name="filter-check" size={18} color="#fff" />
             <Text style={styles.buttonText}>Apply</Text>
-          </LinearGradient>
+          </PlatformGradient>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={clearFilter}
           style={{flex: 1, marginLeft: 6}}>
-          <LinearGradient
+          <PlatformGradient
             colors={['#dc3545', '#a71d2a']}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
             style={styles.gradientButton}>
             <Icon name="close-circle" size={18} color="#fff" />
             <Text style={styles.buttonText}>Clear</Text>
-          </LinearGradient>
+          </PlatformGradient>
         </TouchableOpacity>
       </View>
 

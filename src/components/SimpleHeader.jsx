@@ -4,7 +4,7 @@ import AppText from './AppText'
 import { APPCOLORS } from '../utils/APPCOLORS'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { responsiveFontSize, responsiveHeight } from '../utils/Responsive'
-import LinearGradient from 'react-native-linear-gradient'
+import PlatformGradient from './PlatformGradient'
 import { useNavigation } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,7 +13,7 @@ const SimpleHeader = ({ title }) => {
     const insets = useSafeAreaInsets();
 
     return (
-        <LinearGradient colors={[APPCOLORS.Primary, APPCOLORS.Secondary]} style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: insets.top + 10, paddingBottom: 15, borderBottomRightRadius: 20, borderBottomLeftRadius: 20 }}>
+        <PlatformGradient colors={[APPCOLORS.Primary, APPCOLORS.Secondary]} style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: insets.top + 15, paddingBottom: 20}}>
             <TouchableOpacity onPress={() => nav.goBack()}>
                 <Ionicons
                     name={"arrow-back"}
@@ -33,7 +33,7 @@ const SimpleHeader = ({ title }) => {
 
                 />
             </TouchableOpacity>
-        </LinearGradient>
+        </PlatformGradient>
     )
 }
 

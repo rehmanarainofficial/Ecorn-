@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -171,7 +171,7 @@ const MechanicalJobCardsScreen = ({navigation}) => {
   );
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       style={{flex: 1}}>
       {/* Header */}
@@ -273,7 +273,7 @@ const MechanicalJobCardsScreen = ({navigation}) => {
           keyExtractor={(item, idx) => item.id + idx}
         />
       )}
-    </LinearGradient>
+    </PlatformGradient>
   );
 };
 

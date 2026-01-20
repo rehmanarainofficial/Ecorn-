@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {launchImageLibrary} from 'react-native-image-picker';
 import axios from 'axios';
@@ -219,7 +219,7 @@ export default function ExpenseClaim({navigation}) {
   };
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       style={{flex: 1}}>
       {/* Header */}
@@ -432,7 +432,7 @@ export default function ExpenseClaim({navigation}) {
           )}
         </TouchableOpacity>
       </View>
-    </LinearGradient>
+    </PlatformGradient>
   );
 }
 

@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Text,
+  Platform,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
@@ -14,13 +15,27 @@ import {BASEURL} from '../../../../utils/BaseUrl';
 import axios from 'axios';
 import TopTen from '../../../../components/TopTen';
 import {useSelector} from 'react-redux';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
   Primary: '#1a1c22',
   Secondary: '#5a5c6a',
+};
+
+// iOS ke liye different colors, Android ke liye original
+const getCardColors = () => {
+  if (Platform.OS === 'ios') {
+    return {
+      topColor: '#2d2f3a', // iOS ke liye lighter color
+      bottomColor: '#3d3f4a',
+    };
+  }
+  return {
+    topColor: COLORS.Primary,
+    bottomColor: COLORS.Secondary,
+  };
 };
 
 const Detail = ({navigation}) => {
@@ -95,21 +110,21 @@ const Detail = ({navigation}) => {
 
   const getMoneyData = async () => {
     setLoader(true);
-    const form = new FormData();
-    form.append('current_date', '2025-05-19');
-    form.append('pre_month_date', '2025-04-19');
-
-    const options = {
-      method: 'GET',
-      url: `${BASEURL}dashboard_view.php`,
-      headers: {
-        'content-type': 'multipart/form-data',
-      },
-      data: form,
-    };
 
     try {
-      const {data} = await axios.request(options);
+      const params = new URLSearchParams();
+      params.append('current_date', '2025-05-19');
+      params.append('pre_month_date', '2025-04-19');
+
+      const {data} = await axios.post(
+        `${BASEURL}dashboard_view.php`,
+        params.toString(),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      );
 
       setslider_data(data?.slider_data);
       setAllData(data);
@@ -141,9 +156,12 @@ const Detail = ({navigation}) => {
       })
     : [];
 
+  // Platform-specific colors for cards
+  const cardColors = getCardColors();
+
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       style={{flex: 1}}>
       <SimpleHeader title="Dashboard" />
@@ -207,8 +225,8 @@ const Detail = ({navigation}) => {
                       amount={filteredData[0]?.Amount || 0}
                       prev_title={filteredData[0]?.Prev_title}
                       prev_amount={filteredData[0]?.Prev_Amount || 0}
-                      gradientTopColor={COLORS.Primary}
-                      gradientBottomColor={COLORS.Secondary}
+                      gradientTopColor={cardColors.topColor}
+                      gradientBottomColor={cardColors.bottomColor}
                       IsUp={filteredData[0]?.isUp}
                       onPress={() =>
                         navigation.navigate('MoreDetail', {
@@ -224,8 +242,8 @@ const Detail = ({navigation}) => {
                       amount={filteredData[1]?.Amount || 0}
                       prev_title={filteredData[1]?.Prev_title}
                       prev_amount={filteredData[1]?.Prev_Amount || 0}
-                      gradientTopColor={COLORS.Primary}
-                      gradientBottomColor={COLORS.Secondary}
+                      gradientTopColor={cardColors.topColor}
+                      gradientBottomColor={cardColors.bottomColor}
                       IsUp={filteredData[1]?.isUp}
                       onPress={() =>
                         navigation.navigate('MoreDetail', {
@@ -245,8 +263,8 @@ const Detail = ({navigation}) => {
                       amount={filteredData[2]?.Amount || 0}
                       prev_title={filteredData[2]?.Prev_title}
                       prev_amount={filteredData[2]?.Prev_Amount || 0}
-                      gradientTopColor={COLORS.Primary}
-                      gradientBottomColor={COLORS.Secondary}
+                      gradientTopColor={cardColors.topColor}
+                      gradientBottomColor={cardColors.bottomColor}
                       IsUp={filteredData[2]?.isUp}
                       onPress={() =>
                         navigation.navigate('MoreDetail', {
@@ -262,8 +280,8 @@ const Detail = ({navigation}) => {
                       amount={filteredData[3]?.Amount || 0}
                       prev_title={filteredData[3]?.Prev_title}
                       prev_amount={filteredData[3]?.Prev_Amount || 0}
-                      gradientTopColor={COLORS.Primary}
-                      gradientBottomColor={COLORS.Secondary}
+                      gradientTopColor={cardColors.topColor}
+                      gradientBottomColor={cardColors.bottomColor}
                       IsUp={filteredData[3]?.isUp}
                       onPress={() =>
                         navigation.navigate('MoreDetail', {
@@ -304,7 +322,7 @@ const Detail = ({navigation}) => {
           </View>
         </View>
       </ScrollView>
-    </LinearGradient>
+    </PlatformGradient>
   );
 };
 

@@ -3,7 +3,7 @@ import {View, ScrollView, Animated} from 'react-native';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import AppText from '../../../../components/AppText';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 
 const GLViewScreen = ({route}) => {
   const {glData} = route.params;
@@ -84,7 +84,7 @@ const GLViewScreen = ({route}) => {
                 transform: [{translateY: slideAnim}],
               },
             ]}>
-            <LinearGradient
+            <PlatformGradient
               colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
               start={{x: 0, y: 0}}
               end={{x: 1, y: 1}}
@@ -208,7 +208,7 @@ const GLViewScreen = ({route}) => {
                   </View>
                 )}
               </View>
-            </LinearGradient>
+            </PlatformGradient>
           </Animated.View>
         )}
 
@@ -222,7 +222,7 @@ const GLViewScreen = ({route}) => {
                 transform: [{translateY: slideAnim}],
               },
             ]}>
-            <LinearGradient
+            <PlatformGradient
               colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
               start={{x: 0, y: 0}}
               end={{x: 1, y: 1}}
@@ -249,7 +249,7 @@ const GLViewScreen = ({route}) => {
                       ],
                     },
                   ]}>
-                  <LinearGradient
+                  <PlatformGradient
                     colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
                     style={styles.entryGradient}>
                     <View style={styles.entryDetails}>
@@ -348,7 +348,7 @@ const GLViewScreen = ({route}) => {
                         </View>
                       )}
                     </View>
-                  </LinearGradient>
+                  </PlatformGradient>
                 </Animated.View>
               ))}
 
@@ -383,7 +383,7 @@ const GLViewScreen = ({route}) => {
                   />
                 </View>
               </View>
-            </LinearGradient>
+            </PlatformGradient>
           </Animated.View>
         )}
       </ScrollView>

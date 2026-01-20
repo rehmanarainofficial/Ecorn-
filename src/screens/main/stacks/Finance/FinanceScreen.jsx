@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
@@ -12,7 +12,11 @@ const buttons = [
     name: 'Expense Claim Submission',
     icon: 'file-document-edit',
     screen: 'ExpenseClaim',
-  },
+  },{
+    name: 'Attendance',
+    icon: 'account-clock',
+    screen: 'Attendance',
+  }
 ];
 
 export default function FinanceScreen({navigation}) {
@@ -25,7 +29,7 @@ export default function FinanceScreen({navigation}) {
       <TouchableOpacity
         activeOpacity={0.85}
         onPress={() => navigation.navigate(item.screen)}>
-        <LinearGradient
+        <PlatformGradient
           colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)']}
           style={styles.buttonContainer}>
           <Animatable.View
@@ -36,13 +40,13 @@ export default function FinanceScreen({navigation}) {
             <Icon name={item.icon} size={22} color="#fff" />
           </Animatable.View>
           <Text style={styles.buttonText}>{item.name}</Text>
-        </LinearGradient>
+        </PlatformGradient>
       </TouchableOpacity>
     </Animatable.View>
   );
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[APPCOLORS.BLACK, '#1c1c1c', APPCOLORS.WHITE]}
       style={styles.container}>
       <SimpleHeader title="Finance" />
@@ -52,7 +56,7 @@ export default function FinanceScreen({navigation}) {
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={{paddingVertical: 20}}
       />
-    </LinearGradient>
+    </PlatformGradient>
   );
 }
 

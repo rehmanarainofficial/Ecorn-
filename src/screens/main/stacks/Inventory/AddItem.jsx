@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import axios from 'axios';
 import Toast from 'react-native-toast-message'; // ✅ Toast library
 import { BASEURL } from '../../../../utils/BaseUrl';
@@ -297,7 +297,7 @@ export default function AddItem({navigation}) {
   );
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       style={{flex: 1}}>
       {/* Header */}
@@ -351,7 +351,7 @@ export default function AddItem({navigation}) {
 
       {/* Toast Container */}
       <Toast />
-    </LinearGradient>
+    </PlatformGradient>
   );
 }
 

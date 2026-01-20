@@ -10,7 +10,7 @@ import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import {
   GetBankBalance,
   GetPayable,
@@ -185,7 +185,7 @@ const MoreDetail = ({navigation, route}) => {
   }, 0);
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       style={{flex: 1}}>
       <SimpleHeader title={getTitle()} />
@@ -365,7 +365,7 @@ const MoreDetail = ({navigation, route}) => {
           </View>
         </ScrollView>
       )}
-    </LinearGradient>
+    </PlatformGradient>
   );
 };
 

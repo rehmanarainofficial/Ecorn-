@@ -11,7 +11,7 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
 import {GetReceivable} from '../../../../global/ChartApisCall';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -90,7 +90,7 @@ const ReceivableScreen = ({navigation}) => {
   }, 0);
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       style={{flex: 1}}>
       <SimpleHeader title="Receivable Balance" />
@@ -217,7 +217,7 @@ const ReceivableScreen = ({navigation}) => {
           </View>
         </ScrollView>
       )}
-    </LinearGradient>
+    </PlatformGradient>
   );
 };
 

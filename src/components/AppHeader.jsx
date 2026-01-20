@@ -1,6 +1,6 @@
 import { View, TouchableOpacity } from 'react-native';
 import React from 'react';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from './PlatformGradient';
 import { responsiveFontSize, responsiveHeight } from '../utils/Responsive';
 import { APPCOLORS } from '../utils/APPCOLORS';
 import AppText from './AppText';
@@ -20,15 +20,13 @@ const AppHeader = ({ title, onPress }) => {
   const insets = useSafeAreaInsets();
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
       style={{
-        paddingTop: insets.top + 0,
+        paddingTop: insets.top + 10,
         paddingHorizontal: 20,
-        paddingBottom: 20,
-        borderBottomRightRadius: 20,
       }}>
       {/* --- Top Icons Row --- */}
       <View
@@ -36,7 +34,7 @@ const AppHeader = ({ title, onPress }) => {
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginTop: 10,
+          marginTop: 20,
         }}>
         <AppText
           title="Ecorn Industry"
@@ -91,7 +89,7 @@ const AppHeader = ({ title, onPress }) => {
       {/* --- Profile and Balance Section --- */}
       <View
         style={{
-          height: responsiveHeight(20),
+          height: responsiveHeight(15),
           justifyContent: 'space-between',
           paddingTop: 30,
         }}>
@@ -123,7 +121,7 @@ const AppHeader = ({ title, onPress }) => {
           </View>
         </View>
       </View>
-    </LinearGradient>
+    </PlatformGradient>
   );
 };
 

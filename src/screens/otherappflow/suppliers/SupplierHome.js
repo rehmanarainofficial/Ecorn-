@@ -12,7 +12,7 @@ import {
 import React, {useEffect, useState} from 'react';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../components/PlatformGradient';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Octicons from 'react-native-vector-icons/Octicons';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
@@ -591,7 +591,7 @@ const SupplierHome = ({navigation, route}) => {
                             navigation.navigate('AddItems', {data: item, userType: type})
                           }
                           style={{width: '47%'}}>
-                          <LinearGradient
+                          <PlatformGradient
                             colors={[
                               '#9BC8E2',
                               APPCOLORS.BTN_COLOR,
@@ -613,7 +613,7 @@ const SupplierHome = ({navigation, route}) => {
                               }}>
                               Take Order
                             </Text>
-                          </LinearGradient>
+                          </PlatformGradient>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -624,7 +624,7 @@ const SupplierHome = ({navigation, route}) => {
                             })
                           }
                           style={{width: '47%'}}>
-                          <LinearGradient
+                          <PlatformGradient
                             colors={[
                               '#9BC8E2',
                               APPCOLORS.BTN_COLOR,
@@ -646,7 +646,7 @@ const SupplierHome = ({navigation, route}) => {
                               }}>
                               Return
                             </Text>
-                          </LinearGradient>
+                          </PlatformGradient>
                         </TouchableOpacity>
                       </View>
                       <View
@@ -659,7 +659,7 @@ const SupplierHome = ({navigation, route}) => {
                           onPress={() =>
                             navigation.navigate('PaymentScreen', {data: item, userType: type})
                           }>
-                          <LinearGradient
+                          <PlatformGradient
                             colors={[
                               '#9BC8E2',
                               APPCOLORS.BTN_COLOR,
@@ -680,7 +680,7 @@ const SupplierHome = ({navigation, route}) => {
                               }}>
                               Payment
                             </Text>
-                          </LinearGradient>
+                          </PlatformGradient>
                         </TouchableOpacity>
 
                         <View
@@ -760,7 +760,7 @@ const SupplierHome = ({navigation, route}) => {
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-        <LinearGradient
+        <PlatformGradient
           colors={['#9BC8E2', APPCOLORS.BTN_COLOR, APPCOLORS.BTN_COLOR]}
           style={{
             height: 50,
@@ -774,7 +774,7 @@ const SupplierHome = ({navigation, route}) => {
             style={{color: APPCOLORS.WHITE, fontSize: 20, fontWeight: 'bold'}}>
             Add new Supplier
           </Text>
-        </LinearGradient>
+        </PlatformGradient>
       </TouchableOpacity>
     </View>
   );

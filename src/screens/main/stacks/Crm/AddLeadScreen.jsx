@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Dropdown, MultiSelect} from 'react-native-element-dropdown';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -264,7 +264,7 @@ const AddLeadScreen = ({navigation, route}) => {
   );
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       style={{flex: 1}}>
       {/* Header */}
@@ -474,7 +474,7 @@ const AddLeadScreen = ({navigation, route}) => {
           style={styles.submitBtn}
           onPress={handleSubmit}
           disabled={loading}>
-          <LinearGradient
+          <PlatformGradient
             colors={[COLORS.Secondary, '#7a7c8a', COLORS.Primary]}
             style={styles.submitGradient}>
             {loading ? (
@@ -484,7 +484,7 @@ const AddLeadScreen = ({navigation, route}) => {
                 {form.id > 0 ? 'Update Lead' : 'Submit Lead'}
               </Text>
             )}
-          </LinearGradient>
+          </PlatformGradient>
         </TouchableOpacity>
       </ScrollView>
 
@@ -502,7 +502,7 @@ const AddLeadScreen = ({navigation, route}) => {
           }}
         />
       )}
-    </LinearGradient>
+    </PlatformGradient>
   );
 };
 

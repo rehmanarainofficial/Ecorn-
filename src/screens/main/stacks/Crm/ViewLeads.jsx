@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import { BASEURL } from '../../../../utils/BaseUrl';
 
 const COLORS = {
@@ -129,7 +129,7 @@ const ViewLeads = ({navigation}) => {
   );
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       style={{flex: 1}}>
       {/* Header */}
@@ -194,7 +194,7 @@ const ViewLeads = ({navigation}) => {
           contentContainerStyle={{padding: 16}}
         />
       )}
-    </LinearGradient>
+    </PlatformGradient>
   );
 };
 

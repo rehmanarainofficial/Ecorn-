@@ -12,7 +12,7 @@ import {
 import moment from 'moment';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import {Dropdown} from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {BASEURL} from '.././../../../utils/BaseUrl';
@@ -320,7 +320,7 @@ const ViewLedger = ({navigation}) => {
       <StatusBar barStyle="dark-content" backgroundColor={APPCOLORS.WHITE} />
 
       {/* Custom Header */}
-      <LinearGradient
+      <PlatformGradient
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
         style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -346,7 +346,7 @@ const ViewLedger = ({navigation}) => {
             />
           )}
         </TouchableOpacity>
-      </LinearGradient>
+      </PlatformGradient>
 
       {/* Improved Filter Section - Compact Design */}
       <View style={styles.filterContainer}>

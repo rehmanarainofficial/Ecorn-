@@ -81,6 +81,7 @@ import ExpenseClaim from '../screens/main/stacks/Finance/ExpenseClaim';
 import GLViewScreen from '../screens/main/stacks/AppAlerts/GLViewScreen';
 import ViewTransactions from '../components/ViewTransactions';
 import ManufacturingView from '../components/ManufacturingView';
+import Attendance from '../screens/main/stacks/Finance/Attendance';
 
 const Stack = createNativeStackNavigator();
 const Main = () => {
@@ -190,6 +191,7 @@ const Main = () => {
       <Stack.Screen name="GLViewScreen" component={GLViewScreen} />
       <Stack.Screen name="ViewTransactions" component={ViewTransactions} />
       <Stack.Screen name="ManufacturingView" component={ManufacturingView} />
+      <Stack.Screen name="Attendance" component={Attendance} />
     </Stack.Navigator>
   );
 };

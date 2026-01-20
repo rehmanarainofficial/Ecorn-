@@ -7,6 +7,7 @@ import AppText from '../../../components/AppText'
 import DatePicker from 'react-native-date-picker'
 import DropButtons from '../../../components/DropButtons'
 import moment from 'moment'
+import axios from 'axios'
 import {BASEURL} from '../../../utils/BaseUrl'
 
 const NotificationScreen = () => {
@@ -24,24 +25,23 @@ const NotificationScreen = () => {
  const getMoneyData = async () => {
     setLoader(true);
 
-    const form = new FormData();
     const currentDate = new Date();
     const todayDate = moment(currentDate).format('YYYY-MM-DD');
 
-    form.append('current_date', todayDate);
-    form.append('pre_month_date', '2025-04-19');
-
-    const options = {
-      method: 'GET',
-      url: `${BASEURL}dashboard_view.php`,
-      headers: {
-        'content-type': 'multipart/form-data',
-      },
-      data: form,
-    };
+    const params = new URLSearchParams();
+    params.append('current_date', todayDate);
+    params.append('pre_month_date', '2025-04-19');
 
     try {
-      const {data} = await axios.request(options);
+      const {data} = await axios.post(
+        `${BASEURL}dashboard_view.php`,
+        params.toString(),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      );
       console.log(data);
       setAllData(data);
       setLoader(false);

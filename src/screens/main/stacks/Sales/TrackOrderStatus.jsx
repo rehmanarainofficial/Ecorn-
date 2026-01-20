@@ -13,7 +13,7 @@ import {
   FlatList,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import axios from 'axios';
 import {Dropdown} from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -227,7 +227,7 @@ const TrackOrderStatus = ({navigation}) => {
   }
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       style={{flex: 1}}>
       {/* Header */}
@@ -397,7 +397,7 @@ const TrackOrderStatus = ({navigation}) => {
           removeClippedSubviews={true}
         />
       )}
-    </LinearGradient>
+    </PlatformGradient>
   );
 };
 

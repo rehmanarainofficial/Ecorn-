@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity, Image, TextInput, FlatList, ActivityIndic
 import React, { useEffect, useState } from 'react'
 
 import Ionicons from 'react-native-vector-icons/Ionicons'
-import LinearGradient from 'react-native-linear-gradient'
+import PlatformGradient from '../../../components/PlatformGradient'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import Octicons from 'react-native-vector-icons/Octicons'
 import EvilIcons from 'react-native-vector-icons/EvilIcons'

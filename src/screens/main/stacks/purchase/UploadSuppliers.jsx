@@ -14,7 +14,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
 import axios from 'axios';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import Toast from 'react-native-toast-message';
 import {BASEURL} from '../../../../utils/BaseUrl';
 
@@ -223,7 +223,7 @@ const UploadSuppliers = ({navigation, route}) => {
   }
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       start={{x: 0, y: 0}}
       end={{x: 1, y: 1}}
@@ -372,7 +372,7 @@ const UploadSuppliers = ({navigation, route}) => {
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
-    </LinearGradient>
+    </PlatformGradient>
   );
 };
 

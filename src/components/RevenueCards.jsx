@@ -1,7 +1,7 @@
 import {View, Text, TouchableOpacity} from 'react-native';
 import React from 'react';
 import AppText from './AppText';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from './PlatformGradient';
 import {responsiveFontSize, responsiveWidth} from '../utils/Responsive';
 import {APPCOLORS} from '../utils/APPCOLORS';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -17,7 +17,7 @@ const RevenueCards = ({
 }) => {
   return (
     <TouchableOpacity onPress={onPress}>
-      <LinearGradient
+      <PlatformGradient
         colors={[gradientTopColor, gradientBottomColor]}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}
@@ -64,7 +64,7 @@ const RevenueCards = ({
             )}
           </View>
         </View>
-      </LinearGradient>
+      </PlatformGradient>
     </TouchableOpacity>
   );
 };

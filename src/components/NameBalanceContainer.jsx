@@ -2,7 +2,7 @@ import {View, Text, TouchableOpacity} from 'react-native';
 import React from 'react';
 import AppText from './AppText';
 import {APPCOLORS} from '../utils/APPCOLORS';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from './PlatformGradient';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -23,7 +23,7 @@ const NameBalanceContainer = ({Name, type, balance, item}) => {
   };
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[APPCOLORS.BLACK, APPCOLORS.Secondary]}
       style={{padding: 15, borderRadius: 10}}>
       <View
@@ -84,7 +84,7 @@ const NameBalanceContainer = ({Name, type, balance, item}) => {
           </View>
         )}
       </View>
-    </LinearGradient>
+    </PlatformGradient>
   );
 };
 

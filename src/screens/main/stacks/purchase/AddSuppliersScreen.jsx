@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import axios from 'axios';
 import LottieView from 'lottie-react-native';
 import {useSelector} from 'react-redux';
@@ -85,7 +85,7 @@ const AddSuppliersScreen = ({navigation}) => {
           <Ionicons name="arrow-back" size={22} color="#333" />
         </TouchableOpacity>
 
-        <LinearGradient
+        <PlatformGradient
           colors={['#000000', '#434343']}
           start={{x: 0, y: 0}}
           end={{x: 1, y: 1}}
@@ -115,7 +115,7 @@ const AddSuppliersScreen = ({navigation}) => {
             onChangeText={txt => setSearch(txt)}
             value={Search}
           />
-        </LinearGradient>
+        </PlatformGradient>
       </View>
 
       {/* Loader */}
@@ -135,7 +135,7 @@ const AddSuppliersScreen = ({navigation}) => {
               data={filteredOrders}
               keyExtractor={(item, index) => `supplier-${index}`}
               renderItem={({item}) => (
-                <LinearGradient
+                <PlatformGradient
                   colors={[
                     APPCOLORS.Primary,
                     APPCOLORS.Secondary,
@@ -170,7 +170,7 @@ const AddSuppliersScreen = ({navigation}) => {
                       {item?.contact_no || 'N/A'}
                     </Text>
                   </View>
-                </LinearGradient>
+                </PlatformGradient>
               )}
             />
           ) : (
@@ -196,7 +196,7 @@ const AddSuppliersScreen = ({navigation}) => {
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-        <LinearGradient
+        <PlatformGradient
           colors={[APPCOLORS.BLACK, APPCOLORS.Secondary, APPCOLORS.BLACK]}
           style={{
             height: 50,
@@ -208,7 +208,7 @@ const AddSuppliersScreen = ({navigation}) => {
           <Text style={{color: 'white', fontSize: 20, fontWeight: 'bold'}}>
             Add new supplier
           </Text>
-        </LinearGradient>
+        </PlatformGradient>
       </TouchableOpacity>
     </View>
   );

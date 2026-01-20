@@ -15,7 +15,7 @@ import {
   
   import LottieView from 'lottie-react-native';
 
-  import LinearGradient from 'react-native-linear-gradient';
+  import PlatformGradient from '../../../components/PlatformGradient';
   import AntDesign from 'react-native-vector-icons/AntDesign';
   import Octicons from 'react-native-vector-icons/Octicons';
   import EvilIcons from 'react-native-vector-icons/EvilIcons';
@@ -349,7 +349,7 @@ const SalesmanCustomer = ({ navigation,route}) => {
                               navigation.navigate('AddItems', {data: item, customer: true})
                             }
                             style={{width: '47%'}}>
-                            <LinearGradient
+                            <PlatformGradient
                               colors={[
                                 '#9BC8E2',
                                 APPCOLORS.BTN_COLOR,
@@ -371,7 +371,7 @@ const SalesmanCustomer = ({ navigation,route}) => {
                                 }}>
                                 Take Order
                               </Text>
-                            </LinearGradient>
+                            </PlatformGradient>
                           </TouchableOpacity>
       
                           <TouchableOpacity
@@ -379,7 +379,7 @@ const SalesmanCustomer = ({ navigation,route}) => {
                               navigation.navigate('AddItems', {data: item, type: 11})
                             }
                             style={{width: '47%'}}>
-                            <LinearGradient
+                            <PlatformGradient
                               colors={[
                                 '#9BC8E2',
                                 APPCOLORS.BTN_COLOR,
@@ -401,7 +401,7 @@ const SalesmanCustomer = ({ navigation,route}) => {
                                 }}>
                                 Return
                               </Text>
-                            </LinearGradient>
+                            </PlatformGradient>
                           </TouchableOpacity>
                         </View>
                         <View
@@ -414,7 +414,7 @@ const SalesmanCustomer = ({ navigation,route}) => {
                             onPress={() =>
                               navigation.navigate('PaymentScreen', {data: item})
                             }>
-                            <LinearGradient
+                            <PlatformGradient
                               colors={[
                                 '#9BC8E2',
                                 APPCOLORS.BTN_COLOR,
@@ -435,7 +435,7 @@ const SalesmanCustomer = ({ navigation,route}) => {
                                 }}>
                                 Payment
                               </Text>
-                            </LinearGradient>
+                            </PlatformGradient>
                           </TouchableOpacity>
       
                           <View
@@ -502,7 +502,7 @@ const SalesmanCustomer = ({ navigation,route}) => {
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-        <LinearGradient
+        <PlatformGradient
           colors={['#9BC8E2', APPCOLORS.BTN_COLOR, APPCOLORS.BTN_COLOR]}
           style={{
             height: 50,
@@ -516,7 +516,7 @@ const SalesmanCustomer = ({ navigation,route}) => {
             style={{color: APPCOLORS.WHITE, fontSize: 20, fontWeight: 'bold'}}>
             Add new customer
           </Text>
-        </LinearGradient>
+        </PlatformGradient>
       </TouchableOpacity>
     </View>
   )

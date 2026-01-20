@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import React, {useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../components/PlatformGradient';
 import {useDispatch, useSelector} from 'react-redux';
 import {CurrentLogin, setLoader} from '../../redux/AuthSlice';
 import Toast from 'react-native-toast-message';
@@ -46,12 +46,15 @@ const Login = ({navigation}) => {
 
   return (
     <View style={{flex: 1}}>
-      <LinearGradient
+      <PlatformGradient
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary, APPCOLORS.HALFWITE]}
         style={{flex: 1, paddingBottom: 20}}>
         <ScrollView
-          style={{marginTop: 60}}
-          contentContainerStyle={{flexGrow: 1, paddingBottom: 50}}>
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: 'center',
+            paddingVertical: 20,
+          }}>
           {/* Company Name instead of Logo */}
           <Image
             source={require('../../assets/images/Rider.png')}
@@ -145,7 +148,7 @@ const Login = ({navigation}) => {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </LinearGradient>
+      </PlatformGradient>
     </View>
   );
 };

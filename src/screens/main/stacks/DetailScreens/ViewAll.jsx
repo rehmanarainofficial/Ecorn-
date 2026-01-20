@@ -3,7 +3,7 @@ import React, {useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import DropButtons from '../../../../components/DropButtons';
 import DatePicker from 'react-native-date-picker';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import AppText from '../../../../components/AppText';
 import {responsiveHeight, responsiveWidth} from '../../../../utils/Responsive';
@@ -46,7 +46,7 @@ const ViewAll = ({navigation, route}) => {
         contentContainerStyle={{paddingBottom: 200}}
         renderItem={() => {
           return (
-            <LinearGradient
+            <PlatformGradient
               colors={['#E6E6E6', '#ACD7E5']}
               style={{
                 padding: 20,
@@ -210,7 +210,7 @@ const ViewAll = ({navigation, route}) => {
                   />
                 </View>
               </View>
-            </LinearGradient>
+            </PlatformGradient>
           );
         }}
       />

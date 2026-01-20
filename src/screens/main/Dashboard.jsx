@@ -13,7 +13,7 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from '../../utils/Responsive';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../components/PlatformGradient';
 import DashboardTabs from '../../components/DashboardTabs';
 import AppText from '../../components/AppText';
 
@@ -105,29 +105,28 @@ const Dashboard = ({navigation}) => {
   const getMoneyData = async () => {
     setLoader(true);
 
-    const form = new FormData();
     const currentDate = new Date();
     const todayDate = moment(currentDate).format('YYYY-MM-DD');
 
-    form.append('current_date', todayDate);
-    form.append('pre_month_date', '2025-04-19');
-
-    const options = {
-      method: 'GET',
-      url: `${BASEURL}dashboard_view.php`,
-      headers: {
-        'content-type': 'multipart/form-data',
-      },
-      data: form,
-    };
-
     try {
-      const {data} = await axios.request(options);
+      const params = new URLSearchParams();
+      params.append('current_date', todayDate);
+      params.append('pre_month_date', '2025-04-19');
+
+      const {data} = await axios.post(
+        `${BASEURL}dashboard_view.php`,
+        params.toString(),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      );
 
       setAllData(data);
       setLoader(false);
     } catch (error) {
-      console.error(error);
+      console.error('[DEBUG] API Error:', error);
       setLoader(false);
     }
   };
@@ -173,7 +172,7 @@ const Dashboard = ({navigation}) => {
               borderRadius: 20,
               padding: 20,
             }}>
-            <LinearGradient
+            <PlatformGradient
               colors={['#1D4452', '#4199B8']}
               style={{
                 padding: 20,
@@ -206,7 +205,7 @@ const Dashboard = ({navigation}) => {
               />
 
               <View />
-            </LinearGradient>
+            </PlatformGradient>
 
             <FlatList
               data={
@@ -272,7 +271,6 @@ const Dashboard = ({navigation}) => {
                 );
               }}
             />
-
             <View></View>
           </View>
         </Modal>
@@ -326,12 +324,12 @@ const Dashboard = ({navigation}) => {
           contentContainerStyle={{gap: 20, paddingLeft: 10, marginTop: 10}}
           renderItem={({item}) => {
             return (
-              <LinearGradient
+              <PlatformGradient
                 colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
                 start={{x: 0, y: 0}}
                 end={{x: 1, y: 0}}
                 style={{
-                  height: responsiveHeight(20),
+                  height: responsiveHeight(18),
                   width: responsiveWidth(80),
                   backgroundColor: APPCOLORS.BarColor,
                   borderRadius: 10,
@@ -351,7 +349,7 @@ const Dashboard = ({navigation}) => {
                     titleSize={1.7}
                   />
                 </View>
-              </LinearGradient>
+              </PlatformGradient>
             );
           }}
         />

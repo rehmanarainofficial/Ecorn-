@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Toast from 'react-native-toast-message';
 import {useSelector} from 'react-redux';
@@ -144,7 +144,7 @@ export default function MechanicalProduce({navigation, route}) {
   };
 
   return (
-    <LinearGradient
+    <PlatformGradient
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       style={{flex: 1}}>
       {/* Header */}
@@ -243,7 +243,7 @@ export default function MechanicalProduce({navigation, route}) {
       </View>
 
       <Toast />
-    </LinearGradient>
+    </PlatformGradient>
   );
 }
 

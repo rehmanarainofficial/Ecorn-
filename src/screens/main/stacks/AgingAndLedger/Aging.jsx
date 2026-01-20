@@ -18,7 +18,7 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import RNFetchBlob from 'react-native-blob-util';
 import {PDFDocument, rgb, StandardFonts} from 'pdf-lib';
 import Toast from 'react-native-toast-message';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
@@ -317,7 +317,7 @@ const generatePDF = async () => {
       <StatusBar barStyle="dark-content" backgroundColor={APPCOLORS.WHITE} />
 
       {/* Custom Header */}
-      <LinearGradient
+      <PlatformGradient
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
         style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -343,7 +343,7 @@ const generatePDF = async () => {
             />
           )}
         </TouchableOpacity>
-      </LinearGradient>
+      </PlatformGradient>
 
       <FlatList
         data={aging}

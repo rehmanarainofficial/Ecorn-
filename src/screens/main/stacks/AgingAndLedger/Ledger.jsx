@@ -17,7 +17,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import DatePicker from 'react-native-date-picker';
 import moment from 'moment';
-import LinearGradient from 'react-native-linear-gradient';
+import PlatformGradient from '../../../../components/PlatformGradient';
 
 const Ledger = ({navigation, route}) => {
   const {name, item} = route.params;
@@ -307,7 +307,7 @@ const Ledger = ({navigation, route}) => {
       <StatusBar barStyle="light-content" backgroundColor={APPCOLORS.Primary} />
 
       {/* Custom Header */}
-      <LinearGradient
+      <PlatformGradient
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
         style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -334,7 +334,7 @@ const Ledger = ({navigation, route}) => {
             />
           )}
         </TouchableOpacity>
-      </LinearGradient>
+      </PlatformGradient>
 
       {/* Filter Section */}
       <View style={styles.filterContainer}>

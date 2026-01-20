@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity, Image, TextInput, FlatList, ScrollView, }
 import React, { useState } from 'react'
 
 import Ionicons from 'react-native-vector-icons/Ionicons'
-import LinearGradient from 'react-native-linear-gradient'
+import PlatformGradient from '../../../components/PlatformGradient'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import { useDispatch, useSelector } from 'react-redux'
 import { setCartData, setGrandCartTotalPrice } from '../../../redux/AuthSlice'
