@@ -334,9 +334,7 @@ const Aging = ({navigation, route}) => {
           styles.header,
           {
             paddingTop:
-              Platform.OS === 'ios'
-                ? insets.top + 10
-                : Math.max(insets.top, 24) + 10, // Android ke liye minimum 24px status bar height
+              Platform.OS === 'ios' ? insets.top + 25 : insets.top + 30,
           },
         ]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>

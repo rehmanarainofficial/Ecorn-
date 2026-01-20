@@ -15,13 +15,14 @@ import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Toast from 'react-native-toast-message';
 import SimpleHeader from '../../../../components/SimpleHeader';
+import PlatformGradient from '../../../../components/PlatformGradient';
 import {useRoute, useNavigation} from '@react-navigation/native';
 
 import axios from 'axios';
 
 // ✅ Correct import for new package
 import {pick, types} from '@react-native-documents/picker';
-import { BASEURL } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
 
 const UploadScreen = () => {
   const route = useRoute();
@@ -136,58 +137,60 @@ const UploadScreen = () => {
     }
   };
 
- const handleSubmit = async () => {
-  if (!transaction || !transNo || !description || !file) {
-    Toast.show({
-      type: 'error',
-      text1: 'Error',
-      text2: 'Missing required fields or attachment',
-    });
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const formData = new FormData();
-    formData.append('type', transaction);
-    formData.append('trans_no', transNo);
-    formData.append('description', description);
-    formData.append('filename', {
-      uri: file.uri,
-      type: file.type || 'application/octet-stream',
-      name: file.name,
-    });
-
-    const response = await axios.post(
-      `${BASEURL}dattachment_post.php`,
-      formData,
-      {headers: {'Content-Type': 'multipart/form-data'}},
-    );
-
-    Toast.show({
-      type: 'success',
-      text1: 'Uploaded',
-      text2: 'Attachment sent successfully!',
-    });
-
-    if (fromScreen) {
-      navigation.navigate(fromScreen, {refresh: true});
+  const handleSubmit = async () => {
+    if (!transaction || !transNo || !description || !file) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Missing required fields or attachment',
+      });
+      return;
     }
-  } catch (error) {
-    console.error(error);
-    Toast.show({
-      type: 'error',
-      text1: 'Upload Failed',
-      text2: 'Something went wrong!',
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+
+    setLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('type', transaction);
+      formData.append('trans_no', transNo);
+      formData.append('description', description);
+      formData.append('filename', {
+        uri: file.uri,
+        type: file.type || 'application/octet-stream',
+        name: file.name,
+      });
+
+      const response = await axios.post(
+        `${BASEURL}dattachment_post.php`,
+        formData,
+        {headers: {'Content-Type': 'multipart/form-data'}},
+      );
+
+      Toast.show({
+        type: 'success',
+        text1: 'Uploaded',
+        text2: 'Attachment sent successfully!',
+      });
+
+      if (fromScreen) {
+        navigation.navigate(fromScreen, {refresh: true});
+      }
+    } catch (error) {
+      console.error(error);
+      Toast.show({
+        type: 'error',
+        text1: 'Upload Failed',
+        text2: 'Something went wrong!',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <View style={[styles.container, {backgroundColor: '#1a1a1a'}]}>
+    <PlatformGradient
+      colors={['#1a1c22', '#5a5c6a', '#000000']}
+      style={styles.container}>
       <SimpleHeader title="Attach Document" />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Description */}
@@ -251,7 +254,7 @@ const UploadScreen = () => {
         </TouchableOpacity>
       </ScrollView>
       <Toast />
-    </View>
+    </PlatformGradient>
   );
 };
 
@@ -268,29 +271,28 @@ const styles = StyleSheet.create({
   bigInput: {
     borderRadius: 15,
     padding: 16,
-    minHeight: 100,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    minHeight: 120,
+    backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: 'rgba(255,255,255,0.1)',
     color: '#fff',
     marginBottom: 20,
     textAlignVertical: 'top',
     fontSize: 16,
   },
-  row: {flexDirection: 'row', justifyContent: 'space-between'},
+  row: {flexDirection: 'row', justifyContent: 'space-between', gap: 10},
   button: {
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
     padding: 12,
     borderRadius: 15,
-    marginHorizontal: 5,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  buttonText: {color: '#fff', fontWeight: '600', marginLeft: 6},
+  buttonText: {color: '#fff', fontWeight: '600', marginLeft: 6, fontSize: 12},
   imagePreview: {
     width: '100%',
     height: 200,
@@ -306,7 +308,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
     borderRadius: 15,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -321,12 +323,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,255,150,0.2)',
+    backgroundColor: 'rgba(0,255,150,0.1)',
     padding: 15,
     borderRadius: 15,
     marginTop: 25,
     borderWidth: 1,
-    borderColor: 'rgba(0,255,150,0.4)',
+    borderColor: 'rgba(0,255,150,0.3)',
   },
   submitText: {
     color: '#00ff99',

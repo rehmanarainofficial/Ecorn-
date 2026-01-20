@@ -16,8 +16,12 @@ import {formatNumber} from '../../../../utils/NumberUtils';
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
-  Primary: '#1a1c22',
-  Secondary: '#5a5c6a',
+  BG_CREAM: '#FFF3E0',
+  TEXT_DARK: '#333333',
+  ORANGE: '#FF9500',
+  GREEN: '#4CAF50',
+  BLUE: '#2196F3',
+  AMBER: '#FFC107',
 };
 
 const ExpenseDetail = ({navigation}) => {
@@ -29,21 +33,21 @@ const ExpenseDetail = ({navigation}) => {
       id: 1,
       title: 'Payroll Expense',
       amount: '45,000',
-      color: '#4CAF50', // Green
+      color: COLORS.GREEN,
       icon: 'account-group',
     },
     {
       id: 2,
       title: 'Admin Expense',
       amount: '15,000',
-      color: '#2196F3', // Blue
+      color: COLORS.BLUE,
       icon: 'shield-account',
     },
     {
       id: 3,
       title: 'Selling & Marketing',
       amount: '25,000',
-      color: '#FF9800', // Orange
+      color: COLORS.ORANGE,
       icon: 'bullhorn',
     },
   ];
@@ -61,9 +65,7 @@ const ExpenseDetail = ({navigation}) => {
   );
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={styles.container}>
+    <View style={[styles.container, {backgroundColor: COLORS.BG_CREAM}]}>
       <SimpleHeader title="Expense Detail" />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Graphical Representation (Mixup) */}
@@ -77,7 +79,9 @@ const ExpenseDetail = ({navigation}) => {
           {/* Centered Total Text Overlaid */}
           <View style={styles.centeredTextContainer}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalAmount}>{formatNumber(totalExpense)}</Text>
+            <Text style={styles.totalAmount}>
+              {formatNumber(totalExpense, 0)}
+            </Text>
           </View>
         </View>
 
@@ -107,14 +111,22 @@ const ExpenseDetail = ({navigation}) => {
                 />
               </View>
               <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardAmount}>{item.amount}</Text>
+                <Text style={[styles.cardTitle, {flex: 1}]} numberOfLines={1}>
+                  {item.title}
+                </Text>
+                <Text
+                  style={styles.cardAmount}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.7}>
+                  {formatNumber(item.amount.replace(/,/g, ''), 0)}
+                </Text>
               </View>
             </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
-    </PlatformGradient>
+    </View>
   );
 };
 
@@ -128,7 +140,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: COLORS.WHITE,
+    color: COLORS.TEXT_DARK,
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -144,11 +156,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   totalLabel: {
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(0,0,0,0.5)',
     fontSize: 14,
   },
   totalAmount: {
-    color: COLORS.WHITE,
+    color: COLORS.TEXT_DARK,
     fontSize: 20,
     fontWeight: 'bold',
   },
@@ -156,13 +168,16 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: COLORS.WHITE,
     borderRadius: 16,
     padding: 15,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   iconContainer: {
     width: 50,
@@ -174,16 +189,18 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   cardTitle: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 4,
+    color: COLORS.TEXT_DARK,
   },
   cardAmount: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.WHITE,
+    color: COLORS.TEXT_DARK,
   },
 });
 

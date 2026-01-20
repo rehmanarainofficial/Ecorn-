@@ -20,6 +20,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Toast from 'react-native-toast-message';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {formatDate, formatDateString} from '../../../../utils/DateUtils';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -29,6 +30,7 @@ const COLORS = {
 };
 
 const TrackOrderStatus = ({navigation}) => {
+  const insets = useSafeAreaInsets();
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
 
@@ -117,8 +119,14 @@ const TrackOrderStatus = ({navigation}) => {
     Animated.stagger(80, anims).start();
   }, [filteredOrders]);
 
+  const [checks, setChecks] = useState({
+    mfg: false,
+    delivery: false,
+    invoice: false,
+  });
+
   // Apply filter
-  const applyFilter = () => {
+  const applyFilter = (showToast = true) => {
     let data = [...orders];
 
     // Search filter
@@ -146,12 +154,33 @@ const TrackOrderStatus = ({navigation}) => {
       });
     }
 
+    // Checkbox filters (Show if 'No' - Pending)
+    if (checks.mfg) {
+      data = data.filter(o => o.manufacturing_status === 'No');
+    }
+    if (checks.delivery) {
+      data = data.filter(o => o.del_status === 'No');
+    }
+    if (checks.invoice) {
+      data = data.filter(o => o.inv_status === 'No');
+    }
+
     setFilteredOrders(data);
-    Toast.show({
-      type: 'success',
-      text1: 'Filter Applied',
-      position: 'bottom',
-    });
+    if (showToast) {
+      Toast.show({
+        type: 'success',
+        text1: 'Filter Applied',
+        position: 'bottom',
+      });
+    }
+  };
+
+  useEffect(() => {
+    applyFilter(false);
+  }, [checks]);
+
+  const toggleCheck = key => {
+    setChecks(prev => ({...prev, [key]: !prev[key]}));
   };
 
   const formatDateDisplay = dateStr => {
@@ -224,7 +253,15 @@ const TrackOrderStatus = ({navigation}) => {
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       style={{flex: 1}}>
       {/* Header */}
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop:
+              Platform.OS === 'ios' ? insets.top + 15 : insets.top + 20,
+            paddingBottom: 15,
+          },
+        ]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" color={COLORS.WHITE} size={28} />
         </TouchableOpacity>
@@ -276,7 +313,7 @@ const TrackOrderStatus = ({navigation}) => {
           maxHeight={300}
           labelField="label"
           valueField="value"
-          placeholder="Select Location"
+          placeholder="Cost center"
           placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
           searchPlaceholder="Search..."
           value={selectedLocation}
@@ -306,6 +343,42 @@ const TrackOrderStatus = ({navigation}) => {
           <Text style={{color: COLORS.WHITE, fontSize: 15, fontWeight: '600'}}>
             Apply
           </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Checkbox Row */}
+      <View style={styles.checkboxRow}>
+        <TouchableOpacity
+          style={styles.checkItem}
+          onPress={() => toggleCheck('mfg')}>
+          <Ionicons
+            name={checks.mfg ? 'checkbox' : 'checkbox-outline'}
+            size={24}
+            color={checks.mfg ? COLORS.Primary : '#aaa'}
+          />
+          <Text style={styles.checkLabel}>Mfg</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.checkItem}
+          onPress={() => toggleCheck('delivery')}>
+          <Ionicons
+            name={checks.delivery ? 'checkbox' : 'checkbox-outline'}
+            size={24}
+            color={checks.delivery ? COLORS.Primary : '#aaa'}
+          />
+          <Text style={styles.checkLabel}>Delivery</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.checkItem}
+          onPress={() => toggleCheck('invoice')}>
+          <Ionicons
+            name={checks.invoice ? 'checkbox' : 'checkbox-outline'}
+            size={24}
+            color={checks.invoice ? COLORS.Primary : '#aaa'}
+          />
+          <Text style={styles.checkLabel}>Invoice</Text>
         </TouchableOpacity>
       </View>
 
@@ -400,7 +473,6 @@ export default TrackOrderStatus;
 
 const styles = StyleSheet.create({
   header: {
-    height: 80,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -512,5 +584,20 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.85)',
     textAlign: 'right', // 👈 value right aligned
     flex: 1,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 16,
+    marginBottom: 10,
+  },
+  checkItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  checkLabel: {
+    color: '#fff',
+    fontSize: 14,
   },
 });

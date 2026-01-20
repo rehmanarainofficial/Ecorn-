@@ -9,8 +9,12 @@ import {formatNumber} from '../../../../utils/NumberUtils';
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
-  Primary: '#1a1c22',
-  Secondary: '#5a5c6a',
+  BG_CREAM: '#FFF3E0',
+  TEXT_DARK: '#333333',
+  ORANGE: '#FF9500',
+  GREEN: '#4CAF50',
+  BLUE: '#2196F3',
+  AMBER: '#FFC107',
 };
 
 const IncomeDetail = ({navigation}) => {
@@ -22,35 +26,35 @@ const IncomeDetail = ({navigation}) => {
       id: 1,
       title: 'Product Sales',
       amount: '123,000',
-      color: '#fbd203', // Yellow
+      color: COLORS.ORANGE,
       icon: 'cart-outline',
     },
     {
       id: 2,
       title: 'Service Revenue',
       amount: '321,000',
-      color: '#ffb300', // Amber
+      color: COLORS.GREEN,
       icon: 'wrench-outline',
     },
     {
       id: 3,
       title: 'Investments',
       amount: '123,000',
-      color: '#ff9100', // Orange
+      color: COLORS.BLUE,
       icon: 'chart-line',
     },
     {
       id: 4,
       title: 'Online Expenses',
       amount: '789,000',
-      color: '#ff6c00', // Deep Orange
+      color: COLORS.AMBER,
       icon: 'web',
     },
     {
       id: 5,
       title: 'Other Income',
       amount: '537,000',
-      color: '#ff3c00', // Red
+      color: '#4db6ac', // Teal variation if needed for 5th item
       icon: 'cash-plus',
     },
   ];
@@ -68,9 +72,7 @@ const IncomeDetail = ({navigation}) => {
   );
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={styles.container}>
+    <View style={[styles.container, {backgroundColor: COLORS.BG_CREAM}]}>
       <SimpleHeader title="Income Detail" />
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.sectionTitle}>Income Breakdown</Text>
@@ -84,7 +86,9 @@ const IncomeDetail = ({navigation}) => {
           {/* Centered Total Text Overlaid */}
           <View style={styles.centeredTextContainer}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalAmount}>{formatNumber(totalIncome)}</Text>
+            <Text style={styles.totalAmount}>
+              {formatNumber(totalIncome, 0)}
+            </Text>
           </View>
         </View>
 
@@ -104,14 +108,22 @@ const IncomeDetail = ({navigation}) => {
                 />
               </View>
               <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardAmount}>{item.amount}</Text>
+                <Text style={[styles.cardTitle, {flex: 1}]} numberOfLines={1}>
+                  {item.title}
+                </Text>
+                <Text
+                  style={styles.cardAmount}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.7}>
+                  {formatNumber(item.amount.replace(/,/g, ''), 0)}
+                </Text>
               </View>
             </View>
           ))}
         </View>
       </ScrollView>
-    </PlatformGradient>
+    </View>
   );
 };
 
@@ -126,7 +138,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: COLORS.WHITE,
+    color: COLORS.TEXT_DARK,
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -142,11 +154,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   totalLabel: {
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(0,0,0,0.5)',
     fontSize: 14,
   },
   totalAmount: {
-    color: COLORS.WHITE,
+    color: COLORS.TEXT_DARK,
     fontSize: 20,
     fontWeight: 'bold',
   },
@@ -155,13 +167,16 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: COLORS.WHITE,
     borderRadius: 16,
     padding: 15,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   iconContainer: {
     width: 50,
@@ -173,16 +188,18 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   cardTitle: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 4,
+    color: COLORS.TEXT_DARK,
   },
   cardAmount: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.WHITE,
+    color: COLORS.TEXT_DARK,
   },
 });
 

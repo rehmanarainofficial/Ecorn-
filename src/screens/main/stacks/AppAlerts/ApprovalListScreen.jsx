@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import {Dropdown} from 'react-native-element-dropdown';
 import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import ApprovalCard from './ApprovalCard';
@@ -37,6 +38,13 @@ const ApprovalListScreen = ({route, navigation}) => {
     visible: false,
     type: null,
   });
+  const [selectedRandom, setSelectedRandom] = useState(null);
+
+  const randomData = [
+    {label: 'Option 1', value: '1'},
+    {label: 'Option 2', value: '2'},
+    {label: 'Option 3', value: '3'},
+  ];
 
   const currentUser = useSelector(state => state.Data.currentData);
 
@@ -208,6 +216,7 @@ const ApprovalListScreen = ({route, navigation}) => {
     setReference('');
     setSearchName('');
     setSearchLocation('');
+    setSelectedRandom(null);
     const today = new Date();
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(today.getMonth() - 3);
@@ -355,7 +364,7 @@ const ApprovalListScreen = ({route, navigation}) => {
         </View>
 
         {/* Row 4: Cost Center Search (Full Width) */}
-        {listKey !== 'quotation_approval' && (
+        {listKey !== 'quotation_approval' && listKey !== 'voucher_approval' && (
           <View style={[styles.searchRow, {marginTop: 8}]}>
             <View style={[styles.searchContainer, {marginRight: 0}]}>
               <Icon
@@ -372,6 +381,25 @@ const ApprovalListScreen = ({route, navigation}) => {
                 onChangeText={setSearchLocation}
               />
             </View>
+          </View>
+        )}
+
+        {/* Row 4: Voucher Random Dropdown */}
+        {listKey === 'voucher_approval' && (
+          <View style={{marginTop: 8}}>
+            <Dropdown
+              style={styles.dropdown}
+              placeholderStyle={styles.placeholderStyle}
+              selectedTextStyle={styles.selectedTextStyle}
+              itemTextStyle={{color: '#000'}}
+              data={randomData}
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              placeholder="Select Option"
+              value={selectedRandom}
+              onChange={item => setSelectedRandom(item.value)}
+            />
           </View>
         )}
       </View>
@@ -442,13 +470,19 @@ const ApprovalListScreen = ({route, navigation}) => {
                 color: APPCOLORS.WHITE,
                 paddingHorizontal: 20,
               }}>
-              {reference || searchName || searchLocation || fromDate || toDate
+              {reference ||
+              searchName ||
+              searchLocation ||
+              selectedRandom ||
+              fromDate ||
+              toDate
                 ? 'No records found matching your filters'
                 : 'There are no records pending for approval in this module.'}
             </Text>
             {(reference ||
               searchName ||
               searchLocation ||
+              selectedRandom ||
               fromDate ||
               toDate) && (
               <TouchableOpacity
@@ -542,6 +576,22 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     backgroundColor: '#FFFFFF', // White background
+  },
+  dropdown: {
+    height: 40,
+    backgroundColor: '#F8F8F8',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: '#DDD',
+  },
+  placeholderStyle: {
+    fontSize: 14,
+    color: '#888',
+  },
+  selectedTextStyle: {
+    fontSize: 14,
+    color: '#000',
   },
   retryButton: {
     marginTop: 20,

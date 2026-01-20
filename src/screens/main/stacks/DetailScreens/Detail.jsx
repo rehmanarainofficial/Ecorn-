@@ -318,6 +318,7 @@ const Detail = ({navigation}) => {
               <TopTen
                 onPress={() => navigation.navigate('ProfitAndLossScreen')}
                 title="Profit and Loss"
+                backgroundColor="#1a1c22"
               />
             )}
 
@@ -327,6 +328,7 @@ const Detail = ({navigation}) => {
                   navigation.navigate('Ledger', {name: 'Audit', item: null})
                 }
                 title="What About Today"
+                backgroundColor="#1a1c22"
               />
             )}
           </View>
@@ -365,8 +367,21 @@ let styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.1)',
   },
-  rowTitle: {fontSize: 16, color: 'rgba(255,255,255,0.85)'},
-  rowAmount: {fontSize: 16, fontWeight: 'bold', color: COLORS.WHITE},
+  rowTitle: {
+    fontSize: 16,
+    color: COLORS.WHITE,
+    flex: 1,
+  },
+  cell: {
+    fontSize: 16,
+    color: COLORS.WHITE,
+    textAlign: 'right',
+  },
+  rowAmount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.WHITE,
+  },
 
   revenueSection: {
     marginTop: 20,

@@ -15,7 +15,7 @@ import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import * as Animatable from 'react-native-animatable';
 import {BASEURL} from '../../../../utils/BaseUrl';
-import {formatDateString} from '../../../../utils/DateUtils';
+import {formatDateString, formatDate} from '../../../../utils/DateUtils';
 
 const PdcDetailScreen = () => {
   const [fromDate, setFromDate] = useState(null);

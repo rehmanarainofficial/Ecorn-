@@ -17,6 +17,7 @@ import axios from 'axios';
 import PlatformGradient from '../../../components/PlatformGradient'; // install if not present
 import Toast from 'react-native-toast-message';
 import {BASEURL} from '../../../utils/BaseUrl';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 // Local color set (uses the values you gave)
 const COLORS = {
@@ -27,6 +28,7 @@ const COLORS = {
 };
 
 const InsertNewCustomerDetail = ({navigation, route}) => {
+  const insets = useSafeAreaInsets();
   const [CustomerName, setCustomerName] = useState('');
   const [TradeName, setTradeName] = useState('');
   const [ContactNo, setContactNo] = useState('');
@@ -179,7 +181,6 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
         timeout: 20000,
       });
 
-
       if (res.data && res.data.status === true) {
         Toast.show({
           type: 'success',
@@ -264,7 +265,15 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
       end={{x: 1, y: 1}}
       style={{flex: 1}}>
       {/* Header with slight glass/morph feel */}
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop:
+              Platform.OS === 'ios' ? insets.top + 15 : insets.top + 20,
+            paddingBottom: 15,
+          },
+        ]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name={'chevron-back'} color={COLORS.WHITE} size={30} />
         </TouchableOpacity>
@@ -413,7 +422,6 @@ export default InsertNewCustomerDetail;
 const styles = StyleSheet.create({
   header: {
     backgroundColor: 'rgba(255,255,255,0.03)',
-    height: 84,
     borderBottomRightRadius: 22,
     borderBottomLeftRadius: 22,
     alignItems: 'center',

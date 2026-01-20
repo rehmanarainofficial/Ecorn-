@@ -1,20 +1,28 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
 import PlatformGradient from '../../../../components/PlatformGradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SimpleHeader from '../../../../components/SimpleHeader';
-import { APPCOLORS } from '../../../../utils/APPCOLORS';
+import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import * as Animatable from 'react-native-animatable';
 
 const buttons = [
-  { name: 'Add Customer', icon: 'account-plus', navigate: "AddNewCustomer" },
-  { name: 'Delivery', icon: 'truck-delivery', navigate: "DeliveryScreen" },
-  { name: 'Track Order Status', icon: 'map-marker-path', navigate: "TrackOrderStatus" },
-  { name: 'Receivable', icon: 'format-list-bulleted', navigate: "ReceivableScreen" },
+  {name: 'Add Customer', icon: 'account-plus', navigate: 'AddNewCustomer'},
+  {name: 'Delivery', icon: 'truck-delivery', navigate: 'DeliveryScreen'},
+  {
+    name: 'Track Order Status',
+    icon: 'map-marker-path',
+    navigate: 'TrackOrderStatus',
+  },
+  {
+    name: 'Receivable',
+    icon: 'format-list-bulleted',
+    navigate: 'ReceivableScreen',
+  },
 ];
 
-export default function SalesScreen({ navigation }) {
-  const renderButton = ({ item, index}) => (
+export default function SalesScreen({navigation}) {
+  const renderButton = ({item, index}) => (
     <Animatable.View
       animation="fadeInUp"
       delay={index * 120}
@@ -41,14 +49,14 @@ export default function SalesScreen({ navigation }) {
 
   return (
     <PlatformGradient
-      colors={[APPCOLORS.BLACK, '#1c1c1c', APPCOLORS.WHITE]}
+      colors={['#1a1c22', '#5a5c6a', '#000000']}
       style={styles.container}>
       <SimpleHeader title="Sales" />
       <FlatList
         data={buttons}
         renderItem={renderButton}
         keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={{ paddingVertical: 20 }}
+        contentContainerStyle={{paddingVertical: 20}}
       />
     </PlatformGradient>
   );

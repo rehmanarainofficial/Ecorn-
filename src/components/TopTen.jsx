@@ -3,12 +3,12 @@ import React from 'react';
 import AppText from './AppText';
 import {APPCOLORS} from '../utils/APPCOLORS';
 
-const TopTen = ({title, onPress}) => {
-  // iOS ke liye different background color, Android ke liye same
-  const buttonBgColor = Platform.OS === 'ios' 
-    ? '#2d2f3a' // iOS ke liye thoda lighter color
-    : APPCOLORS.Primary; // Android ke liye original color
-
+const TopTen = ({
+  title,
+  onPress,
+  backgroundColor = '#2196F3',
+  textColor = 'white',
+}) => {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -16,10 +16,15 @@ const TopTen = ({title, onPress}) => {
         padding: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: buttonBgColor,
+        backgroundColor: backgroundColor,
         borderRadius: 20,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+        elevation: 6,
       }}>
-      <AppText title={title} titleSize={2} titleColor={'white'} titleWeight />
+      <AppText title={title} titleSize={2} titleColor={textColor} titleWeight />
     </TouchableOpacity>
   );
 };

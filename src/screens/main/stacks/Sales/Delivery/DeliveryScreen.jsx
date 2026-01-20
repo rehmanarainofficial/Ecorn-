@@ -12,6 +12,8 @@ import {Dropdown} from 'react-native-element-dropdown';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import SimpleHeader from '../../../../../components/SimpleHeader';
+import PlatformGradient from '../../../../../components/PlatformGradient';
+import {BASEURL} from '../../../../../utils/BaseUrl';
 import * as Animatable from 'react-native-animatable';
 import {formatDate, formatDateString} from '../../../../../utils/DateUtils';
 import {formatNumber} from '../../../../../utils/NumberUtils';
@@ -163,9 +165,10 @@ const DeliveryScreen = ({navigation}) => {
                 ship_via: item.ship_via,
                 name: item.name,
                 location: item.location_name,
+                reference: item.reference,
               })
             }>
-            <Icon name="truck-delivery" size={22} color="#1a1c22" />
+            <Icon name="truck-delivery" size={22} color="#fff" />
           </TouchableOpacity>
 
           {/* View Transaction Icon - NEW */}
@@ -177,14 +180,16 @@ const DeliveryScreen = ({navigation}) => {
                 type: 30, // Sales Order type
               })
             }>
-            <Icon name="eye-outline" size={22} color="#1a1c22" />
+            <Icon name="eye-outline" size={22} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
     </Animatable.View>
   );
   return (
-    <View style={styles.container}>
+    <PlatformGradient
+      colors={['#1a1c22', '#5a5c6a', '#000000']}
+      style={styles.container}>
       <SimpleHeader title="Delivery" />
 
       <View style={styles.filterContainer}>
@@ -216,7 +221,7 @@ const DeliveryScreen = ({navigation}) => {
           maxHeight={300}
           labelField="label"
           valueField="value"
-          placeholder="Select Location"
+          placeholder="Select cost center"
           searchPlaceholder="Search..."
           value={selectedLocation}
           onChange={item => setSelectedLocation(item.value)}
@@ -306,77 +311,87 @@ const DeliveryScreen = ({navigation}) => {
           renderItem={renderItem}
         />
       )}
-    </View>
+    </PlatformGradient>
   );
 };
 
 export default DeliveryScreen;
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: '#e0e0e0'},
+  container: {flex: 1},
   filterContainer: {
     padding: 15,
     margin: 12,
     borderRadius: 20,
-    backgroundColor: '#e0e0e0',
-    shadowColor: '#000',
-    shadowOffset: {width: 6, height: 6},
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   dateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 8,
   },
   morphButton: {
     flex: 1,
-    marginHorizontal: 3,
     padding: 10,
-    borderRadius: 10,
-    backgroundColor: '#e0e0e0',
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 3,
   },
-  dateText: {color: '#000', fontWeight: '600', textAlign: 'center'},
+  dateText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   dropdown: {
     height: 50,
     borderRadius: 12,
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
     marginBottom: 12,
-    backgroundColor: '#e0e0e0',
-    elevation: 4,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  placeholderStyle: {fontSize: 14, color: '#5a5c6a'},
-  selectedTextStyle: {fontSize: 14, color: '#000', fontWeight: '600'},
+  placeholderStyle: {fontSize: 14, color: 'rgba(255,255,255,0.5)'},
+  selectedTextStyle: {fontSize: 14, color: '#fff', fontWeight: '600'},
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#1a1c22',
-    padding: 10,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    padding: 12,
     marginHorizontal: 12,
     borderRadius: 10,
     marginBottom: 6,
   },
-  headerCell: {color: '#fff', fontWeight: 'bold', textAlign: 'center'},
+  headerCell: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 13,
+    textAlign: 'center',
+  },
   row: {
     flexDirection: 'row',
     padding: 12,
     marginHorizontal: 12,
     marginVertical: 4,
     borderRadius: 12,
-    backgroundColor: '#f5f5f5',
-    elevation: 2,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
-  cell: {fontSize: 12, color: '#000', textAlign: 'center'},
+  cell: {fontSize: 12, color: '#fff', textAlign: 'center'},
   cellWrapper: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderRightWidth: 1,
-    borderRightColor: '#d1d1d1',
+    borderRightColor: 'rgba(255,255,255,0.1)',
     paddingHorizontal: 4,
   },
   actionContainer: {
@@ -384,7 +399,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   iconButton: {
     padding: 5,
   },

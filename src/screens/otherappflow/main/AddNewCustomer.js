@@ -6,6 +6,8 @@ import {
   FlatList,
   ActivityIndicator,
   StyleSheet,
+  StatusBar,
+  Platform,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -18,8 +20,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BASEURL} from '../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../utils/APPCOLORS';
 import {responsiveWidth} from '../../../utils/Responsive';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const AddNewCustomer = ({navigation}) => {
+  const insets = useSafeAreaInsets();
   const CurrentUser = useSelector(state => state.Data.currentData);
   const day = moment().format('dddd');
 
@@ -52,14 +56,17 @@ const AddNewCustomer = ({navigation}) => {
         headers: {'Content-Type': 'multipart/form-data'},
       });
 
-      const newData = [...res.data.data]
+      const newData = [...res.data.data];
       const uniqueOrders = newData.filter(
         (order, index, self) =>
           index === self.findIndex(o => o.debtor_ref === order.debtor_ref),
       );
 
       setAllOrders(uniqueOrders.slice(0, 50));
-      await AsyncStorage.setItem('GetAllCustomers', JSON.stringify(res.data.data));
+      await AsyncStorage.setItem(
+        'GetAllCustomers',
+        JSON.stringify(res.data.data),
+      );
     } catch (err) {
       const offlineData = await AsyncStorage.getItem('GetAllCustomers');
       if (offlineData) setAllOrders(JSON.parse(offlineData));
@@ -92,7 +99,10 @@ const AddNewCustomer = ({navigation}) => {
 
       setAllOrders(uniqueOrders.slice(0, 50));
       setPage(prev => prev + 1);
-      await AsyncStorage.setItem('GetAllCustomers', JSON.stringify(res.data.data));
+      await AsyncStorage.setItem(
+        'GetAllCustomers',
+        JSON.stringify(res.data.data),
+      );
     } catch (err) {
       console.log(err);
     } finally {
@@ -107,29 +117,27 @@ const AddNewCustomer = ({navigation}) => {
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'center',
-          paddingVertical: 15,
+          paddingHorizontal: 10,
+          paddingBottom: 10,
+          paddingTop: Platform.OS === 'ios' ? insets.top + 25 : insets.top + 30,
           backgroundColor: APPCOLORS.BLACK,
         }}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={{
-            height: 45,
-            width: 45,
-            borderRadius: 12,
+            height: 40,
+            width: 40,
+            borderRadius: 10,
             alignItems: 'center',
             justifyContent: 'center',
-            marginRight: 12,
             backgroundColor: '#E0E5EC',
             shadowColor: '#000',
-            shadowOffset: {width: 5, height: 5},
-            shadowOpacity: 0.2,
-            shadowRadius: 5,
-            elevation: 6,
-            borderWidth: 1,
-            borderColor: '#f9f9f9',
+            shadowOffset: {width: 2, height: 2},
+            shadowOpacity: 0.1,
+            shadowRadius: 3,
+            elevation: 3,
           }}>
-          <Ionicons name="arrow-back" size={22} color="#333" />
+          <Ionicons name="arrow-back" size={20} color="#333" />
         </TouchableOpacity>
 
         <PlatformGradient
@@ -137,27 +145,52 @@ const AddNewCustomer = ({navigation}) => {
           start={{x: 0, y: 0}}
           end={{x: 1, y: 1}}
           style={{
+            flex: 1,
             flexDirection: 'row',
             alignItems: 'center',
-            width: '75%',
-            height: 45,
-            borderRadius: 15,
+            height: 40,
+            borderRadius: 10,
             paddingHorizontal: 12,
+            marginHorizontal: 10,
             shadowColor: '#000',
-            shadowOffset: {width: 3, height: 3},
-            shadowOpacity: 0.2,
-            shadowRadius: 6,
-            elevation: 6,
+            shadowOffset: {width: 2, height: 2},
+            shadowOpacity: 0.1,
+            shadowRadius: 3,
+            elevation: 3,
           }}>
-          <Ionicons name="search" size={20} color="#fff" style={{marginRight: 8}} />
+          <Ionicons
+            name="search"
+            size={18}
+            color="#fff"
+            style={{marginRight: 8}}
+          />
           <TextInput
             placeholder="Search"
             placeholderTextColor="#aaa"
-            style={{flex: 1, fontSize: 16, color: '#fff'}}
+            style={{flex: 1, fontSize: 14, color: '#fff', padding: 0}}
             onChangeText={txt => setSearch(txt)}
             value={Search}
           />
         </PlatformGradient>
+
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('InsertNewCustomerDetail', {
+              allCustomer: AllOrders,
+              onSuccess: () => getAllOrders(),
+            })
+          }
+          style={{
+            height: 40,
+            width: 40,
+            borderRadius: 10,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: APPCOLORS.Secondary,
+            elevation: 3,
+          }}>
+          <Ionicons name="person-add" size={20} color="#fff" />
+        </TouchableOpacity>
       </View>
 
       {/* Loader */}
@@ -186,7 +219,11 @@ const AddNewCustomer = ({navigation}) => {
               onEndReachedThreshold={1}
               renderItem={({item}) => (
                 <PlatformGradient
-                  colors={[APPCOLORS.Primary, APPCOLORS.Secondary, APPCOLORS.BLACK]}
+                  colors={[
+                    APPCOLORS.Primary,
+                    APPCOLORS.Secondary,
+                    APPCOLORS.BLACK,
+                  ]}
                   style={{
                     borderRadius: 15,
                     marginVertical: 8,
@@ -218,7 +255,9 @@ const AddNewCustomer = ({navigation}) => {
 
                   <View style={styles.row}>
                     <Text style={styles.label}>5. Contact No</Text>
-                    <Text style={styles.value}>{item?.contact_no || 'N/A'}</Text>
+                    <Text style={styles.value}>
+                      {item?.contact_no || 'N/A'}
+                    </Text>
                   </View>
                 </PlatformGradient>
               )}
@@ -230,34 +269,6 @@ const AddNewCustomer = ({navigation}) => {
           )}
         </View>
       )}
-
-      {/* Add Customer Button */}
-      <TouchableOpacity
-        onPress={() =>
-          navigation.navigate('InsertNewCustomerDetail', {
-            allCustomer: AllOrders,
-            onSuccess: () => getAllOrders(),
-          })
-        }
-        style={{
-          height: 50,
-          width: '100%',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-        <PlatformGradient
-          colors={[APPCOLORS.BLACK, APPCOLORS.Secondary, APPCOLORS.BLACK]}
-          style={{
-            height: 50,
-            width: '100%',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-          <Text style={{color: APPCOLORS.WHITE, fontSize: 20, fontWeight: 'bold'}}>
-            Add new customer
-          </Text>
-        </PlatformGradient>
-      </TouchableOpacity>
     </View>
   );
 };

@@ -15,6 +15,7 @@ import SimpleHeader from '../components/SimpleHeader';
 import axios from 'axios';
 import {formatDateString} from '../utils/DateUtils';
 import {formatNumber} from '../utils/NumberUtils';
+import {BASEURL} from '../utils/BaseUrl';
 
 const ViewTransactions = ({navigation, route}) => {
   const {trans_no, type} = route.params || {};
@@ -79,12 +80,12 @@ const ViewTransactions = ({navigation, route}) => {
       <View style={styles.headerCard}>
         <View style={styles.headerRow}>
           <View style={styles.headerField}>
-            <Text style={styles.label}>Transaction No:</Text>
-            <Text style={styles.value}>{item.trans_no || 'N/A'}</Text>
-          </View>
-          <View style={styles.headerField}>
             <Text style={styles.label}>Reference:</Text>
             <Text style={styles.value}>{item.reference || 'N/A'}</Text>
+          </View>
+          <View style={styles.headerField}>
+            <Text style={styles.label}>Cost center:</Text>
+            <Text style={styles.value}>{item.location_name || 'N/A'}</Text>
           </View>
         </View>
 
@@ -96,17 +97,6 @@ const ViewTransactions = ({navigation, route}) => {
             </Text>
           </View>
           <View style={styles.headerField}>
-            <Text style={styles.label}>Due Date:</Text>
-            <Text style={styles.value}>{formatDateDisplay(item.due_date)}</Text>
-          </View>
-        </View>
-
-        <View style={styles.headerRow}>
-          <View style={styles.headerField}>
-            <Text style={styles.label}>Customer:</Text>
-            <Text style={styles.value}>{item.name || 'N/A'}</Text>
-          </View>
-          <View style={styles.headerField}>
             <Text style={styles.label}>Salesman:</Text>
             <Text style={styles.value}>{item.salesman || 'N/A'}</Text>
           </View>
@@ -114,27 +104,8 @@ const ViewTransactions = ({navigation, route}) => {
 
         <View style={styles.headerRow}>
           <View style={styles.headerField}>
-            <Text style={styles.label}>Location:</Text>
-            <Text style={styles.value}>{item.location_name || 'N/A'}</Text>
-          </View>
-          <View style={styles.headerField}>
-            <Text style={styles.label}>Payment Terms:</Text>
-            <Text style={styles.value}>{item.payment_terms || 'N/A'}</Text>
-          </View>
-        </View>
-
-        <View style={styles.summaryRow}>
-          <View style={styles.summaryItem}>
-            <Text style={styles.label}>Total Amount:</Text>
-            <Text style={styles.totalAmount}>
-              Rs. {formatAmountDisplay(item.total)}
-            </Text>
-          </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.label}>Discount:</Text>
-            <Text style={styles.discount}>
-              Rs. {formatAmountDisplay(item.discount)}
-            </Text>
+            <Text style={styles.label}>Customer:</Text>
+            <Text style={styles.value}>{item.name || 'N/A'}</Text>
           </View>
         </View>
 
@@ -157,9 +128,13 @@ const ViewTransactions = ({navigation, route}) => {
   const renderDetailItem = ({item, index}) => (
     <View style={styles.detailCard}>
       <View style={styles.detailRow}>
-        <Text style={[styles.detailText, {flex: 3}]}>
-          {item.description || 'N/A'}
-        </Text>
+        <View style={{flex: 3, justifyContent: 'center'}}>
+          {item.long_description ? (
+            <Text style={styles.longDescription}>{item.long_description}</Text>
+          ) : (
+            <Text style={styles.detailText}>{item.description || 'N/A'}</Text>
+          )}
+        </View>
         <Text style={[styles.detailText, {flex: 1, textAlign: 'center'}]}>
           {item.quantity || '0'}
         </Text>
@@ -167,9 +142,6 @@ const ViewTransactions = ({navigation, route}) => {
           Rs. {formatAmountDisplay(item.unit_price)}
         </Text>
       </View>
-      {item.long_description && (
-        <Text style={styles.longDescription}>{item.long_description}</Text>
-      )}
     </View>
   );
 
@@ -246,11 +218,21 @@ const ViewTransactions = ({navigation, route}) => {
           </View>
         )}
 
-        {/* Comments Section */}
-        {headerData[0]?.comments && (
-          <View style={styles.commentsCard}>
-            <Text style={styles.commentsTitle}>Comments</Text>
-            <Text style={styles.commentsText}>{headerData[0].comments}</Text>
+        {/* Footer: Totals */}
+        {headerData.length > 0 && (
+          <View style={[styles.headerCard, {marginTop: 0, marginBottom: 20}]}>
+            <View
+              style={[
+                styles.summaryRow,
+                {borderTopWidth: 0, marginTop: 0, paddingTop: 0},
+              ]}>
+              <View style={styles.summaryItem}>
+                <Text style={styles.label}>Total Amount:</Text>
+                <Text style={styles.totalAmount}>
+                  Rs. {formatAmountDisplay(headerData[0].total)}
+                </Text>
+              </View>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -371,11 +353,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   longDescription: {
-    fontSize: 11,
-    color: '#666',
-    marginTop: 8,
-    fontStyle: 'italic',
-    lineHeight: 16,
+    fontSize: 16,
+    color: '#000',
+    fontWeight: 'bold',
+    marginTop: 0,
+    lineHeight: 22,
   },
   noItems: {
     alignItems: 'center',

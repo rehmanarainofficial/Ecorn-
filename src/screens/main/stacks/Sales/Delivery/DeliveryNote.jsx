@@ -12,13 +12,22 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 import SimpleHeader from '../../../../../components/SimpleHeader';
+import PlatformGradient from '../../../../../components/PlatformGradient';
 import {BASEURL} from '../../../../../utils/BaseUrl';
 import {formatQuantity} from '../../../../../utils/NumberUtils';
 
 const DeliveryNote = ({route}) => {
   const navigation = useNavigation();
-  const {orderId, personId, locCode, price_list, ship_via, name, location} =
-    route.params || {};
+  const {
+    orderId,
+    personId,
+    locCode,
+    price_list,
+    ship_via,
+    name,
+    location,
+    reference,
+  } = route.params || {};
 
   const [driverName, setDriverName] = useState('');
   const [vehicleName, setVehicleName] = useState('');
@@ -44,7 +53,6 @@ const DeliveryNote = ({route}) => {
 
         let raw = res.data.trim();
         let jsonStr = raw.substring(raw.indexOf('{'));
-
         let parsed;
         try {
           parsed = JSON.parse(jsonStr);
@@ -162,7 +170,9 @@ const DeliveryNote = ({route}) => {
   };
 
   return (
-    <>
+    <PlatformGradient
+      colors={['#1a1c22', '#5a5c6a', '#000000']}
+      style={{flex: 1}}>
       <SimpleHeader title="Delivery Note" />
       <View style={styles.container}>
         {/* Location + Location Name - Second Row */}
@@ -170,9 +180,13 @@ const DeliveryNote = ({route}) => {
           <View style={styles.locationContainer}>
             <Text style={styles.locationLabel}>Customer Name:</Text>
             <Text style={styles.locationValue}>{name || 'N/A'}</Text>
+            <Text style={[styles.locationLabel, {marginTop: 8}]}>
+              Reference:
+            </Text>
+            <Text style={styles.locationValue}>{reference || 'N/A'}</Text>
           </View>
           <View style={styles.locationContainer}>
-            <Text style={styles.locationLabel}>Location:</Text>
+            <Text style={styles.locationLabel}>Cost center:</Text>
             <Text style={styles.locationValue}>{location || 'N/A'}</Text>
           </View>
         </View>
@@ -256,20 +270,21 @@ const DeliveryNote = ({route}) => {
               ) : null}
             </View>
           )}
+          ListFooterComponent={
+            <TouchableOpacity
+              style={[styles.button, loading && {opacity: 0.7}]}
+              onPress={handleSubmit}
+              disabled={loading}>
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Process</Text>
+              )}
+            </TouchableOpacity>
+          }
         />
-
-        <TouchableOpacity
-          style={[styles.button, loading && {opacity: 0.7}]}
-          onPress={handleSubmit}
-          disabled={loading}>
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Process</Text>
-          )}
-        </TouchableOpacity>
       </View>
-    </>
+    </PlatformGradient>
   );
 };
 
@@ -278,67 +293,65 @@ export default DeliveryNote;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     padding: 15,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 15,
+    gap: 10,
   },
   input: {
     flex: 1,
-    backgroundColor: '#F0F0F0',
-    color: '#000',
-    borderRadius: 10,
-    padding: 10,
-    marginHorizontal: 5,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    color: '#fff',
+    borderRadius: 12,
+    padding: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   locationContainer: {
     flex: 1,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 12,
     padding: 12,
-    marginHorizontal: 5,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   locationLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#666',
+    color: 'rgba(255,255,255,0.6)',
     marginBottom: 4,
   },
   locationValue: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#fff',
   },
   heading: {
-    color: '#000',
+    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
     marginVertical: 10,
   },
   card: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: 'rgba(255,255,255,0.1)',
     marginBottom: 12,
-    padding: 10,
+    padding: 12,
   },
   descInput: {
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: 'rgba(255,255,255,0.1)',
     borderRadius: 8,
-    color: '#000',
-    padding: 8,
-    fontSize: 13,
-    marginBottom: 6,
+    color: '#fff',
+    padding: 10,
+    fontSize: 14,
+    marginBottom: 10,
   },
   dataRow: {
     flexDirection: 'row',
@@ -351,36 +364,41 @@ const styles = StyleSheet.create({
   label: {
     fontWeight: '600',
     fontSize: 12,
-    color: '#333',
+    color: 'rgba(255,255,255,0.6)',
   },
   value: {
-    fontSize: 13,
-    color: '#000',
-    marginTop: 3,
+    fontSize: 14,
+    color: '#fff',
+    marginTop: 4,
+    fontWeight: '600',
   },
   valueInput: {
-    width: '80%',
+    width: '85%',
     borderWidth: 1,
-    borderRadius: 6,
+    borderRadius: 8,
     textAlign: 'center',
-    color: '#000',
-    fontSize: 13,
-    marginTop: 3,
-    backgroundColor: '#fff',
-    paddingVertical: 4,
+    color: '#fff',
+    fontSize: 14,
+    marginTop: 4,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    paddingVertical: 6,
+    fontWeight: '700',
   },
   errorText: {
-    color: 'red',
-    fontSize: 11,
-    marginTop: 4,
+    color: '#FF5252',
+    fontSize: 12,
+    marginTop: 6,
     marginLeft: 5,
   },
   button: {
-    backgroundColor: '#000',
-    padding: 15,
-    borderRadius: 12,
-    marginTop: 20,
+    backgroundColor: '#1a1c22',
+    padding: 16,
+    borderRadius: 14,
+    marginTop: 10,
+    marginBottom: 20,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   buttonText: {
     color: '#fff',
