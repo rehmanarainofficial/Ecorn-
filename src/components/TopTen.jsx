@@ -1,14 +1,8 @@
 import {View, Text, TouchableOpacity, Platform} from 'react-native';
 import React from 'react';
 import AppText from './AppText';
-import {APPCOLORS} from '../utils/APPCOLORS';
 
-const TopTen = ({
-  title,
-  onPress,
-  backgroundColor = '#2196F3',
-  textColor = 'white',
-}) => {
+const TopTen = ({title, onPress, backgroundColor, textColor = '#fff'}) => {
   return (
     <TouchableOpacity
       onPress={onPress}

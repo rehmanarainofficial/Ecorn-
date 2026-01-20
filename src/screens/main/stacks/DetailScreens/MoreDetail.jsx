@@ -11,7 +11,11 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
 import PlatformGradient from '../../../../components/PlatformGradient';
-import {GetReceivable} from '../../../../global/ChartApisCall';
+import {
+  GetReceivable,
+  GetBankBalance,
+  GetPayable,
+} from '../../../../global/ChartApisCall';
 import {formatNumber} from '../../../../utils/NumberUtils';
 
 const COLORS = {

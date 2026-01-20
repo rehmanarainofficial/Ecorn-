@@ -104,26 +104,32 @@ const Detail = ({navigation}) => {
   ];
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      getMoneyData();
-    });
-    return unsubscribe;
-  }, [navigation]);
+    getMoneyData();
+  }, []);
+
+  const formatDateForApi = date => {
+    if (!date) return '';
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   const getMoneyData = async () => {
     setLoader(true);
 
     try {
-      const params = new URLSearchParams();
-      params.append('current_date', '2025-05-19');
-      params.append('pre_month_date', '2025-04-19');
+      const formData = new FormData();
+      formData.append('from_date', formatDateForApi(startDate));
+      formData.append('to_date', formatDateForApi(endDate));
 
       const {data} = await axios.post(
         `${BASEURL}dashboard_view.php`,
-        params.toString(),
+        formData,
         {
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'multipart/form-data',
           },
         },
       );
@@ -165,7 +171,16 @@ const Detail = ({navigation}) => {
 
     if (targetScreen) {
       return (
-        <TouchableOpacity onPress={() => navigation.navigate(targetScreen)}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate(targetScreen, {
+              from_date: formatDateForApi(startDate),
+              to_date: formatDateForApi(endDate),
+              account_type: item.account_type,
+              title: title,
+              total: item.total || item.amount,
+            })
+          }>
           {RowContent}
         </TouchableOpacity>
       );
@@ -212,6 +227,9 @@ const Detail = ({navigation}) => {
               setDatePickerVisibility(true);
             }}>
             <Text style={styles.dateText}>{formatDate(endDate)}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.applyBtn} onPress={getMoneyData}>
+            <Text style={styles.applyBtnText}>Apply</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -469,7 +487,20 @@ let styles = StyleSheet.create({
     fontSize: 14,
   },
   toText: {
-    color: COLORS.WHITE,
     marginHorizontal: 10,
+  },
+  applyBtn: {
+    backgroundColor: COLORS.WHITE,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    marginLeft: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  applyBtnText: {
+    color: COLORS.BLACK,
+    fontWeight: 'bold',
+    fontSize: 14,
   },
 });

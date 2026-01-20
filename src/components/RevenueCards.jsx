@@ -44,9 +44,9 @@ const RevenueCards = ({
               alignItems: 'center',
             }}>
             <AppText
-              title={`Rs.${formatNumber(amount)}`}
+              title={`${formatNumber(amount)}`}
               titleSize={2}
-              titleColor={APPCOLORS.WHITE}
+              titleColor={parseFloat(amount) < 0 ? '#FF5252' : APPCOLORS.WHITE}
               titleWeight
             />
 

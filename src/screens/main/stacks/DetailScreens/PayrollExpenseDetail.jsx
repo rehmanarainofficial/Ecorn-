@@ -1,10 +1,156 @@
-import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  FlatList,
+  ScrollView,
+} from 'react-native';
+import axios from 'axios';
+import PieChart from 'react-native-pie-chart';
+import SimpleHeader from '../../../../components/SimpleHeader';
+import {BASEURL} from '../../../../utils/BaseUrl';
+import {formatNumber} from '../../../../utils/NumberUtils';
 
-const PayrollExpenseDetail = () => {
+const COLORS = {
+  BG_CREAM: '#FFF3E0',
+  WHITE: '#FFFFFF',
+  TEXT_DARK: '#333333',
+  GREY: '#9E9E9E',
+  // Vibrancy Palette
+  ORANGE: '#FF9500',
+  GREEN: '#4CAF50',
+  BLUE: '#2196F3',
+  AMBER: '#FFC107',
+  RED: '#F44336',
+  PURPLE: '#9C27B0',
+  TEAL: '#009688',
+  INDIGO: '#3F51B5',
+};
+
+const CHART_COLORS = [
+  COLORS.ORANGE,
+  COLORS.GREEN,
+  COLORS.BLUE,
+  COLORS.AMBER,
+  COLORS.RED,
+  COLORS.PURPLE,
+  COLORS.TEAL,
+  COLORS.INDIGO,
+];
+
+const PayrollExpenseDetail = ({route, navigation}) => {
+  const {from_date, to_date, account_type, title, total} = route.params || {};
+
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [chartSeries, setChartSeries] = useState([
+    {value: 1, color: COLORS.GREY},
+  ]);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const formData = new FormData();
+      formData.append('from_date', from_date);
+      formData.append('to_date', to_date);
+      formData.append('account_type', account_type);
+
+      console.log('Fetching Payroll Data:', {from_date, to_date, account_type});
+
+      const res = await axios.post(
+        `${BASEURL}parent_expense_detail.php`,
+        formData,
+        {
+          headers: {'Content-Type': 'multipart/form-data'},
+        },
+      );
+
+      //   console.log('Payroll API Response:', res.data);
+
+      if (res.data?.status === 'true' && Array.isArray(res.data?.data)) {
+        const apiData = res.data.data;
+        setData(apiData);
+
+        // Prepare Chart Data
+        const series = [];
+
+        apiData.forEach((item, index) => {
+          const val = parseFloat(item.t_amount) || 0;
+          if (val > 0) {
+            series.push({
+              value: val,
+              color: CHART_COLORS[index % CHART_COLORS.length],
+            });
+          }
+        });
+
+        if (series.length > 0) {
+          setChartSeries(series);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching payroll details:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderItem = ({item, index}) => {
+    const color = CHART_COLORS[index % CHART_COLORS.length];
+    return (
+      <View style={styles.card}>
+        <View style={[styles.colorIndicator, {backgroundColor: color}]} />
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle}>
+            {item.account_name?.replace(/&amp;/g, '&')}
+          </Text>
+          <Text style={styles.cardAmount}>
+            Rs. {formatNumber(item.t_amount)}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      <Text>Payroll Expense Detail Screen</Text>
+      <SimpleHeader title={title || 'Payroll Expenses'} />
+
+      {loading ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={COLORS.ORANGE} />
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Chart Section */}
+          <View style={styles.chartContainer}>
+            <PieChart
+              widthAndHeight={220}
+              series={chartSeries}
+              cover={{radius: 0.65, color: COLORS.BG_CREAM}}
+            />
+            {/* Center Text (Total) */}
+            <View style={styles.centerTextContainer}>
+              <Text style={styles.centerLabel}>Total</Text>
+              <Text style={styles.centerValue}>{formatNumber(total)}</Text>
+            </View>
+          </View>
+
+          {/* List Section */}
+          <FlatList
+            data={data}
+            renderItem={renderItem}
+            keyExtractor={(item, index) => index.toString()}
+            scrollEnabled={false}
+            contentContainerStyle={styles.listContainer}
+          />
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -12,8 +158,77 @@ const PayrollExpenseDetail = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: COLORS.BG_CREAM,
+  },
+  centered: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  chartContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    marginBottom: 30,
+    position: 'relative',
+  },
+  centerTextContainer: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  centerLabel: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '600',
+  },
+  centerValue: {
+    fontSize: 18,
+    color: COLORS.TEXT_DARK,
+    fontWeight: 'bold',
+  },
+  listContainer: {
+    paddingHorizontal: 16,
+  },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.WHITE,
+    marginBottom: 12,
+    padding: 16,
+    borderRadius: 12,
+    // Shadow
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  colorIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 16,
+  },
+  cardContent: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardTitle: {
+    fontSize: 14,
+    color: COLORS.TEXT_DARK,
+    flex: 1,
+    fontWeight: '500',
+  },
+  cardAmount: {
+    fontSize: 16,
+    color: COLORS.TEXT_DARK,
+    fontWeight: 'bold',
   },
 });
 
