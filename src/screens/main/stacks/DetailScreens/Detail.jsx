@@ -18,7 +18,6 @@ import {BASEURL} from '../../../../utils/BaseUrl';
 import axios from 'axios';
 import TopTen from '../../../../components/TopTen';
 import {useSelector} from 'react-redux';
-import PlatformGradient from '../../../../components/PlatformGradient';
 import {formatNumber} from '../../../../utils/NumberUtils';
 
 const COLORS = {
@@ -28,11 +27,10 @@ const COLORS = {
   Secondary: '#5a5c6a',
 };
 
-// iOS ke liye different colors, Android ke liye original
 const getCardColors = () => {
   if (Platform.OS === 'ios') {
     return {
-      topColor: '#2d2f3a', // iOS ke liye lighter color
+      topColor: '#2d2f3a',
       bottomColor: '#3d3f4a',
     };
   }
@@ -49,6 +47,7 @@ const Detail = ({navigation}) => {
   const [AllData, setAllData] = useState();
   const [expenseData, setExpenseData] = useState([]);
   const [loader, setLoader] = useState(false);
+  console.log('AllData', AllData);
 
   // Date Filter State
   const [startDate, setStartDate] = useState(
@@ -58,7 +57,6 @@ const Detail = ({navigation}) => {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [dateMode, setDateMode] = useState('start'); // 'start' or 'end'
 
-  console.log('accessData', accessData);
   console.log('AllData', AllData);
 
   const formatDate = date => {
@@ -70,25 +68,19 @@ const Detail = ({navigation}) => {
     return `${day}/${month}/${year}`;
   };
 
-  const incomeData = [
-    {
-      id: '1',
-      title: 'Total Income',
-      amount: Math.abs(slider_data?.cur_m_income || 0),
-    },
-  ];
+  const incomeData = AllData?.data_income_det || [];
 
   const revData = [
     {
       id: 6,
       title: 'Short term loan',
       accessKey: 'cash',
-      Amount: slider_data?.cur_m_cash,
+      Amount: slider_data?.short_term_loan,
       Prev_title: 'Previous Month',
-      Prev_Amount: slider_data?.pre_m_cash,
+      Prev_Amount: slider_data?.pre_short_term_loan,
       isUp:
-        parseFloat(slider_data?.cur_m_cash || 0) >
-        parseFloat(slider_data?.pre_m_cash || 0),
+        parseFloat(slider_data?.short_term_loan || 0) >
+        parseFloat(slider_data?.pre_short_term_loan || 0),
     },
     {
       id: 7,
@@ -149,11 +141,31 @@ const Detail = ({navigation}) => {
 
     // Check if this row is one of the specific clickable ones
     let targetScreen = null;
-    if (title === 'Payroll Expenses') targetScreen = 'PayrollExpenseDetail';
-    else if (title === 'Administrative Expenses')
-      targetScreen = 'AdminExpenseDetail';
-    else if (title === 'Selling & Marketing')
-      targetScreen = 'SellingExpenseDetail';
+    let isIncome = false;
+
+    // Expense items
+    // Income items logic
+    if (item.account_type === '402' || title === 'Other Revenue') {
+      targetScreen = 'OtherRevenueDetail';
+      isIncome = true;
+    } else if (item.account_type === '403' || title === 'Sales Revenue') {
+      targetScreen = 'SalesRevenueDetail';
+      isIncome = true;
+    } else {
+      // Expense items - Handle ALL expenses
+      if (title === 'Payroll Expenses') {
+        targetScreen = 'PayrollExpenseDetail';
+      } else if (title === 'Selling & Marketing') {
+        targetScreen = 'SellingExpenseDetail';
+      } else {
+        // Default catch-all for Administrative and other expenses
+        targetScreen = 'AdminExpenseDetail';
+      }
+    }
+
+    // Apply Math.abs() to income amounts to show positive values
+    const amount = parseFloat(item.total || item.amount);
+    const displayAmount = isIncome ? Math.abs(amount) : amount;
 
     const RowContent = (
       <View style={styles.row}>
@@ -164,7 +176,7 @@ const Detail = ({navigation}) => {
           </Text>
         )}
         <Text style={[styles.cell, {flex: item.qty !== undefined ? 2 : 1}]}>
-          {formatNumber(parseFloat(item.total || item.amount))}
+          {formatNumber(displayAmount)}
         </Text>
       </View>
     );
@@ -178,7 +190,7 @@ const Detail = ({navigation}) => {
               to_date: formatDateForApi(endDate),
               account_type: item.account_type,
               title: title,
-              total: item.total || item.amount,
+              total: Math.abs(amount),
             })
           }>
           {RowContent}
@@ -202,9 +214,7 @@ const Detail = ({navigation}) => {
   const cardColors = getCardColors();
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={{flex: 1}}>
+    <View style={styles.container}>
       <SimpleHeader title="Dashboard" />
 
       {/* Date Filter Section */}
@@ -270,22 +280,22 @@ const Detail = ({navigation}) => {
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={true}>
         {/* Income Section */}
-        <TouchableOpacity
-          style={styles.box}
-          onPress={() => navigation.navigate('IncomeDetail')}>
+        {/* Income Section */}
+        <View style={styles.box}>
           <Text style={styles.boxHeader}>Income</Text>
           <FlatList
             data={incomeData}
-            keyExtractor={item => item.id}
+            keyExtractor={(item, index) =>
+              `income-${item.account_type || index}`
+            }
             renderItem={renderRow}
             scrollEnabled={false}
           />
-        </TouchableOpacity>
+        </View>
 
         {/* Expense Section */}
-        <TouchableOpacity
-          style={styles.box}
-          onPress={() => navigation.navigate('ExpenseDetail')}>
+        {/* Expense Section */}
+        <View style={styles.box}>
           <Text style={styles.boxHeader}>Expense</Text>
           <FlatList
             data={expenseData}
@@ -293,7 +303,7 @@ const Detail = ({navigation}) => {
             renderItem={renderRow}
             scrollEnabled={false}
           />
-        </TouchableOpacity>
+        </View>
 
         {/* Revenue Section - ACTUAL DATA */}
         {filteredData.length > 0 ? (
@@ -312,12 +322,18 @@ const Detail = ({navigation}) => {
                     gradientTopColor={cardColors.topColor}
                     gradientBottomColor={cardColors.bottomColor}
                     IsUp={item.isUp}
-                    onPress={() =>
-                      navigation.navigate('MoreDetail', {
-                        slider_data: AllData,
-                        type: item.accessKey,
-                      })
-                    }
+                    onPress={() => {
+                      if (item.title === 'Short term loan') {
+                        navigation.navigate('ShortTermLoanDetail', {
+                          title: item.title,
+                        });
+                      } else {
+                        navigation.navigate('MoreDetail', {
+                          slider_data: AllData,
+                          type: item.accessKey,
+                        });
+                      }
+                    }}
                   />
                 </View>
               ))}
@@ -352,55 +368,61 @@ const Detail = ({navigation}) => {
           </View>
         </View>
       </ScrollView>
-    </PlatformGradient>
+    </View>
   );
 };
 
 export default Detail;
 
 let styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+  },
   scrollContainer: {
     flexGrow: 1,
     paddingBottom: 20,
   },
   box: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     marginHorizontal: 15,
     marginTop: 15,
     borderRadius: 16,
     padding: 15,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   boxHeader: {
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 10,
-    color: COLORS.WHITE,
+    color: COLORS.BLACK,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
+    borderBottomColor: '#EEEEEE',
   },
   rowTitle: {
     fontSize: 16,
-    color: COLORS.WHITE,
+    color: '#333333',
     flex: 1,
   },
   cell: {
     fontSize: 16,
-    color: COLORS.WHITE,
+    color: '#333333',
     textAlign: 'right',
   },
   rowAmount: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.WHITE,
+    color: COLORS.BLACK,
   },
-
   revenueSection: {
     marginTop: 20,
     marginRight: 15,
@@ -408,12 +430,10 @@ let styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.WHITE,
+    color: COLORS.BLACK,
     marginLeft: 15,
     marginBottom: 10,
   },
-
-  // Manual Grid Layout
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -422,37 +442,17 @@ let styles = StyleSheet.create({
     gap: 10,
   },
   cardWrapper: {
-    width: '48%', // 2 cards per row with gap
+    width: '48%',
     marginBottom: 10,
     minHeight: 120,
   },
-  leftCard: {
-    marginRight: '1%',
-  },
-  rightCard: {
-    marginLeft: '1%',
-  },
-
-  // Simple Grid Layout
-  simpleGrid: {
-    paddingHorizontal: 15,
-  },
-  gridRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  gridItem: {
-    width: '48%',
-  },
-
   noCardsContainer: {
     alignItems: 'center',
     padding: 20,
     marginTop: 20,
   },
   noCardsText: {
-    color: COLORS.WHITE,
+    color: COLORS.BLACK,
     fontSize: 16,
     opacity: 0.7,
   },
@@ -462,7 +462,7 @@ let styles = StyleSheet.create({
     marginBottom: 5,
   },
   filterLabel: {
-    color: COLORS.WHITE,
+    color: COLORS.BLACK,
     fontSize: 14,
     marginBottom: 5,
     fontWeight: 'bold',
@@ -473,24 +473,29 @@ let styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   dateButton: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: COLORS.WHITE,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: '#E0E0E0',
     flex: 1,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   dateText: {
-    color: COLORS.WHITE,
+    color: COLORS.BLACK,
     fontSize: 14,
   },
   toText: {
     marginHorizontal: 10,
+    color: COLORS.BLACK,
   },
   applyBtn: {
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: COLORS.Primary,
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 8,
@@ -499,7 +504,7 @@ let styles = StyleSheet.create({
     alignItems: 'center',
   },
   applyBtnText: {
-    color: COLORS.BLACK,
+    color: COLORS.WHITE,
     fontWeight: 'bold',
     fontSize: 14,
   },

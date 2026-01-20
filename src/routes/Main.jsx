@@ -8,6 +8,9 @@ import ExpenseDetail from '../screens/main/stacks/DetailScreens/ExpenseDetail';
 import PayrollExpenseDetail from '../screens/main/stacks/DetailScreens/PayrollExpenseDetail';
 import AdminExpenseDetail from '../screens/main/stacks/DetailScreens/AdminExpenseDetail';
 import SellingExpenseDetail from '../screens/main/stacks/DetailScreens/SellingExpenseDetail';
+import SalesRevenueDetail from '../screens/main/stacks/DetailScreens/SalesRevenueDetail';
+import OtherRevenueDetail from '../screens/main/stacks/DetailScreens/OtherRevenueDetail';
+import ShortTermLoanDetail from '../screens/main/stacks/DetailScreens/ShortTermLoanDetail';
 import NotificationScreen from '../screens/main/stacks/NotificationScreen';
 import MoreDetail from '../screens/main/stacks/DetailScreens/MoreDetail';
 import ViewAll from '../screens/main/stacks/DetailScreens/ViewAll';
@@ -106,6 +109,12 @@ const Main = () => {
       <Stack.Screen
         name="SellingExpenseDetail"
         component={SellingExpenseDetail}
+      />
+      <Stack.Screen name="SalesRevenueDetail" component={SalesRevenueDetail} />
+      <Stack.Screen name="OtherRevenueDetail" component={OtherRevenueDetail} />
+      <Stack.Screen
+        name="ShortTermLoanDetail"
+        component={ShortTermLoanDetail}
       />
       <Stack.Screen name="MoreDetail" component={MoreDetail} />
       <Stack.Screen name="ViewAll" component={ViewAll} />

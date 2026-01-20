@@ -6,11 +6,11 @@ import {
   ActivityIndicator,
   FlatList,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import axios from 'axios';
 import PieChart from 'react-native-pie-chart';
 import SimpleHeader from '../../../../components/SimpleHeader';
-import {BASEURL} from '../../../../utils/BaseUrl';
 import {formatNumber} from '../../../../utils/NumberUtils';
 
 const COLORS = {
@@ -18,36 +18,31 @@ const COLORS = {
   WHITE: '#FFFFFF',
   TEXT_DARK: '#333333',
   GREY: '#9E9E9E',
-  // Vibrancy Palette
   ORANGE: '#FF9500',
   GREEN: '#4CAF50',
   BLUE: '#2196F3',
-  AMBER: '#FFC107',
-  RED: '#F44336',
-  PURPLE: '#9C27B0',
-  TEAL: '#009688',
-  INDIGO: '#3F51B5',
 };
 
-const CHART_COLORS = [
-  COLORS.ORANGE,
-  COLORS.GREEN,
-  COLORS.BLUE,
-  COLORS.AMBER,
-  COLORS.RED,
-  COLORS.PURPLE,
-  COLORS.TEAL,
-  COLORS.INDIGO,
-];
-
-const PayrollExpenseDetail = ({route, navigation}) => {
-  const {from_date, to_date, account_type, title, total} = route.params || {};
+const ShortTermLoanDetail = ({route, navigation}) => {
+  const {title} = route.params || {};
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [totalBalance, setTotalBalance] = useState(0);
   const [chartSeries, setChartSeries] = useState([
     {value: 1, color: COLORS.GREY},
   ]);
+
+  const colors = [
+    '#FF9500',
+    '#4CAF50',
+    '#2196F3',
+    '#FFC107',
+    '#F44336',
+    '#9C27B0',
+    '#009688',
+    '#3F51B5',
+  ];
 
   useEffect(() => {
     fetchData();
@@ -55,36 +50,30 @@ const PayrollExpenseDetail = ({route, navigation}) => {
 
   const fetchData = async () => {
     try {
-      const formData = new FormData();
-      formData.append('from_date', from_date);
-      formData.append('to_date', to_date);
-      formData.append('account_type', account_type);
+      console.log('Fetching Short Term Loan Data');
 
-      console.log('Fetching Payroll Data:', {from_date, to_date, account_type});
-
-      const res = await axios.post(
-        `${BASEURL}parent_expense_detail.php`,
-        formData,
-        {
-          headers: {'Content-Type': 'multipart/form-data'},
-        },
+      const res = await axios.get(
+        'http://erconindustriespvt.com/mobile_dash/short_term_loan_detail.php',
       );
-
-      //   console.log('Payroll API Response:', res.data);
 
       if (res.data?.status === 'true' && Array.isArray(res.data?.data)) {
         const apiData = res.data.data;
         setData(apiData);
 
+        // Calculate total balance
+        const total = apiData.reduce((sum, item) => {
+          return sum + (parseFloat(item.t_amount) || 0);
+        }, 0);
+        setTotalBalance(total);
+
         // Prepare Chart Data
         const series = [];
-
         apiData.forEach((item, index) => {
-          const val = parseFloat(item.t_amount) || 0;
+          const val = Math.abs(parseFloat(item.t_amount)) || 0;
           if (val > 0) {
             series.push({
               value: val,
-              color: CHART_COLORS[index % CHART_COLORS.length],
+              color: colors[index % colors.length],
             });
           }
         });
@@ -94,32 +83,35 @@ const PayrollExpenseDetail = ({route, navigation}) => {
         }
       }
     } catch (error) {
-      console.error('Error fetching payroll details:', error);
+      console.error('Error fetching short term loan details:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const renderItem = ({item, index}) => {
-    const color = CHART_COLORS[index % CHART_COLORS.length];
     return (
-      <View style={styles.card}>
-        <View style={[styles.colorIndicator, {backgroundColor: color}]} />
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => {
+          navigation.navigate('Ledger', {
+            name: 'ShortTermLoan',
+            item: item,
+          });
+        }}>
         <View style={styles.cardContent}>
-          <Text style={styles.cardTitle}>
-            {item.account_name?.replace(/&amp;/g, '&')}
-          </Text>
+          <Text style={styles.cardTitle}>{item.account_name}</Text>
           <Text style={styles.cardAmount}>
             Rs. {formatNumber(item.t_amount)}
           </Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
   return (
     <View style={styles.container}>
-      <SimpleHeader title={title || 'Payroll Expenses'} />
+      <SimpleHeader title={title || 'Short Term Loan'} />
 
       {loading ? (
         <View style={styles.centered}>
@@ -128,18 +120,19 @@ const PayrollExpenseDetail = ({route, navigation}) => {
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Chart Section */}
-          <View style={styles.chartContainer}>
-            <PieChart
-              widthAndHeight={220}
-              series={chartSeries}
-              cover={{radius: 0.65, color: COLORS.BG_CREAM}}
-            />
-            {/* Center Text (Total) */}
-            <View style={styles.centerTextContainer}>
-              <Text style={styles.centerLabel}>Total</Text>
-              <Text style={styles.centerValue}>{formatNumber(total)}</Text>
+          {data.length > 0 && (
+            <View style={styles.chartContainer}>
+              <PieChart
+                widthAndHeight={220}
+                series={chartSeries}
+                cover={{radius: 0.65, color: COLORS.BG_CREAM}}
+              />
+              <View style={styles.centerTextContainer}>
+                <Text style={styles.centerLabel}>Total</Text>
+                <Text style={styles.centerValue}>{formatNumber(totalBalance)}</Text>
+              </View>
             </View>
-          </View>
+          )}
 
           {/* List Section */}
           <FlatList
@@ -150,9 +143,7 @@ const PayrollExpenseDetail = ({route, navigation}) => {
             contentContainerStyle={styles.listContainer}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>
-                  No data available for the selected period.
-                </Text>
+                <Text style={styles.emptyText}>No data available for the selected period.</Text>
               </View>
             }
           />
@@ -217,18 +208,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     padding: 16,
     borderRadius: 12,
-    // Shadow
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-  },
-  colorIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 16,
   },
   cardContent: {
     flex: 1,
@@ -249,4 +233,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PayrollExpenseDetail;
+export default ShortTermLoanDetail;

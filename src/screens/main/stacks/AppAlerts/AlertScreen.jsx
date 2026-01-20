@@ -24,12 +24,10 @@ const AlertScreen = ({navigation}) => {
     setLoading(true);
     try {
       const res = await axios.get(`${BASEURL}dash_approval.php`);
-      console.log('API Response: ', res.data);
-
       const newData = res.data?.approval_data || {};
       setAllData(newData);
     } catch (err) {
-      console.log('API Error: ', err);
+      console.log('API Error: ', err);  
     }
     setLoading(false);
   };
@@ -132,7 +130,7 @@ const AlertScreen = ({navigation}) => {
   }
 
   return (
-    <View style={{flex: 1, backgroundColor: '#fff'}}>
+    <View style={{flex: 1, backgroundColor: '#F3F4F6'}}>
       <SimpleHeader title="Approvals" />
       <ScrollView
         contentContainerStyle={{padding: 15}}

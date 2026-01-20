@@ -43,11 +43,18 @@ const ViewDetailsScreen = ({route}) => {
     screenType === 'po_approval' ||
     header?.type?.toLowerCase().includes('purchase order');
 
+  const isGRN =
+    screenType === 'grn_approval' ||
+    header?.type?.toLowerCase().includes('grn') ||
+    header?.type?.toLowerCase().includes('goods receive');
+
   const showCustomerPO = isSaleOrder || isDeliveryNote;
   const dateLabel = isPurchaseOrder
     ? 'Cost center:'
     : isSaleOrder
     ? 'Required:'
+    : isGRN
+    ? null
     : 'Valid till:';
   const [showTermsModal, setShowTermsModal] = React.useState(false);
   console.log('viewData: ', viewData);
@@ -88,24 +95,24 @@ const ViewDetailsScreen = ({route}) => {
                 transform: [{translateY: slideAnim}],
               },
             ]}>
-            <Icon name="database-off" size={80} color={APPCOLORS.WHITE} />
+            <Icon name="database-off" size={80} color="#666" />
             <AppText
               title="No Data Available"
               titleSize={3}
-              titleColor={APPCOLORS.WHITE}
+              titleColor="#333"
               titleWeight
               style={styles.noDataTitle}
             />
             <AppText
               title="There are no details available to display."
               titleSize={2}
-              titleColor={APPCOLORS.WHITE}
+              titleColor="#666"
               style={styles.noDataSubtitle}
             />
             <AppText
               title="Please check if the transaction exists or try again later."
               titleSize={1.8}
-              titleColor={APPCOLORS.WHITE}
+              titleColor="#666"
               style={styles.noDataMessage}
             />
           </Animated.View>
@@ -171,7 +178,7 @@ const ViewDetailsScreen = ({route}) => {
                   />
                 </View>
 
-                {isSaleOrder && (
+                {(isSaleOrder || isGRN) && (
                   <View style={styles.detailRow}>
                     <AppText
                       title="Cost center:"
@@ -185,26 +192,30 @@ const ViewDetailsScreen = ({route}) => {
                     />
                   </View>
                 )}
-                <View style={styles.detailRow}>
-                  <AppText
-                    title={dateLabel}
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                  />
-                  <AppText
-                    title={
-                      isPurchaseOrder
-                        ? header.location_name || 'N/A'
-                        : formatDateString(header.due_date) || 'N/A'
-                    }
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                  />
-                </View>
+                {dateLabel && (
+                  <View style={styles.detailRow}>
+                    <AppText
+                      title={dateLabel}
+                      titleSize={2}
+                      titleColor={APPCOLORS.WHITE}
+                    />
+                    <AppText
+                      title={
+                        isPurchaseOrder
+                          ? header.location_name || 'N/A'
+                          : formatDateString(header.due_date) || 'N/A'
+                      }
+                      titleSize={2}
+                      titleColor={APPCOLORS.WHITE}
+                    />
+                  </View>
+                )}
 
                 <View style={{marginTop: 10}}>
                   <AppText
-                    title={isPurchaseOrder ? 'Supplier Name:' : 'Customer:'}
+                    title={
+                      isPurchaseOrder || isGRN ? 'Supplier Name:' : 'Customer:'
+                    }
                     titleSize={2}
                     titleColor={APPCOLORS.WHITE}
                     titleWeight
@@ -246,10 +257,10 @@ const ViewDetailsScreen = ({route}) => {
                   />
                 </View> */}
 
-                {!isPurchaseOrder && (
+                {!isPurchaseOrder && !isGRN && (
                   <View style={styles.detailRow}>
                     <AppText
-                      title="Salesman:"
+                      title="Sales person:"
                       titleSize={2}
                       titleColor={APPCOLORS.WHITE}
                     />
@@ -261,18 +272,20 @@ const ViewDetailsScreen = ({route}) => {
                   </View>
                 )}
 
-                <View style={styles.detailRow}>
-                  <AppText
-                    title="Payment Terms:"
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                  />
-                  <AppText
-                    title={header.payment_terms || 'N/A'}
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                  />
-                </View>
+                {!isGRN && (
+                  <View style={styles.detailRow}>
+                    <AppText
+                      title="Payment Terms:"
+                      titleSize={2}
+                      titleColor={APPCOLORS.WHITE}
+                    />
+                    <AppText
+                      title={header.payment_terms || 'N/A'}
+                      titleSize={2}
+                      titleColor={APPCOLORS.WHITE}
+                    />
+                  </View>
+                )}
 
                 <View style={[styles.detailRow, styles.totalRow]}>
                   <AppText
@@ -538,7 +551,7 @@ const ViewDetailsScreen = ({route}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: APPCOLORS.Secondary,
+    backgroundColor: '#F3F4F6',
   },
   scrollView: {
     flex: 1,
@@ -655,7 +668,8 @@ const styles = StyleSheet.create({
   },
   // Modal & Button Styles
   termsButton: {
-    marginVertical: 10,
+    marginTop: 10,
+    marginBottom: 30,
     borderRadius: 15,
     overflow: 'hidden',
     elevation: 4,

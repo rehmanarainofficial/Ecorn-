@@ -313,7 +313,7 @@ const Aging = ({navigation, route}) => {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: '#fff',
+          backgroundColor: '#F3F4F6',
         }}>
         <Text style={{fontSize: 16, marginBottom: 10}}>
           Loading Aging Data...
@@ -324,7 +324,7 @@ const Aging = ({navigation, route}) => {
   }
 
   return (
-    <View style={{flex: 1, backgroundColor: '#fff'}}>
+    <View style={{flex: 1, backgroundColor: '#F3F4F6'}}>
       <StatusBar barStyle="dark-content" backgroundColor={APPCOLORS.WHITE} />
 
       {/* Custom Header */}

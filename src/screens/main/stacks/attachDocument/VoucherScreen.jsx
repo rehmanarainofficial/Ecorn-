@@ -278,7 +278,7 @@ export default function VoucherScreen({navigation}) {
 }
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: APPCOLORS.Primary},
+  container: {flex: 1, backgroundColor: '#F3F4F6'},
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',

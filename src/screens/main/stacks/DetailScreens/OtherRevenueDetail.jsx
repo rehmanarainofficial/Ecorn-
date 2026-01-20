@@ -40,14 +40,12 @@ const CHART_COLORS = [
   COLORS.INDIGO,
 ];
 
-const PayrollExpenseDetail = ({route, navigation}) => {
+const OtherRevenueDetail = ({route, navigation}) => {
   const {from_date, to_date, account_type, title, total} = route.params || {};
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [chartSeries, setChartSeries] = useState([
-    {value: 1, color: COLORS.GREY},
-  ]);
+  const [chartSeries, setChartSeries] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -60,7 +58,11 @@ const PayrollExpenseDetail = ({route, navigation}) => {
       formData.append('to_date', to_date);
       formData.append('account_type', account_type);
 
-      console.log('Fetching Payroll Data:', {from_date, to_date, account_type});
+      console.log('Fetching Other Revenue Data:', {
+        from_date,
+        to_date,
+        account_type,
+      });
 
       const res = await axios.post(
         `${BASEURL}parent_expense_detail.php`,
@@ -70,8 +72,6 @@ const PayrollExpenseDetail = ({route, navigation}) => {
         },
       );
 
-      //   console.log('Payroll API Response:', res.data);
-
       if (res.data?.status === 'true' && Array.isArray(res.data?.data)) {
         const apiData = res.data.data;
         setData(apiData);
@@ -80,7 +80,7 @@ const PayrollExpenseDetail = ({route, navigation}) => {
         const series = [];
 
         apiData.forEach((item, index) => {
-          const val = parseFloat(item.t_amount) || 0;
+          const val = Math.abs(parseFloat(item.t_amount)) || 0;
           if (val > 0) {
             series.push({
               value: val,
@@ -94,7 +94,7 @@ const PayrollExpenseDetail = ({route, navigation}) => {
         }
       }
     } catch (error) {
-      console.error('Error fetching payroll details:', error);
+      console.error('Error fetching other revenue details:', error);
     } finally {
       setLoading(false);
     }
@@ -110,7 +110,7 @@ const PayrollExpenseDetail = ({route, navigation}) => {
             {item.account_name?.replace(/&amp;/g, '&')}
           </Text>
           <Text style={styles.cardAmount}>
-            Rs. {formatNumber(item.t_amount)}
+            Rs. {formatNumber(Math.abs(parseFloat(item.t_amount || 0)))}
           </Text>
         </View>
       </View>
@@ -119,7 +119,7 @@ const PayrollExpenseDetail = ({route, navigation}) => {
 
   return (
     <View style={styles.container}>
-      <SimpleHeader title={title || 'Payroll Expenses'} />
+      <SimpleHeader title={title || 'Other Revenue'} />
 
       {loading ? (
         <View style={styles.centered}>
@@ -128,18 +128,20 @@ const PayrollExpenseDetail = ({route, navigation}) => {
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Chart Section */}
-          <View style={styles.chartContainer}>
-            <PieChart
-              widthAndHeight={220}
-              series={chartSeries}
-              cover={{radius: 0.65, color: COLORS.BG_CREAM}}
-            />
-            {/* Center Text (Total) */}
-            <View style={styles.centerTextContainer}>
-              <Text style={styles.centerLabel}>Total</Text>
-              <Text style={styles.centerValue}>{formatNumber(total)}</Text>
+          {data.length > 0 && (
+            <View style={styles.chartContainer}>
+              <PieChart
+                widthAndHeight={220}
+                series={chartSeries}
+                cover={{radius: 0.65, color: COLORS.BG_CREAM}}
+              />
+              {/* Center Text (Total) */}
+              <View style={styles.centerTextContainer}>
+                <Text style={styles.centerLabel}>Total</Text>
+                <Text style={styles.centerValue}>{formatNumber(Math.abs(parseFloat(total) || 0))}</Text>
+              </View>
             </View>
-          </View>
+          )}
 
           {/* List Section */}
           <FlatList
@@ -217,7 +219,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     padding: 16,
     borderRadius: 12,
-    // Shadow
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
@@ -249,4 +250,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PayrollExpenseDetail;
+export default OtherRevenueDetail;

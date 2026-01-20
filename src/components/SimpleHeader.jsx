@@ -12,8 +12,7 @@ const SimpleHeader = ({title}) => {
   const nav = useNavigation();
   const insets = useSafeAreaInsets();
 
-  // iOS ke liye proper padding, Android ke liye extra vertical padding
-  const paddingTop = Platform.OS === 'ios' ? insets.top + 25 : insets.top + 30; // Android ke liye extra padding
+  const paddingTop = Platform.OS === 'ios' ? insets.top + 25 : insets.top + 30;
   const paddingBottom = Platform.OS === 'ios' ? 20 : 25;
 
   return (

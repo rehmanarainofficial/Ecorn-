@@ -225,12 +225,12 @@ const PdcDetailScreen = () => {
 export default PdcDetailScreen;
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: '#fff'},
+  container: {flex: 1, backgroundColor: '#F3F4F6'},
   filterContainer: {
     padding: 15,
     margin: 12,
     borderRadius: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#F3F4F6',
     shadowColor: '#000',
     shadowOffset: {width: 4, height: 4},
     shadowOpacity: 0.2,

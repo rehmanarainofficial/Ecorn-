@@ -54,7 +54,7 @@ const AddSuppliersScreen = ({navigation}) => {
   );
 
   return (
-    <View style={{flex: 1, backgroundColor: APPCOLORS.BLACK}}>
+    <View style={{flex: 1, backgroundColor: '#F3F4F6'}}>
       {/* Header with Back + Search */}
       <View
         style={{

@@ -38,13 +38,8 @@ const ApprovalListScreen = ({route, navigation}) => {
     visible: false,
     type: null,
   });
-  const [selectedRandom, setSelectedRandom] = useState(null);
-
-  const randomData = [
-    {label: 'Option 1', value: '1'},
-    {label: 'Option 2', value: '2'},
-    {label: 'Option 3', value: '3'},
-  ];
+  const [selectedType, setSelectedType] = useState(null);
+  const [softwareTypes, setSoftwareTypes] = useState([]);
 
   const currentUser = useSelector(state => state.Data.currentData);
 
@@ -70,7 +65,28 @@ const ApprovalListScreen = ({route, navigation}) => {
 
     // Initial API call with default dates
     fetchInitialData(threeMonthsAgo, today, '');
+
+    // Fetch software types for voucher, electrical & mechanical approval dropdown
+    if (listKey === 'voucher_approval' || listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards') {
+      fetchSoftwareTypes();
+    }
   }, []);
+
+  // Fetch software types for dropdown
+  const fetchSoftwareTypes = async () => {
+    try {
+      const res = await axios.get(`${BASEURL}software_type.php`);
+      if (res.data?.status === 'true' && Array.isArray(res.data?.data)) {
+        const formattedData = res.data.data.map(item => ({
+          label: item.type_name,
+          value: item.id,
+        }));
+        setSoftwareTypes(formattedData);
+      }
+    } catch (err) {
+      console.log('Software Types API Error:', err);
+    }
+  };
 
   const formatPrice = price => {
     return formatNumber(price);
@@ -148,6 +164,11 @@ const ApprovalListScreen = ({route, navigation}) => {
       formData.append('from_date', formatDateForAPI(fromDate));
       formData.append('to_date', formatDateForAPI(toDate));
       formData.append('ref', reference);
+      
+      // Add type for voucher, electrical & mechanical approval
+      if ((listKey === 'voucher_approval' || listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards') && selectedType) {
+        formData.append('type', selectedType);
+      }
 
       const res = await axios.post(`${BASEURL}dash_approval.php`, formData, {
         headers: {
@@ -216,7 +237,7 @@ const ApprovalListScreen = ({route, navigation}) => {
     setReference('');
     setSearchName('');
     setSearchLocation('');
-    setSelectedRandom(null);
+    setSelectedType(null);
     const today = new Date();
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(today.getMonth() - 3);
@@ -280,7 +301,7 @@ const ApprovalListScreen = ({route, navigation}) => {
   }
 
   return (
-    <View style={{flex: 1, backgroundColor: APPCOLORS.Secondary}}>
+    <View style={{flex: 1, backgroundColor: '#F3F4F6'}}>
       <SimpleHeader title={title || 'Approvals'} />
 
       {/* Filter Section - Black & White Theme */}
@@ -325,23 +346,41 @@ const ApprovalListScreen = ({route, navigation}) => {
           </View>
         </View>
 
-        {/* Row 3: Name Search and Buttons */}
+        {/* Row 3: Name Search / Type Dropdown and Buttons */}
         <View style={styles.searchRow}>
-          <View style={styles.searchContainer}>
-            <Icon
-              name="account-search"
-              size={20}
-              color="#666"
-              style={styles.searchIcon}
-            />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search by name..."
-              placeholderTextColor="#888"
-              value={searchName}
-              onChangeText={setSearchName}
-            />
-          </View>
+          {listKey !== 'voucher_approval' && listKey !== 'electrocal_job_cards' && listKey !== 'mechnical_job_cards' ? (
+            <View style={styles.searchContainer}>
+              <Icon
+                name="account-search"
+                size={20}
+                color="#666"
+                style={styles.searchIcon}
+              />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search by name..."
+                placeholderTextColor="#888"
+                value={searchName}
+                onChangeText={setSearchName}
+              />
+            </View>
+          ) : (
+            <View style={{flex: 1, marginRight: 8}}>
+              <Dropdown
+                style={styles.dropdown}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                itemTextStyle={{color: '#000'}}
+                data={softwareTypes}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Select Type"
+                value={selectedType}
+                onChange={item => setSelectedType(item.value)}
+              />
+            </View>
+          )}
 
           <View style={styles.actionButtons}>
             <TouchableOpacity
@@ -381,25 +420,6 @@ const ApprovalListScreen = ({route, navigation}) => {
                 onChangeText={setSearchLocation}
               />
             </View>
-          </View>
-        )}
-
-        {/* Row 4: Voucher Random Dropdown */}
-        {listKey === 'voucher_approval' && (
-          <View style={{marginTop: 8}}>
-            <Dropdown
-              style={styles.dropdown}
-              placeholderStyle={styles.placeholderStyle}
-              selectedTextStyle={styles.selectedTextStyle}
-              itemTextStyle={{color: '#000'}}
-              data={randomData}
-              maxHeight={300}
-              labelField="label"
-              valueField="value"
-              placeholder="Select Option"
-              value={selectedRandom}
-              onChange={item => setSelectedRandom(item.value)}
-            />
           </View>
         )}
       </View>
@@ -451,14 +471,14 @@ const ApprovalListScreen = ({route, navigation}) => {
               alignItems: 'center',
               marginTop: 50,
             }}>
-            <Icon name="database-off" size={80} color={APPCOLORS.WHITE} />
+            <Icon name="database-off" size={80} color="#666" />
             <Text
               style={{
                 textAlign: 'center',
                 marginTop: 20,
                 fontSize: 18,
                 fontWeight: 'bold',
-                color: APPCOLORS.WHITE,
+                color: '#333',
               }}>
               No Data Found
             </Text>
@@ -467,13 +487,13 @@ const ApprovalListScreen = ({route, navigation}) => {
                 textAlign: 'center',
                 marginTop: 10,
                 fontSize: 14,
-                color: APPCOLORS.WHITE,
+                color: '#666',
                 paddingHorizontal: 20,
               }}>
               {reference ||
               searchName ||
               searchLocation ||
-              selectedRandom ||
+              selectedType ||
               fromDate ||
               toDate
                 ? 'No records found matching your filters'
@@ -482,7 +502,7 @@ const ApprovalListScreen = ({route, navigation}) => {
             {(reference ||
               searchName ||
               searchLocation ||
-              selectedRandom ||
+              selectedType ||
               fromDate ||
               toDate) && (
               <TouchableOpacity

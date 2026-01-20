@@ -48,6 +48,7 @@ const Ledger = ({navigation, route}) => {
       else if (name === 'Items') getItemsLedger();
       else if (name === 'Banks') getBanksLeger();
       else if (name === 'Audit') getAuditLedger();
+      else if (name === 'ShortTermLoan') getShortTermLoanLedger();
     });
 
     return nav;
@@ -59,6 +60,7 @@ const Ledger = ({navigation, route}) => {
     else if (name === 'Items') getItemsLedger();
     else if (name === 'Banks') getBanksLeger();
     else if (name === 'Audit') getAuditLedger();
+    else if (name === 'ShortTermLoan') getShortTermLoanLedger();
   }, [fromDate, EndDate]);
 
   useEffect(() => {
@@ -190,6 +192,59 @@ const Ledger = ({navigation, route}) => {
       .finally(() => setLoader(false));
   };
 
+  const getShortTermLoanLedger = () => {
+    setLoader(true);
+    let data = new FormData();
+    data.append('account', item?.account_code);
+    data.append(
+      'from_date',
+      moment(fromDate).subtract(1, 'months').format('YYYY-MM-DD'),
+    );
+    data.append('to_date', moment(EndDate).format('YYYY-MM-DD'));
+
+    axios
+      .post(`${BASEURL}gl_account_inquiry.php`, data, {
+        headers: {'Content-Type': 'multipart/form-data'},
+      })
+      .then(res => {
+        if (res.data?.status === 'true') {
+          // Transform GL data to match Ledger structure
+          const openingBal = parseFloat(res.data.opening) || 0;
+
+          let currentBalance = openingBal;
+          const transformedData = (res.data.data || []).map(tx => {
+            const amount = parseFloat(tx.amount) || 0;
+            const debit = amount < 0 ? Math.abs(amount) : 0;
+            const credit = amount > 0 ? amount : 0;
+            currentBalance = currentBalance + amount; // GL amount is already signed usually
+
+            return {
+              reference: tx.reference,
+              tran_date: tx.doc_date,
+              debit: debit,
+              credit: credit,
+              balance: currentBalance,
+              memo: tx.memo,
+              person: tx.person_name,
+            };
+          });
+
+          setAgingData(transformedData);
+          setOpening(openingBal);
+          setClosingBalance(currentBalance);
+        } else {
+          setAgingData([]);
+          setOpening(0);
+          setClosingBalance(0);
+        }
+      })
+      .catch(err => {
+        console.log('ShortTermLoan Ledger Error:', err);
+        setAgingData([]);
+      })
+      .finally(() => setLoader(false));
+  };
+
   const calculateClosingBalance = (transactions, openingBalance) => {
     if (!transactions || !Array.isArray(transactions)) {
       setClosingBalance(openingBalance);
@@ -232,13 +287,21 @@ const Ledger = ({navigation, route}) => {
         return 'Bank Ledger';
       case 'Audit':
         return 'Audit Trail';
+      case 'ShortTermLoan':
+        return 'Loan Ledger';
       default:
         return 'Ledger';
     }
   };
 
   const getAccountName = () => {
-    return item?.name || item?.bank_name || item?.supp_name || 'Account';
+    return (
+      item?.name ||
+      item?.bank_name ||
+      item?.supp_name ||
+      item?.account_name ||
+      'Account'
+    );
   };
 
   // Common Row Component

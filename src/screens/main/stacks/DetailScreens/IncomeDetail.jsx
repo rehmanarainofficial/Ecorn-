@@ -7,9 +7,9 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import {formatNumber} from '../../../../utils/NumberUtils';
 
 const COLORS = {
-  WHITE: '#FFFFFF',
+  WHITE: '#F3F4F6',
   BLACK: '#000000',
-  BG_CREAM: '#FFF3E0',
+  BG_CREAM: '#F3F4F6',
   TEXT_DARK: '#333333',
   ORANGE: '#FF9500',
   GREEN: '#4CAF50',

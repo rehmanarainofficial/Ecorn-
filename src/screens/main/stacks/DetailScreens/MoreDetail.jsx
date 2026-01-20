@@ -11,6 +11,7 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
 import PlatformGradient from '../../../../components/PlatformGradient';
+import PieChart from 'react-native-pie-chart';
 import {
   GetReceivable,
   GetBankBalance,
@@ -202,7 +203,23 @@ const MoreDetail = ({navigation, route}) => {
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={true}>
           <View style={styles.container}>
-            {/* Summary Section - PieChart ki jagah */}
+            {/* Chart Section */}
+            {circleData && circleData.length > 0 && (
+              <View style={styles.chartContainer}>
+                <PieChart
+                  widthAndHeight={220}
+                  series={circleData}
+                  cover={{radius: 0.65, color: COLORS.BLACK}}
+                />
+                <View style={styles.centerTextContainer}>
+                  <Text style={styles.centerValue}>
+                    {formatNumber(totalBalance)}
+                  </Text>
+                  <Text style={styles.centerLabel}>Total</Text>
+                </View>
+              </View>
+            )}
+
             <View style={styles.summaryContainer}>
               <View style={styles.summaryCard}>
                 <Text style={styles.summaryTitle}>{getTitle()}</Text>
@@ -415,6 +432,28 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 4,
+  },
+  chartContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    marginBottom: 30,
+    position: 'relative',
+  },
+  centerTextContainer: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  centerLabel: {
+    fontSize: 14,
+    color: '#999',
+    fontWeight: '600',
+  },
+  centerValue: {
+    fontSize: 18,
+    color: COLORS.WHITE,
+    fontWeight: 'bold',
   },
   summarySubtitle: {
     color: 'rgba(255,255,255,0.7)',

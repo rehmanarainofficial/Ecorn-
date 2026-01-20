@@ -14,7 +14,7 @@ import {BASEURL} from '../../../../utils/BaseUrl';
 import {formatNumber} from '../../../../utils/NumberUtils';
 
 const COLORS = {
-  BG_CREAM: '#FFF3E0',
+  BG_CREAM: '#F3F4F6',
   WHITE: '#FFFFFF',
   TEXT_DARK: '#333333',
   GREY: '#9E9E9E',
@@ -45,9 +45,8 @@ const AdminExpenseDetail = ({route, navigation}) => {
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [chartSeries, setChartSeries] = useState([
-    {value: 1, color: COLORS.GREY},
-  ]);
+  const [chartSeries, setChartSeries] = useState([1]);
+  const [chartColors, setChartColors] = useState([COLORS.GREY]);
 
   useEffect(() => {
     fetchData();
@@ -75,24 +74,20 @@ const AdminExpenseDetail = ({route, navigation}) => {
         setData(apiData);
 
         // Prepare Chart Data
-        const seriesValues = []; // To hold just the values for the PieChart 'series' prop
-        const seriesColors = []; // To hold colors for the PieChart 'chart_colors' prop
+        const series = [];
 
         apiData.forEach((item, index) => {
           const val = parseFloat(item.t_amount) || 0;
           if (val > 0) {
-            seriesValues.push(val);
-            seriesColors.push(CHART_COLORS[index % CHART_COLORS.length]);
+            series.push({
+              value: val,
+              color: CHART_COLORS[index % CHART_COLORS.length],
+            });
           }
         });
 
-        if (seriesValues.length > 0) {
-          setChartSeries(seriesValues);
-          setChartColors(seriesColors);
-        } else {
-          // If no data, reset to initial state or handle empty chart
-          setChartSeries([1]); // A small default value to show the chart
-          setChartColors([COLORS.GREY]);
+        if (series.length > 0) {
+          setChartSeries(series);
         }
       }
     } catch (error) {
@@ -134,6 +129,7 @@ const AdminExpenseDetail = ({route, navigation}) => {
             <PieChart
               widthAndHeight={220}
               series={chartSeries}
+              sliceColor={chartColors}
               cover={{radius: 0.65, color: COLORS.BG_CREAM}}
             />
             {/* Center Text (Total) */}
@@ -150,6 +146,13 @@ const AdminExpenseDetail = ({route, navigation}) => {
             keyExtractor={(item, index) => index.toString()}
             scrollEnabled={false}
             contentContainerStyle={styles.listContainer}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>
+                  No data available for the selected period.
+                </Text>
+              </View>
+            }
           />
         </ScrollView>
       )}
@@ -194,6 +197,16 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+  emptyContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
   },
   card: {
     flexDirection: 'row',

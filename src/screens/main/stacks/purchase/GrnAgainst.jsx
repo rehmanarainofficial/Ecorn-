@@ -15,6 +15,7 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import * as Animatable from 'react-native-animatable';
 import {formatDate, formatDateString} from '../../../../utils/DateUtils';
 import {formatNumber} from '../../../../utils/NumberUtils';
+import {BASEURL} from '../../../../utils/BaseUrl';
 
 const GrnAgainst = ({navigation, route}) => {
   const [fromDate, setFromDate] = useState(null);
@@ -309,7 +310,7 @@ const GrnAgainst = ({navigation, route}) => {
 export default GrnAgainst;
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: '#e0e0e0'},
+  container: {flex: 1, backgroundColor: '#F3F4F6'},
   filterContainer: {
     padding: 15,
     margin: 12,

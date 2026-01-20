@@ -85,7 +85,7 @@ const ShowUnapprovedDetails = ({route, navigation}) => {
               : 'Search by name, reference or date'
           }
           style={{
-            backgroundColor: '#fff',
+            backgroundColor: '#F3F4F6',
             borderRadius: 10,
             paddingHorizontal: 15,
             paddingVertical: 10,

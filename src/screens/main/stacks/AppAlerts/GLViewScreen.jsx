@@ -390,7 +390,7 @@ const GLViewScreen = ({route}) => {
 const styles = {
   container: {
     flex: 1,
-    backgroundColor: APPCOLORS.Secondary,
+    backgroundColor: '#F3F4F6',
   },
   scrollView: {
     flex: 1,

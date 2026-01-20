@@ -274,7 +274,7 @@ const StockMovements = ({navigation}) => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: '#F5F6FA'}}>
+    <View style={{flex: 1, backgroundColor: '#F3F4F6'}}>
       <StatusBar backgroundColor={APPCOLORS.Primary} barStyle="light-content" />
 
       {/* ---------------- HEADER ---------------- */}
@@ -670,7 +670,7 @@ const styles = StyleSheet.create({
   },
 
   filterBox: {
-    backgroundColor: '#fff',
+    backgroundColor: '#F3F4F6',
     margin: 12,
     padding: 14,
     borderRadius: 14,
@@ -686,7 +686,7 @@ const styles = StyleSheet.create({
 
   dropdown: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F3F4F6',
     padding: 12,
     borderRadius: 10,
     elevation: 3,
@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
 
   dateBox: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F3F4F6',
     padding: 12,
     borderRadius: 10,
     elevation: 3,
@@ -789,7 +789,7 @@ const styles = StyleSheet.create({
 
   // ---------- CARD ----------
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#F3F4F6',
     padding: 16,
     borderRadius: 12,
     elevation: 3,
@@ -842,7 +842,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#F3F4F6',
     borderRadius: 15,
     width: '95%',
     maxHeight: '80%',

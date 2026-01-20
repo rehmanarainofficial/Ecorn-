@@ -77,7 +77,7 @@ const NormalViewAll = ({navigation, route}) => {
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          backgroundColor: '#fff',
+          backgroundColor: '#F3F4F6',
           height: responsiveHeight(6.5),
           width: responsiveWidth(90),
           alignSelf: 'center',

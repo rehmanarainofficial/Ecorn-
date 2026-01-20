@@ -157,7 +157,7 @@ const GrnDeliveryNote = ({route}) => {
         {/* Location and Name Row */}
         <View style={styles.infoRow}>
           <View style={styles.infoContainer}>
-            <Text style={styles.infoLabel}>Location:</Text>
+            <Text style={styles.infoLabel}>Cost center:</Text>
             <Text style={styles.infoValue}>{locCode || 'N/A'}</Text>
           </View>
           <View style={styles.infoContainer}>
@@ -224,19 +224,22 @@ const GrnDeliveryNote = ({route}) => {
               ) : null}
             </View>
           )}
+          ListFooterComponent={
+            items.length > 0 ? (
+              <TouchableOpacity
+                style={[styles.button, loading && {opacity: 0.7}]}
+                onPress={handleSubmit}
+                disabled={loading}>
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>Process</Text>
+                )}
+              </TouchableOpacity>
+            ) : null
+          }
+          contentContainerStyle={{paddingBottom: 20}}
         />
-
-        {/* Submit Button */}
-        <TouchableOpacity
-          style={[styles.button, loading && {opacity: 0.7}]}
-          onPress={handleSubmit}
-          disabled={loading}>
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Process</Text>
-          )}
-        </TouchableOpacity>
       </View>
     </>
   );
@@ -310,7 +313,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   inputCell: {
-    backgroundColor: '#fff',
+    backgroundColor: '#F3F4F6',
     borderRadius: 6,
     borderWidth: 1,
     borderColor: '#ddd',

@@ -152,7 +152,7 @@ const FileViewerScreen = ({route, navigation}) => {
   // Render loading state
   if (loading) {
     return (
-      <View style={{flex: 1, backgroundColor: '#fff'}}>
+      <View style={{flex: 1, backgroundColor: '#F3F4F6'}}>
         <SimpleHeader title="View File" />
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#000" />
@@ -165,7 +165,7 @@ const FileViewerScreen = ({route, navigation}) => {
   // Render error state
   if (error) {
     return (
-      <View style={{flex: 1, backgroundColor: '#fff'}}>
+      <View style={{flex: 1, backgroundColor: '#F3F4F6'}}>
         <SimpleHeader title="View File" />
         <View style={styles.center}>
           <Text style={styles.errorText}>{error}</Text>
@@ -180,11 +180,11 @@ const FileViewerScreen = ({route, navigation}) => {
   // Render PDF
   if (fileType === 'pdf') {
     return (
-      <View style={{flex: 1, backgroundColor: '#fff'}}>
+      <View style={{flex: 1, backgroundColor: '#F3F4F6'}}>
         <SimpleHeader title="PDF Viewer" />
         <Pdf
           source={{uri: localPath, cache: true}}
-          style={{flex: 1, backgroundColor: '#fff'}}
+          style={{flex: 1, backgroundColor: '#F3F4F6'}}
           onLoadComplete={(numberOfPages, filePath) => {
             console.log(`PDF loaded: ${numberOfPages} pages`);
           }}
@@ -236,7 +236,7 @@ const FileViewerScreen = ({route, navigation}) => {
     }, [localPath, fileType]);
 
     return (
-      <View style={{flex: 1, backgroundColor: '#fff'}}>
+      <View style={{flex: 1, backgroundColor: '#F3F4F6'}}>
         <SimpleHeader title="Document Viewer" />
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#000" />
@@ -248,7 +248,7 @@ const FileViewerScreen = ({route, navigation}) => {
 
   // Default/unsupported format
   return (
-    <View style={{flex: 1, backgroundColor: '#fff'}}>
+    <View style={{flex: 1, backgroundColor: '#F3F4F6'}}>
       <SimpleHeader title="File Viewer" />
       <View style={styles.center}>
         <Text style={styles.errorText}>Unsupported file format</Text>
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#F3F4F6',
   },
   loadingText: {
     marginTop: 15,

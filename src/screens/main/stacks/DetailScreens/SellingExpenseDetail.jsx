@@ -14,7 +14,7 @@ import {BASEURL} from '../../../../utils/BaseUrl';
 import {formatNumber} from '../../../../utils/NumberUtils';
 
 const COLORS = {
-  BG_CREAM: '#FFF3E0',
+  BG_CREAM: '#F3F4F6',
   WHITE: '#FFFFFF',
   TEXT_DARK: '#333333',
   GREY: '#9E9E9E',
@@ -146,6 +146,13 @@ const SellingExpenseDetail = ({route, navigation}) => {
             keyExtractor={(item, index) => index.toString()}
             scrollEnabled={false}
             contentContainerStyle={styles.listContainer}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>
+                  No data available for the selected period.
+                </Text>
+              </View>
+            }
           />
         </ScrollView>
       )}
@@ -190,6 +197,16 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+  emptyContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
   },
   card: {
     flexDirection: 'row',

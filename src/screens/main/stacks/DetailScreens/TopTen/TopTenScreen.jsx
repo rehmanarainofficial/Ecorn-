@@ -124,7 +124,7 @@ setLoader(false);
           }
         }}
         style={{
-          backgroundColor: '#fff',
+          backgroundColor: '#F3F4F6',
           borderRadius: 10,
           paddingHorizontal: 15,
           paddingVertical: 10,

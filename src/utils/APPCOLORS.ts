@@ -11,7 +11,9 @@ export const APPCOLORS = {
     SKY_BLUE  : '#5a5c6a',
     CLOSETOWHITE : '#F1FFFA',
     TEXTFIELDCOLOR : '#EBEBEB',
-    
+    // Screen Background
+    BG_SCREEN: '#F3F4F6',
+    LIGHTGRAY: '#F3F4F6',
 }
 
 

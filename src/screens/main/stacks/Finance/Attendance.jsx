@@ -31,7 +31,7 @@ const Attendance = () => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: APPCOLORS.WHITE}}>
+    <View style={{flex: 1, backgroundColor: '#F3F4F6'}}>
       <AppHeader />
 
       <ScrollView contentContainerStyle={{paddingBottom: 20}}>
