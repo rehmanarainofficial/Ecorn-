@@ -47,17 +47,13 @@ const Detail = ({navigation}) => {
   const [AllData, setAllData] = useState();
   const [expenseData, setExpenseData] = useState([]);
   const [loader, setLoader] = useState(false);
-  console.log('AllData', AllData);
-
   // Date Filter State
   const [startDate, setStartDate] = useState(
     new Date(new Date().setDate(new Date().getDate() - 30)),
   );
   const [endDate, setEndDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [dateMode, setDateMode] = useState('start'); // 'start' or 'end'
-
-  console.log('AllData', AllData);
+  const [dateMode, setDateMode] = useState('start');
 
   const formatDate = date => {
     if (!date) return '';
@@ -125,7 +121,7 @@ const Detail = ({navigation}) => {
           },
         },
       );
-
+      console.log("data", data);
       setslider_data(data?.slider_data);
       setAllData(data);
       setExpenseData(data?.data_exp_det || []);
@@ -345,7 +341,7 @@ const Detail = ({navigation}) => {
           </View>
         )}
 
-        {/* Bottom Sections */}
+        {/* Bottom Sections
         <View style={{paddingHorizontal: 20}}>
           <View style={{gap: 10}}>
             {accessData?.[0]?.profit_loss_d === '1' && (
@@ -366,7 +362,7 @@ const Detail = ({navigation}) => {
               />
             )}
           </View>
-        </View>
+        </View> */}
       </ScrollView>
     </View>
   );

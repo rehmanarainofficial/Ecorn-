@@ -27,6 +27,7 @@ const ApprovalCard = ({
   type,
   navigation,
   screenType,
+  serialNo,
 }) => {
   const [viewLoading, setViewLoading] = useState(false);
   const [approveLoading, setApproveLoading] = useState(false);
@@ -180,7 +181,7 @@ const ApprovalCard = ({
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
             style={styles.card}>
-            {/* Top row: Reference */}
+            {/* Top row: Reference and Serial No */}
             <View style={styles.topRow}>
               <AppText
                 title={reference}
@@ -188,6 +189,16 @@ const ApprovalCard = ({
                 titleColor={APPCOLORS.WHITE}
                 titleWeight
               />
+              {serialNo && (
+                <View style={styles.serialBadge}>
+                  <AppText
+                    title={`${serialNo}`}
+                    titleSize={1.8}
+                    titleColor={APPCOLORS.WHITE}
+                    titleWeight
+                  />
+                </View>
+              )}
             </View>
 
             {/* Details */}
@@ -210,42 +221,13 @@ const ApprovalCard = ({
               />
             </View>
 
-            {/* Buttons Row */}
+            {/* Row 1: View + PDF */}
             <View style={styles.buttonsRow}>
-              {/* Approve Button */}
-              <TouchableOpacity
-                onPress={handleApprovePress}
-                disabled={approveLoading}
-                style={[
-                  styles.buttonWrapper,
-                  isVoucherScreen ? styles.fourButton : styles.threeButton,
-                ]}>
-                <PlatformGradient
-                  colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 0}}
-                  style={styles.button}>
-                  {approveLoading ? (
-                    <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
-                  ) : (
-                    <AppText
-                      title="Appr.."
-                      titleSize={1.8}
-                      titleColor={APPCOLORS.WHITE}
-                      titleWeight
-                    />
-                  )}
-                </PlatformGradient>
-              </TouchableOpacity>
-
               {/* View Button */}
               <TouchableOpacity
                 onPress={handleView}
                 disabled={viewLoading}
-                style={[
-                  styles.buttonWrapper,
-                  isVoucherScreen ? styles.fourButton : styles.threeButton,
-                ]}>
+                style={[styles.buttonWrapper, styles.halfButton]}>
                 <PlatformGradient
                   colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
                   start={{x: 0, y: 0}}
@@ -268,10 +250,7 @@ const ApprovalCard = ({
               <TouchableOpacity
                 onPress={handleDownloadPDF}
                 disabled={downloadLoading}
-                style={[
-                  styles.buttonWrapper,
-                  isVoucherScreen ? styles.fourButton : styles.threeButton,
-                ]}>
+                style={[styles.buttonWrapper, styles.halfButton]}>
                 <PlatformGradient
                   colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
                   start={{x: 0, y: 0}}
@@ -289,13 +268,39 @@ const ApprovalCard = ({
                   )}
                 </PlatformGradient>
               </TouchableOpacity>
+            </View>
+
+            {/* Row 2: Approve (+ GL View for Voucher) */}
+            <View style={[styles.buttonsRow, {marginTop: 8}]}>
+              {/* Approve Button */}
+              <TouchableOpacity
+                onPress={handleApprovePress}
+                disabled={approveLoading}
+                style={[styles.buttonWrapper, isVoucherScreen ? styles.halfButton : styles.fullButton]}>
+                <PlatformGradient
+                  colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
+                  start={{x: 0, y: 0}}
+                  end={{x: 1, y: 0}}
+                  style={styles.button}>
+                  {approveLoading ? (
+                    <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
+                  ) : (
+                    <AppText
+                      title="Approve"
+                      titleSize={1.8}
+                      titleColor={APPCOLORS.WHITE}
+                      titleWeight
+                    />
+                  )}
+                </PlatformGradient>
+              </TouchableOpacity>
 
               {/* GL View Button - Only show for Voucher screen */}
               {isVoucherScreen && (
                 <TouchableOpacity
                   onPress={handleGLView}
                   disabled={glViewLoading}
-                  style={styles.fourButton}>
+                  style={[styles.buttonWrapper, styles.halfButton]}>
                   <PlatformGradient
                     colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
                     start={{x: 0, y: 0}}
@@ -348,6 +353,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
+  serialBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
   detailsContainer: {
     marginBottom: 15,
   },
@@ -362,10 +375,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     minHeight: 36,
   },
-  threeButton: {
+  halfButton: {
     flex: 1,
   },
-  fourButton: {
+  fullButton: {
     flex: 1,
   },
   button: {

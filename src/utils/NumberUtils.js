@@ -8,7 +8,13 @@
 export const formatNumber = (value, decimals = 2) => {
   if (value === null || value === undefined || value === '') return '0';
 
-  const num = parseFloat(value);
+  // Handle strings with commas (e.g., "127,456,789")
+  let cleanValue = value;
+  if (typeof value === 'string') {
+    cleanValue = value.replace(/,/g, '').trim();
+  }
+
+  const num = parseFloat(cleanValue);
   if (isNaN(num)) return '0';
 
   return num.toLocaleString('en-US', {
@@ -25,7 +31,13 @@ export const formatNumber = (value, decimals = 2) => {
 export const formatQuantity = value => {
   if (value === null || value === undefined || value === '') return '0';
 
-  const num = parseFloat(value);
+  // Handle strings with commas (e.g., "127,456,789")
+  let cleanValue = value;
+  if (typeof value === 'string') {
+    cleanValue = value.replace(/,/g, '').trim();
+  }
+
+  const num = parseFloat(cleanValue);
   if (isNaN(num)) return '0';
 
   return num.toLocaleString('en-US');

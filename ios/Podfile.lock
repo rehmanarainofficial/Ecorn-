@@ -1458,6 +1458,8 @@ PODS:
     - Yoga
   - react-native-netinfo (11.4.1):
     - React-Core
+  - react-native-orientation-locker (1.7.0):
+    - React-Core
   - react-native-pdf (6.7.7):
     - DoubleConversion
     - glog
@@ -2105,6 +2107,55 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNSVG (15.15.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - RNSVG/common (= 15.15.1)
+    - Yoga
+  - RNSVG/common (15.15.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNVectorIcons (10.2.0):
     - DoubleConversion
     - glog
@@ -2254,6 +2305,7 @@ DEPENDENCIES:
   - "react-native-document-picker (from `../node_modules/@react-native-documents/picker`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
+  - react-native-orientation-locker (from `../node_modules/react-native-orientation-locker`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
@@ -2294,6 +2346,7 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - RNWorklets (from `../node_modules/react-native-worklets`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -2395,6 +2448,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-picker"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
+  react-native-orientation-locker:
+    :path: "../node_modules/react-native-orientation-locker"
   react-native-pdf:
     :path: "../node_modules/react-native-pdf"
   react-native-safe-area-context:
@@ -2475,6 +2530,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSVG:
+    :path: "../node_modules/react-native-svg"
   RNVectorIcons:
     :path: "../node_modules/react-native-vector-icons"
   RNWorklets:
@@ -2529,6 +2586,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: 83d9d2da9f2708162da3b92b87421182425e4487
   react-native-image-picker: db0b3e3c7ae57680876318d4f42e7dbedd72244a
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
+  react-native-orientation-locker: cc6f357b289a2e0dd2210fea0c52cb8e0727fdaa
   react-native-pdf: 36118ab1926ea47ea8de8b1b8f681b69e3afc7d3
   react-native-safe-area-context: 562163222d999b79a51577eda2ea8ad2c32b4d06
   React-NativeModulesApple: 8a465be9a58afc56f48c1322331ffbdecd3d4877
@@ -2569,6 +2627,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 0397fea67f39d5a2d17fcf4a028e206f7ba098ba
   RNReanimated: beffc4e8b3d793f438f380fea8f33f3077ad9230
   RNScreens: 3f6e41f9f89cb888a6b4b27566bdfdf7a3bf51ad
+  RNSVG: 88e0593581542e88fa1acca15e36c9bd00acdce3
   RNVectorIcons: 941a39b5d3b9d8cf8ac2e2fc09b07bfafbcf9796
   RNWorklets: c8214ac73c6bc6181f4564a9bcafba1db7ed0c44
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748

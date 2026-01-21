@@ -24,6 +24,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {formatDate, formatDateString} from '../../../../utils/DateUtils';
 import {formatNumber} from '../../../../utils/NumberUtils';
+import FileViewer from 'react-native-file-viewer';
 
 const Aging = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
@@ -70,18 +71,27 @@ const Aging = ({navigation, route}) => {
       .finally(() => setDataLoading(false));
   };
 
+  // Helper function to safely parse numbers (handles strings with commas)
+  const safeParseNumber = (value) => {
+    if (value === null || value === undefined || value === '') return 0;
+    if (typeof value === 'number') return value;
+    // Remove commas and parse
+    const cleanValue = String(value).replace(/,/g, '').trim();
+    const parsed = parseFloat(cleanValue);
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
   // Calculate totals
   const totalAllocated = aging.reduce(
-    (sum, row) => sum + parseFloat(row.Allocated || 0),
+    (sum, row) => sum + safeParseNumber(row.Allocated),
     0,
   );
   const totalInvoice = aging.reduce(
-    (sum, row) =>
-      sum + parseFloat(String(row.Invoice_amount || '0').replace(/,/g, '')),
+    (sum, row) => sum + safeParseNumber(row.Invoice_amount),
     0,
   );
   const totalBalance = aging.reduce(
-    (sum, row) => sum + parseFloat(row.invoce_balance || 0),
+    (sum, row) => sum + safeParseNumber(row.invoce_balance),
     0,
   );
 
@@ -287,14 +297,43 @@ const Aging = ({navigation, route}) => {
       // Write file using RNFetchBlob
       await RNFetchBlob.fs.writeFile(filePath, base64PDF, 'base64');
 
-      Toast.show({
-        type: 'success',
-        text1: 'PDF Saved Successfully',
-        text2: `File saved to Downloads folder`,
-        visibilityTime: 3000,
-      });
-
       console.log('✅ PDF saved at:', filePath);
+
+      // Show notification on Android that opens PDF on click
+      if (Platform.OS === 'android') {
+        RNFetchBlob.android.addCompleteDownload({
+          title: 'Aging Report Downloaded',
+          description: `${fileName}`,
+          mime: 'application/pdf',
+          path: filePath,
+          showNotification: true,
+        });
+
+        Toast.show({
+          type: 'success',
+          text1: 'PDF Downloaded',
+          text2: 'Tap notification to open PDF',
+          visibilityTime: 3000,
+          onPress: () => {
+            FileViewer.open(filePath, {showOpenWithDialog: true}).catch(err => {
+              console.log('Error opening PDF:', err);
+            });
+          },
+        });
+      } else {
+        // iOS - directly open the file
+        Toast.show({
+          type: 'success',
+          text1: 'PDF Saved Successfully',
+          text2: 'File saved to Documents folder',
+          visibilityTime: 3000,
+        });
+        
+        // Auto open on iOS
+        FileViewer.open(filePath, {showOpenWithDialog: true}).catch(err => {
+          console.log('Error opening PDF:', err);
+        });
+      }
     } catch (error) {
       console.error('❌ PDF generation error:', error);
       Toast.show({

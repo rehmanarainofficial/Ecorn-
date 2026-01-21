@@ -6,9 +6,11 @@ import {
   ActivityIndicator,
   FlatList,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import axios from 'axios';
 import PieChart from 'react-native-pie-chart';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {formatNumber} from '../../../../utils/NumberUtils';
@@ -44,23 +46,106 @@ const SalesRevenueDetail = ({route, navigation}) => {
   const {from_date, to_date, account_type, title, total} = route.params || {};
 
   const [data, setData] = useState([]);
+  const [salespersonData, setSalespersonData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chartSeries, setChartSeries] = useState([]);
+  const [salespersonChartSeries, setSalespersonChartSeries] = useState([]);
+  const [selectedOption, setSelectedOption] = useState('revenue'); // 'revenue' or 'salesperson'
+  const [salespersonTotal, setSalespersonTotal] = useState(0);
+  const [currentTotal, setCurrentTotal] = useState(total);
+
+  // Date Filter State
+  const [startDate, setStartDate] = useState(from_date ? new Date(from_date) : new Date(new Date().setDate(new Date().getDate() - 30)));
+  const [endDate, setEndDate] = useState(to_date ? new Date(to_date) : new Date());
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [dateMode, setDateMode] = useState('start');
+
+  const formatDisplayDate = date => {
+    if (!date) return '';
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatDateForApi = date => {
+    if (!date) return '';
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   useEffect(() => {
-    fetchData();
+    fetchData(startDate, endDate);
   }, []);
 
-  const fetchData = async () => {
+  // Fetch Salesperson Data with date filter
+  const fetchSalespersonData = async (fromDt = startDate, toDt = endDate) => {
     try {
+      setLoading(true);
+      
       const formData = new FormData();
-      formData.append('from_date', from_date);
-      formData.append('to_date', to_date);
+      formData.append('from_date', formatDateForApi(fromDt));
+      formData.append('to_date', formatDateForApi(toDt));
+
+      const res = await axios.post(`${BASEURL}dash_salesman.php`, formData, {
+        headers: {'Content-Type': 'multipart/form-data'},
+      });
+
+      if (res.data?.status_accts === 'true' && Array.isArray(res.data?.data_salesman_bal_view_all)) {
+        const apiData = res.data.data_salesman_bal_view_all;
+        setSalespersonData(apiData);
+
+        // Calculate total
+        let totalBalance = 0;
+        const series = [];
+
+        apiData.forEach((item, index) => {
+          const val = Math.abs(parseFloat(item.Balance)) || 0;
+          totalBalance += val;
+          if (val > 0) {
+            series.push({
+              value: val,
+              color: CHART_COLORS[index % CHART_COLORS.length],
+            });
+          }
+        });
+
+        setSalespersonTotal(totalBalance);
+        if (series.length > 0) {
+          setSalespersonChartSeries(series);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching salesperson data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle radio button selection
+  const handleOptionChange = (option) => {
+    setSelectedOption(option);
+    if (option === 'salesperson') {
+      // Always fetch with current date filter
+      fetchSalespersonData(startDate, endDate);
+    }
+  };
+
+  const fetchData = async (fromDt = startDate, toDt = endDate) => {
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append('from_date', formatDateForApi(fromDt));
+      formData.append('to_date', formatDateForApi(toDt));
       formData.append('account_type', account_type);
 
       console.log('Fetching Sales Revenue Data:', {
-        from_date,
-        to_date,
+        from_date: formatDateForApi(fromDt),
+        to_date: formatDateForApi(toDt),
         account_type,
       });
 
@@ -76,11 +161,15 @@ const SalesRevenueDetail = ({route, navigation}) => {
         const apiData = res.data.data;
         setData(apiData);
 
+        // Calculate total from data
+        let calculatedTotal = 0;
+
         // Prepare Chart Data
         const series = [];
 
         apiData.forEach((item, index) => {
           const val = Math.abs(parseFloat(item.t_amount)) || 0;
+          calculatedTotal += val;
           if (val > 0) {
             series.push({
               value: val,
@@ -89,6 +178,7 @@ const SalesRevenueDetail = ({route, navigation}) => {
           }
         });
 
+        setCurrentTotal(calculatedTotal);
         if (series.length > 0) {
           setChartSeries(series);
         }
@@ -100,17 +190,30 @@ const SalesRevenueDetail = ({route, navigation}) => {
     }
   };
 
+  const handleApplyFilter = () => {
+    // Fetch data based on current selected option
+    if (selectedOption === 'salesperson') {
+      fetchSalespersonData(startDate, endDate);
+    } else {
+      fetchData(startDate, endDate);
+    }
+  };
+
   const renderItem = ({item, index}) => {
     const color = CHART_COLORS[index % CHART_COLORS.length];
+    
+    // Check if it's salesperson data or revenue data
+    const isSalesperson = selectedOption === 'salesperson';
+    const name = isSalesperson ? item.salesman_name : item.account_name?.replace(/&amp;/g, '&');
+    const amount = isSalesperson ? item.Balance : item.t_amount;
+    
     return (
       <View style={styles.card}>
         <View style={[styles.colorIndicator, {backgroundColor: color}]} />
         <View style={styles.cardContent}>
-          <Text style={styles.cardTitle}>
-            {item.account_name?.replace(/&amp;/g, '&')}
-          </Text>
+          <Text style={styles.cardTitle}>{name}</Text>
           <Text style={styles.cardAmount}>
-            Rs. {formatNumber(Math.abs(parseFloat(item.t_amount || 0)))}
+            Rs. {formatNumber(Math.abs(parseFloat(amount || 0)))}
           </Text>
         </View>
       </View>
@@ -121,6 +224,47 @@ const SalesRevenueDetail = ({route, navigation}) => {
     <View style={styles.container}>
       <SimpleHeader title={title || 'Sales Revenue'} />
 
+      {/* Date Filter Section */}
+      <View style={styles.filterContainer}>
+        <Text style={styles.filterLabel}>Filter:</Text>
+        <View style={styles.dateRow}>
+          <TouchableOpacity
+            style={styles.dateButton}
+            onPress={() => {
+              setDateMode('start');
+              setDatePickerVisibility(true);
+            }}>
+            <Text style={styles.dateText}>{formatDisplayDate(startDate)}</Text>
+          </TouchableOpacity>
+          <Text style={styles.toText}>to</Text>
+          <TouchableOpacity
+            style={styles.dateButton}
+            onPress={() => {
+              setDateMode('end');
+              setDatePickerVisibility(true);
+            }}>
+            <Text style={styles.dateText}>{formatDisplayDate(endDate)}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.applyBtn} onPress={handleApplyFilter}>
+            <Text style={styles.applyBtnText}>Apply</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={date => {
+          if (dateMode === 'start') {
+            setStartDate(date);
+          } else {
+            setEndDate(date);
+          }
+          setDatePickerVisibility(false);
+        }}
+        onCancel={() => setDatePickerVisibility(false)}
+      />
+
       {loading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={COLORS.ORANGE} />
@@ -128,24 +272,47 @@ const SalesRevenueDetail = ({route, navigation}) => {
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Chart Section */}
-          {data.length > 0 && (
+          {(selectedOption === 'revenue' ? data.length > 0 : salespersonData.length > 0) && (
             <View style={styles.chartContainer}>
               <PieChart
                 widthAndHeight={220}
-                series={chartSeries}
+                series={selectedOption === 'revenue' ? chartSeries : salespersonChartSeries}
                 cover={{radius: 0.65, color: COLORS.BG_CREAM}}
               />
               {/* Center Text (Total) */}
               <View style={styles.centerTextContainer}>
                 <Text style={styles.centerLabel}>Total</Text>
-                <Text style={styles.centerValue}>{formatNumber(Math.abs(parseFloat(total) || 0))}</Text>
+                <Text style={styles.centerValue}>
+                  {formatNumber(Math.abs(parseFloat(selectedOption === 'revenue' ? currentTotal : salespersonTotal) || 0))}
+                </Text>
               </View>
             </View>
           )}
 
+          {/* Radio Buttons */}
+          <View style={styles.radioContainer}>
+            <TouchableOpacity
+              style={styles.radioButton}
+              onPress={() => handleOptionChange('revenue')}>
+              <View style={styles.radioOuter}>
+                {selectedOption === 'revenue' && <View style={styles.radioInner} />}
+              </View>
+              <Text style={styles.radioLabel}>Revenue</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.radioButton}
+              onPress={() => handleOptionChange('salesperson')}>
+              <View style={styles.radioOuter}>
+                {selectedOption === 'salesperson' && <View style={styles.radioInner} />}
+              </View>
+              <Text style={styles.radioLabel}>Salesperson</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* List Section */}
           <FlatList
-            data={data}
+            data={selectedOption === 'revenue' ? data : salespersonData}
             renderItem={renderItem}
             keyExtractor={(item, index) => index.toString()}
             scrollEnabled={false}
@@ -176,6 +343,58 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 20,
+  },
+  filterContainer: {
+    marginHorizontal: 15,
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  filterLabel: {
+    color: COLORS.TEXT_DARK,
+    fontSize: 14,
+    marginBottom: 5,
+    fontWeight: 'bold',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateButton: {
+    backgroundColor: COLORS.WHITE,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    flex: 1,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  dateText: {
+    color: COLORS.TEXT_DARK,
+    fontSize: 14,
+  },
+  toText: {
+    marginHorizontal: 10,
+    color: COLORS.TEXT_DARK,
+  },
+  applyBtn: {
+    backgroundColor: '#1a1c22',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    marginLeft: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  applyBtnText: {
+    color: COLORS.WHITE,
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   chartContainer: {
     alignItems: 'center',
@@ -247,6 +466,38 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.TEXT_DARK,
     fontWeight: 'bold',
+  },
+  radioContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 30,
+  },
+  radioButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  radioOuter: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: COLORS.ORANGE,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  radioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: COLORS.ORANGE,
+  },
+  radioLabel: {
+    fontSize: 15,
+    color: COLORS.TEXT_DARK,
+    fontWeight: '600',
   },
 });
 

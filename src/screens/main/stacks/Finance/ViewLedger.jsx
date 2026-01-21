@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,26 +9,40 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
+  ScrollView,
+  PermissionsAndroid,
+  ToastAndroid,
+  Alert,
 } from 'react-native';
 import moment from 'moment';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import PlatformGradient from '../../../../components/PlatformGradient';
-import {Dropdown} from 'react-native-element-dropdown';
+import { Dropdown } from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {BASEURL} from '.././../../../utils/BaseUrl';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import {generateLedgerPDF} from '.././../../../components/LedgerPDFGenerator';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {formatNumber} from '../../../../utils/NumberUtils';
+import { BASEURL } from '.././../../../utils/BaseUrl';
+import { APPCOLORS } from '../../../../utils/APPCOLORS';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { formatNumber } from '../../../../utils/NumberUtils';
+import Orientation from 'react-native-orientation-locker';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import RNBlobUtil from 'react-native-blob-util';
+import FileViewer from 'react-native-file-viewer';
 
-const ViewLedger = ({navigation}) => {
+const ViewLedger = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
+
+  // Get params from navigation (for bank click)
+  const passedAccountCode = route?.params?.accountCode;
+  const passedAccountName = route?.params?.accountName;
+
   const [loading, setLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
-  const [ledgerData, setLedgerData] = useState([]);
+  const [flatData, setFlatData] = useState([]); // Flat array for table
   const [openingBalance, setOpeningBalance] = useState(0);
   const [closingBalance, setClosingBalance] = useState(0);
+  const [totalDebit, setTotalDebit] = useState(0);
+  const [totalCredit, setTotalCredit] = useState(0);
 
   // Filter states
   const [accounts, setAccounts] = useState([]);
@@ -47,13 +61,88 @@ const ViewLedger = ({navigation}) => {
   // Loading states
   const [accountsLoading, setAccountsLoading] = useState(false);
   const [counterPartiesLoading, setCounterPartiesLoading] = useState(false);
+  const [autoFetchDone, setAutoFetchDone] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [transactionBalances, setTransactionBalances] = useState({});
 
+  // Lock to Landscape orientation when screen opens
+  useEffect(() => {
+    Orientation.lockToLandscape();
+
+    return () => {
+      Orientation.lockToPortrait();
+    };
+  }, []);
+
+  useEffect(() => {
+    const nav = navigation.addListener('focus', () => {
+      Orientation.lockToLandscape();
+    });
+
+    const blurNav = navigation.addListener('blur', () => {
+      Orientation.lockToPortrait();
+    });
+
+    return () => {
+      nav();
+      blurNav();
+    };
+  }, [navigation]);
+
   useEffect(() => {
     fetchAccounts();
   }, []);
+
+  // Reset autoFetchDone when route params change (new bank card clicked)
+  useEffect(() => {
+    setAutoFetchDone(false);
+    setSelectedAccount(null);
+    setFlatData([]);
+    setOpeningBalance(0);
+    setClosingBalance(0);
+    setTotalDebit(0);
+    setTotalCredit(0);
+  }, [passedAccountCode, passedAccountName]);
+
+  // Auto-select account if passed from bank click (but don't auto-fetch)
+  useEffect(() => {
+    if ((passedAccountCode || passedAccountName) && accounts.length > 0 && !autoFetchDone) {
+      // Try to match by account_code first
+      let matchedAccount = accounts.find(acc => acc.value === passedAccountCode);
+      
+      // If not found, try exact match by account name (for banks)
+      if (!matchedAccount && passedAccountName) {
+        // First try exact match
+        matchedAccount = accounts.find(acc => 
+          acc.account_name?.toLowerCase() === passedAccountName.toLowerCase()
+        );
+        
+        // If still not found, try partial match
+        if (!matchedAccount) {
+          matchedAccount = accounts.find(acc => 
+            acc.account_name?.toLowerCase().includes(passedAccountName.toLowerCase()) ||
+            passedAccountName.toLowerCase().includes(acc.account_name?.toLowerCase())
+          );
+        }
+      }
+      
+      console.log('Passed Account Code:', passedAccountCode);
+      console.log('Passed Account Name:', passedAccountName);
+      console.log('Matched Account:', matchedAccount);
+      console.log('All Accounts:', accounts.slice(0, 5)); // Show first 5 accounts for debugging
+      
+      if (matchedAccount) {
+        setSelectedAccount(matchedAccount);
+        setAutoFetchDone(true);
+        // Don't auto-fetch - user will click search button
+        // Also fetch counter parties for the account
+        fetchCounterParties(matchedAccount.value);
+      } else {
+        console.log('No matching account found for:', passedAccountName);
+      }
+    }
+  }, [passedAccountCode, passedAccountName, accounts, autoFetchDone]);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -62,6 +151,21 @@ const ViewLedger = ({navigation}) => {
       useNativeDriver: true,
     }).start();
   }, [fadeAnim]);
+
+  // Format date to dd/mm/yyyy
+  const formatDateDisplay = (dateStr) => {
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr;
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch {
+      return dateStr;
+    }
+  };
 
   // Fetch accounts for 1st dropdown - GET request
   const fetchAccounts = async () => {
@@ -95,12 +199,11 @@ const ViewLedger = ({navigation}) => {
 
       const response = await fetch(`${BASEURL}get_counter_party.php`, {
         method: 'POST',
-        headers: {'Content-Type': 'multipart/form-data'},
+        headers: { 'Content-Type': 'multipart/form-data' },
         body: formData,
       });
 
       const json = await response.json();
-      console.log('Counter parties response:', json);
 
       if (json.status === 'true' && Array.isArray(json.data)) {
         setCounterParties(
@@ -124,12 +227,17 @@ const ViewLedger = ({navigation}) => {
 
   // Fetch ledger data with filters - FORM DATA with POST
   const fetchData = async () => {
+    if (!selectedAccount) return;
+    fetchDataWithAccount(selectedAccount);
+  };
+
+  // Fetch data with specific account (for auto-fetch when bank is clicked)
+  const fetchDataWithAccount = async (account) => {
     try {
       setLoading(true);
 
-      // FormData use karenge
       const formData = new FormData();
-      formData.append('account', selectedAccount.value);
+      formData.append('account', account.value);
       formData.append('from_date', fromDate);
       formData.append('to_date', toDate);
       if (selectedCounterParty) {
@@ -145,33 +253,29 @@ const ViewLedger = ({navigation}) => {
       });
 
       const json = await response.json();
-      console.log('inquiry', json);
 
       if (json.status === 'true') {
         const opening = json.opening !== null ? parseFloat(json.opening) : 0;
         setOpeningBalance(opening);
 
         if (Array.isArray(json.data)) {
-          const grouped = groupByDate(json.data);
-          setLedgerData(grouped);
-
+          setFlatData(json.data);
           calculateRunningBalances(json.data, opening);
-
-          let currentBalance = opening;
-          json.data.forEach(item => {
-            currentBalance += parseFloat(item.amount);
-          });
-          setClosingBalance(currentBalance);
+          calculateTotals(json.data, opening);
         } else {
-          setLedgerData([]);
+          setFlatData([]);
           setClosingBalance(opening);
           setTransactionBalances({});
+          setTotalDebit(0);
+          setTotalCredit(0);
         }
       } else {
-        setLedgerData([]);
+        setFlatData([]);
         setOpeningBalance(0);
         setClosingBalance(0);
         setTransactionBalances({});
+        setTotalDebit(0);
+        setTotalCredit(0);
       }
     } catch (error) {
       console.error('Error fetching ledger data:', error);
@@ -180,8 +284,8 @@ const ViewLedger = ({navigation}) => {
     }
   };
 
-  const calculateRunningBalances = (transactions, openingBalance) => {
-    let currentBalance = openingBalance;
+  const calculateRunningBalances = (transactions, openingBal) => {
+    let currentBalance = openingBal;
     const balances = {};
 
     transactions.forEach((transaction, index) => {
@@ -190,23 +294,236 @@ const ViewLedger = ({navigation}) => {
     });
 
     setTransactionBalances(balances);
+    setClosingBalance(currentBalance);
   };
 
-  const groupByDate = data => {
-    const groupedData = {};
-    data.forEach(item => {
-      const date = item.doc_date;
-      if (!groupedData[date]) groupedData[date] = [];
-      groupedData[date].push(item);
+  const calculateTotals = (transactions, openingBal) => {
+    let debitSum = 0;
+    let creditSum = 0;
+    let currentBalance = openingBal;
+
+    transactions.forEach(transaction => {
+      const amount = parseFloat(transaction.amount) || 0;
+      if (amount > 0) {
+        debitSum += amount;
+      } else {
+        creditSum += Math.abs(amount);
+      }
+      currentBalance += amount;
     });
-    return Object.keys(groupedData).map(date => ({
-      date,
-      transactions: groupedData[date],
-    }));
+
+    setTotalDebit(debitSum);
+    setTotalCredit(creditSum);
+    setClosingBalance(currentBalance);
   };
 
   const handleDownload = async () => {
-    await generateLedgerPDF(ledgerData, setDownloadLoading, fromDate, toDate);
+    if (flatData.length === 0) {
+      if (Platform.OS === 'android') {
+        ToastAndroid.show('No data to download!', ToastAndroid.SHORT);
+      } else {
+        Alert.alert('Error', 'No data to download!');
+      }
+      return;
+    }
+
+    try {
+      setDownloadLoading(true);
+
+      if (Platform.OS === 'android') {
+        const sdk = parseInt(Platform.Version, 10);
+        if (sdk < 33) {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          );
+          if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+            ToastAndroid.show('Storage permission denied!', ToastAndroid.SHORT);
+            setDownloadLoading(false);
+            return;
+          }
+        }
+      }
+
+      const pdfDoc = await PDFDocument.create();
+      let page = pdfDoc.addPage([841.89, 595.28]);
+      const { width, height } = page.getSize();
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+      let y = height - 40;
+      const margin = 30;
+
+      const drawText = (text, x, yPos, size = 10, bold = false, color = rgb(0, 0, 0)) => {
+        page.drawText(String(text || ''), {
+          x,
+          y: yPos,
+          size,
+          font: bold ? fontBold : font,
+          color,
+        });
+      };
+
+      const addNewPage = () => {
+        page = pdfDoc.addPage([841.89, 595.28]);
+        y = height - 40;
+      };
+
+      drawText('GL Account Transactions Report', margin, y, 16, true, rgb(0.13, 0.13, 0.47));
+      y -= 20;
+
+      drawText(`Account: ${selectedAccount?.label || 'N/A'}`, margin, y, 11, true);
+      drawText(`Company: Ercon Industries Pvt. Ltd`, width - 250, y, 11, true);
+      y -= 15;
+
+      drawText(`From: ${formatDateDisplay(fromDate)}   To: ${formatDateDisplay(toDate)}`, margin, y, 10);
+      drawText(`Generated: ${moment().format('DD/MM/YYYY HH:mm')}`, width - 200, y, 10);
+      y -= 20;
+
+      drawText(`Opening Balance: ${formatNumber(openingBalance)}`, margin, y, 10, true);
+      drawText(`Net Difference: ${formatNumber(totalDebit - totalCredit)}`, 250, y, 10, true);
+      drawText(`Closing Balance: ${formatNumber(closingBalance)}`, 450, y, 10, true);
+      y -= 25;
+
+      const colWidths = [100, 80, 100, 150, 90, 90, 90];
+      const colX = [margin];
+      for (let i = 1; i < colWidths.length; i++) {
+        colX.push(colX[i - 1] + colWidths[i - 1]);
+      }
+      const headers = ['Reference', 'Date', 'Counter', 'Particular', 'Debit', 'Credit', 'Balance'];
+
+      page.drawRectangle({
+        x: margin,
+        y: y - 5,
+        width: width - 2 * margin,
+        height: 20,
+        color: rgb(0.13, 0.13, 0.47),
+      });
+
+      headers.forEach((header, index) => {
+        drawText(header, colX[index] + 5, y, 9, true, rgb(1, 1, 1));
+      });
+      y -= 25;
+
+      let runningBalance = openingBalance;
+      flatData.forEach((item, index) => {
+        if (y < 60) {
+          addNewPage();
+          page.drawRectangle({
+            x: margin,
+            y: y - 5,
+            width: width - 2 * margin,
+            height: 20,
+            color: rgb(0.13, 0.13, 0.47),
+          });
+          headers.forEach((header, idx) => {
+            drawText(header, colX[idx] + 5, y, 9, true, rgb(1, 1, 1));
+          });
+          y -= 25;
+        }
+
+        if (index % 2 === 0) {
+          page.drawRectangle({
+            x: margin,
+            y: y - 5,
+            width: width - 2 * margin,
+            height: 18,
+            color: rgb(0.96, 0.96, 0.96),
+          });
+        }
+
+        const amount = parseFloat(item.amount) || 0;
+        runningBalance += amount;
+        const debit = amount > 0 ? amount : 0;
+        const credit = amount < 0 ? Math.abs(amount) : 0;
+
+        drawText((item.reference || '').substring(0, 15), colX[0] + 5, y, 8);
+        drawText(formatDateDisplay(item.doc_date), colX[1] + 5, y, 8);
+        drawText((item.person_name || '').substring(0, 15), colX[2] + 5, y, 8);
+        drawText((item.memo || '').substring(0, 25), colX[3] + 5, y, 8);
+        drawText(debit ? formatNumber(debit) : '', colX[4] + 5, y, 8);
+        drawText(credit ? formatNumber(credit) : '', colX[5] + 5, y, 8);
+        drawText(formatNumber(Math.abs(runningBalance)), colX[6] + 5, y, 8);
+
+        y -= 18;
+      });
+
+      y -= 5;
+      page.drawRectangle({
+        x: margin,
+        y: y - 5,
+        width: width - 2 * margin,
+        height: 20,
+        color: rgb(0.9, 0.9, 0.9),
+      });
+      page.drawLine({
+        start: { x: margin, y: y + 15 },
+        end: { x: width - margin, y: y + 15 },
+        thickness: 1,
+        color: rgb(0.13, 0.13, 0.47),
+      });
+
+      drawText('TOTAL', colX[0] + 5, y, 9, true);
+      drawText(formatNumber(totalDebit), colX[4] + 5, y, 9, true, rgb(0.13, 0.13, 0.47));
+      drawText(formatNumber(totalCredit), colX[5] + 5, y, 9, true, rgb(0.13, 0.13, 0.47));
+      drawText(formatNumber(Math.abs(closingBalance)), colX[6] + 5, y, 9, true, rgb(0.13, 0.13, 0.47));
+
+      const safeAccountName = (selectedAccount?.account_name || 'GLAccount').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
+      const safeFromDate = moment(fromDate).format('DDMMYYYY');
+      const safeToDate = moment(toDate).format('DDMMYYYY');
+      const fileName = `${safeAccountName}_${safeFromDate}_${safeToDate}.pdf`;
+
+      const pdfBytes = await pdfDoc.save();
+      let binary = '';
+      const chunkSize = 0x8000;
+      for (let i = 0; i < pdfBytes.length; i += chunkSize) {
+        const subArray = pdfBytes.subarray(i, i + chunkSize);
+        binary += String.fromCharCode.apply(null, subArray);
+      }
+      const base64Data = RNBlobUtil.base64.encode(binary);
+
+      let filePath;
+      if (Platform.OS === 'android') {
+        const downloadDir = '/storage/emulated/0/Download';
+        const appFolder = `${downloadDir}/LedgerReports`;
+        await RNBlobUtil.fs.mkdir(appFolder).catch(() => { });
+        filePath = `${appFolder}/${fileName}`;
+        await RNBlobUtil.fs.writeFile(filePath, base64Data, 'base64');
+
+        RNBlobUtil.android.addCompleteDownload({
+          title: fileName,
+          description: 'GL Ledger PDF downloaded successfully',
+          mime: 'application/pdf',
+          path: filePath,
+          showNotification: true,
+        });
+
+        ToastAndroid.show('PDF saved! Tap notification to open.', ToastAndroid.LONG);
+
+        setTimeout(() => {
+          FileViewer.open(filePath, { showOpenWithDialog: true })
+            .catch(err => console.log('Error opening file:', err));
+        }, 500);
+      } else {
+        const dirs = RNBlobUtil.fs.dirs;
+        filePath = `${dirs.DocumentDir}/${fileName}`;
+        await RNBlobUtil.fs.writeFile(filePath, base64Data, 'base64');
+
+        FileViewer.open(filePath, { showOpenWithDialog: true })
+          .catch(() => {
+            Alert.alert('Success', 'PDF saved successfully!');
+          });
+      }
+
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      if (Platform.OS === 'android') {
+        ToastAndroid.show('Failed to generate PDF!', ToastAndroid.SHORT);
+      } else {
+        Alert.alert('Error', 'Failed to generate PDF!');
+      }
+    } finally {
+      setDownloadLoading(false);
+    }
   };
 
   const handleApplyFilter = () => {
@@ -216,10 +533,12 @@ const ViewLedger = ({navigation}) => {
   const handleAccountChange = account => {
     setSelectedAccount(account);
     setSelectedCounterParty(null);
-    setLedgerData([]);
+    setFlatData([]);
     setOpeningBalance(0);
     setClosingBalance(0);
-    setCounterParties([]); // Reset counter parties
+    setTotalDebit(0);
+    setTotalCredit(0);
+    setCounterParties([]);
     if (account) {
       fetchCounterParties(account.value);
     }
@@ -230,13 +549,14 @@ const ViewLedger = ({navigation}) => {
     setSelectedCounterParty(null);
     setFromDate(moment().subtract(1, 'month').format('YYYY-MM-DD'));
     setToDate(moment().format('YYYY-MM-DD'));
-    setLedgerData([]);
+    setFlatData([]);
     setOpeningBalance(0);
     setClosingBalance(0);
-    setCounterParties([]); // Reset counter parties
+    setTotalDebit(0);
+    setTotalCredit(0);
+    setCounterParties([]);
   };
 
-  // Date picker handlers
   const onFromDateChange = (event, selectedDate) => {
     setShowFromDatePicker(false);
     if (selectedDate) {
@@ -251,66 +571,70 @@ const ViewLedger = ({navigation}) => {
     }
   };
 
-  const showFromDatepicker = () => {
-    setShowFromDatePicker(true);
-  };
+  // Table Cell Component
+  const TableCell = ({ value, isAmount = false, isLast = false, isCredit = false, isBalance = false, isDate = false }) => {
+    let displayValue = '';
 
-  const showToDatepicker = () => {
-    setShowToDatePicker(true);
-  };
-
-  const renderTransaction = ({item, index}) => {
-    const isCredit = parseFloat(item.amount) > 0;
-    const amount = parseFloat(item.amount);
-    const currentBalance = transactionBalances[index] || closingBalance;
+    if (isAmount) {
+      const numValue = parseFloat(value) || 0;
+      const absValue = (isCredit || isBalance) ? Math.abs(numValue) : numValue;
+      displayValue = absValue !== 0 ? formatNumber(absValue) : '';
+    } else if (isDate) {
+      displayValue = formatDateDisplay(value);
+    } else {
+      displayValue = value && value !== '0' && value !== 0 ? value.toString() : '';
+    }
 
     return (
-      <Animated.View style={[styles.card, {opacity: fadeAnim}]}>
-        <View style={styles.transactionContent}>
-          <View style={styles.transactionDetails}>
-            {item.reference && (
-              <Text style={styles.refText}>{item.reference}</Text>
-            )}
-            {item.person_name && (
-              <Text style={styles.personText}>{item.person_name}</Text>
-            )}
-            {item.memo && <Text style={styles.memoText}>{item.memo}</Text>}
-          </View>
-
-          <View style={styles.amountSection}>
-            <Text
-              style={[
-                styles.amountText,
-                {color: isCredit ? '#009900' : '#FF0000'},
-              ]}>
-              {isCredit ? '+' : '-'}
-              {formatNumber(Math.abs(amount))}
-            </Text>
-            <Text style={styles.balanceText}>
-              Balance: {formatNumber(currentBalance)}
-            </Text>
-          </View>
-        </View>
-      </Animated.View>
+      <View style={[styles.tableCell, isLast && styles.lastCell]}>
+        <Text style={[styles.cellText, isAmount && styles.amountText]} numberOfLines={2}>
+          {displayValue}
+        </Text>
+      </View>
     );
   };
 
-  const renderSection = ({item, index}) => {
+  // Render Table Header
+  const renderTableHeader = () => {
+    const headers = ['Reference', 'Date', 'Counter', 'Particular', 'Debit', 'Credit', 'Balance'];
     return (
-      <View key={index}>
-        <Text style={styles.dateHeader}>
-          {moment(item.date).format('dddd, DD MMM YYYY')}
-        </Text>
-        {item.transactions.map((tx, txIndex) => (
-          <View key={txIndex}>
-            {renderTransaction({item: tx, index: txIndex})}
+      <View style={styles.tableHeader}>
+        {headers.map((header, index) => (
+          <View
+            key={index}
+            style={[
+              styles.headerCell,
+              index === headers.length - 1 && styles.lastHeaderCell
+            ]}>
+            <Text style={styles.headerText}>{header}</Text>
           </View>
         ))}
       </View>
     );
   };
 
-  if (loading && ledgerData.length === 0) {
+  // Render Item - Table Row
+  const renderItem = ({ item, index }) => {
+    const isEven = index % 2 === 0;
+    const amount = parseFloat(item.amount) || 0;
+    const debit = amount > 0 ? amount : 0;
+    const credit = amount < 0 ? Math.abs(amount) : 0;
+    const balance = transactionBalances[index] || closingBalance;
+
+    return (
+      <Animated.View style={[styles.tableRow, isEven && styles.evenRow, { opacity: fadeAnim }]}>
+        <TableCell value={item.reference} />
+        <TableCell value={item.doc_date} isDate />
+        <TableCell value={item.person_name} />
+        <TableCell value={item.memo} />
+        <TableCell value={debit} isAmount />
+        <TableCell value={credit} isAmount isCredit />
+        <TableCell value={balance} isAmount isBalance isLast />
+      </Animated.View>
+    );
+  };
+
+  if (loading && flatData.length === 0) {
     return (
       <View style={styles.loader}>
         <ActivityIndicator size="large" color={APPCOLORS.Primary} />
@@ -321,7 +645,10 @@ const ViewLedger = ({navigation}) => {
 
   return (
     <View style={styles.mainContainer}>
-      <StatusBar barStyle="dark-content" backgroundColor={APPCOLORS.WHITE} />
+      <StatusBar
+        barStyle={Platform.OS === 'ios' ? 'dark-content' : 'light-content'}
+        backgroundColor={APPCOLORS.Primary}
+      />
 
       {/* Custom Header */}
       <PlatformGradient
@@ -329,42 +656,37 @@ const ViewLedger = ({navigation}) => {
         style={[
           styles.header,
           {
-            paddingTop:
-              Platform.OS === 'ios'
-                ? insets.top + 10
-                : Math.max(insets.top, 24) + 10, // Android ke liye minimum 24px status bar height
+            paddingTop: Platform.OS === 'ios' ? insets.top + 10 : Math.max(insets.top, 24) + 10,
+            paddingBottom: Platform.OS === 'ios' ? 20 : 25,
           },
         ]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 40 }}>
           <Ionicons name="arrow-back" size={22} color={APPCOLORS.WHITE} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>View Transactions</Text>
 
         <TouchableOpacity
+          style={{ width: 40, alignItems: 'flex-end' }}
           onPress={handleDownload}
-          disabled={downloadLoading || ledgerData.length === 0}>
+          disabled={downloadLoading || flatData.length === 0}>
           {downloadLoading ? (
             <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
           ) : (
             <MaterialIcons
               name="file-download"
               size={26}
-              color={
-                ledgerData.length === 0
-                  ? APPCOLORS.TEXTFIELDCOLOR
-                  : APPCOLORS.WHITE
-              }
+              color={flatData.length === 0 ? APPCOLORS.TEXTFIELDCOLOR : APPCOLORS.WHITE}
             />
           )}
         </TouchableOpacity>
       </PlatformGradient>
 
-      {/* Improved Filter Section - Compact Design */}
+      {/* Filter Section - Full Width */}
       <View style={styles.filterContainer}>
-        {/* First Row - Account Only */}
         <View style={styles.filterRow}>
-          <View style={styles.fullWidthContainer}>
+          {/* Account Dropdown */}
+          <View style={styles.dropdownContainer}>
             <Dropdown
               style={styles.dropdown}
               placeholderStyle={styles.placeholderStyle}
@@ -376,25 +698,16 @@ const ViewLedger = ({navigation}) => {
               maxHeight={300}
               labelField="label"
               valueField="value"
-              placeholder={
-                accountsLoading ? 'Loading accounts...' : 'Select Account'
-              }
+              placeholder={accountsLoading ? 'Loading...' : 'Select Account'}
               searchPlaceholder="Search accounts..."
               value={selectedAccount}
               onChange={handleAccountChange}
-              renderLeftIcon={() =>
-                accountsLoading && (
-                  <ActivityIndicator size="small" color={APPCOLORS.Primary} />
-                )
-              }
             />
           </View>
-        </View>
 
-        {/* Second Row - Counter Party (Only show when account is selected AND counter parties available) */}
-        {selectedAccount && counterParties.length > 0 && (
-          <View style={styles.filterRow}>
-            <View style={styles.fullWidthContainer}>
+          {/* Counter Party Dropdown */}
+          {selectedAccount && counterParties.length > 0 && (
+            <View style={styles.dropdownContainer}>
               <Dropdown
                 style={styles.dropdown}
                 placeholderStyle={styles.placeholderStyle}
@@ -406,34 +719,21 @@ const ViewLedger = ({navigation}) => {
                 maxHeight={300}
                 labelField="label"
                 valueField="value"
-                placeholder={
-                  counterPartiesLoading
-                    ? 'Loading counter parties...'
-                    : 'Select Counter Party'
-                }
-                searchPlaceholder="Search counter parties..."
+                placeholder={counterPartiesLoading ? 'Loading...' : 'Counter Party'}
+                searchPlaceholder="Search..."
                 value={selectedCounterParty}
                 onChange={setSelectedCounterParty}
-                renderLeftIcon={() =>
-                  counterPartiesLoading && (
-                    <ActivityIndicator size="small" color={APPCOLORS.Primary} />
-                  )
-                }
               />
             </View>
-          </View>
-        )}
+          )}
 
-        {/* Third Row - Dates & Action Buttons */}
-        <View style={styles.filterRow}>
           {/* From Date */}
           <View style={styles.dateContainer}>
             <TouchableOpacity
               style={styles.dateInput}
-              onPress={showFromDatepicker}>
-              <Text
-                style={[styles.dateText, !fromDate && styles.placeholderText]}>
-                {fromDate || 'From Date'}
+              onPress={() => setShowFromDatePicker(true)}>
+              <Text style={styles.dateText}>
+                {formatDateDisplay(fromDate)}
               </Text>
             </TouchableOpacity>
           </View>
@@ -442,17 +742,15 @@ const ViewLedger = ({navigation}) => {
           <View style={styles.dateContainer}>
             <TouchableOpacity
               style={styles.dateInput}
-              onPress={showToDatepicker}>
-              <Text
-                style={[styles.dateText, !toDate && styles.placeholderText]}>
-                {toDate || 'To Date'}
+              onPress={() => setShowToDatePicker(true)}>
+              <Text style={styles.dateText}>
+                {formatDateDisplay(toDate)}
               </Text>
             </TouchableOpacity>
           </View>
 
           {/* Action Buttons */}
           <View style={styles.actionButtonsContainer}>
-            {/* Reset Button */}
             <TouchableOpacity
               style={styles.resetButton}
               onPress={handleResetFilter}>
@@ -463,12 +761,8 @@ const ViewLedger = ({navigation}) => {
               />
             </TouchableOpacity>
 
-            {/* Apply Button */}
             <TouchableOpacity
-              style={[
-                styles.applyButton,
-                !selectedAccount && styles.disabledButton,
-              ]}
+              style={[styles.applyButton, !selectedAccount && styles.disabledButton]}
               onPress={handleApplyFilter}
               disabled={!selectedAccount || loading}>
               {loading ? (
@@ -484,34 +778,22 @@ const ViewLedger = ({navigation}) => {
           </View>
         </View>
 
-        {/* Date Pickers */}
-        {showFromDatePicker && (
-          <DateTimePicker
-            value={new Date(fromDate)}
-            mode="date"
-            display="default"
-            onChange={onFromDateChange}
-          />
-        )}
-        {showToDatePicker && (
-          <DateTimePicker
-            value={new Date(toDate)}
-            mode="date"
-            display="default"
-            onChange={onToDateChange}
-          />
-        )}
-
         {/* Balance Information */}
-        {selectedAccount && (
+        {(openingBalance !== 0 || closingBalance !== 0 || flatData.length > 0) && selectedAccount && (
           <View style={styles.balanceContainer}>
             <View style={styles.balanceInfo}>
               <Text style={styles.balanceLabel}>Opening Balance</Text>
-              <Text style={styles.balanceValue}>
-                {formatNumber(openingBalance)}
-              </Text>
+              <Text style={styles.balanceValue}>{formatNumber(openingBalance)}</Text>
             </View>
-            {ledgerData.length > 0 && (
+            {flatData.length > 0 && (
+              <View style={styles.balanceInfo}>
+                <Text style={styles.balanceLabel}>Net Difference</Text>
+                <Text style={[styles.balanceValue, (totalDebit - totalCredit) < 0 && { color: '#DC2626' }]}>
+                  {formatNumber(totalDebit - totalCredit)}
+                </Text>
+              </View>
+            )}
+            {flatData.length > 0 && (
               <View style={styles.balanceInfo}>
                 <Text style={styles.balanceLabel}>Closing Balance</Text>
                 <Text style={styles.balanceValue}>
@@ -523,34 +805,93 @@ const ViewLedger = ({navigation}) => {
         )}
       </View>
 
-      {/* Transactions List */}
-      <Animated.ScrollView
-        style={[styles.container, {opacity: fadeAnim}]}
-        showsVerticalScrollIndicator={false}>
-        {ledgerData.length === 0 ? (
-          <View style={styles.noDataContainer}>
-            <MaterialIcons
-              name="receipt-long"
-              size={60}
-              color={APPCOLORS.TEXTFIELDCOLOR}
-            />
-            <Text style={styles.noDataText}>
-              {selectedAccount && loading
-                ? 'Loading transactions...'
-                : selectedAccount
-                ? 'No transactions found for selected filters'
-                : 'Please select an account to view transactions'}
-            </Text>
+      {/* Date Pickers */}
+      {showFromDatePicker && (
+        <DateTimePicker
+          value={new Date(fromDate)}
+          mode="date"
+          display="default"
+          onChange={onFromDateChange}
+        />
+      )}
+      {showToDatePicker && (
+        <DateTimePicker
+          value={new Date(toDate)}
+          mode="date"
+          display="default"
+          onChange={onToDateChange}
+        />
+      )}
+
+      {/* Main Content with Horizontal Scroll */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={true}
+        nestedScrollEnabled={true}
+        contentContainerStyle={{ flexGrow: 1 }}>
+        <ScrollView
+          showsVerticalScrollIndicator={true}
+          nestedScrollEnabled={true}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 20, minWidth: '100%' }}>
+
+          {/* Transactions Table */}
+          <View style={styles.container}>
+            {flatData.length > 0 ? (
+              <View style={styles.tableContainer}>
+                {/* Table Header */}
+                {renderTableHeader()}
+
+                {/* Table Body */}
+                {flatData.map((item, index) => (
+                  <View key={index.toString()}>
+                    {renderItem({ item, index })}
+                  </View>
+                ))}
+
+                {/* Totals Row */}
+                <View style={styles.totalsRow}>
+                  <View style={styles.tableCell}>
+                    <Text style={styles.totalsText}>Total</Text>
+                  </View>
+                  <View style={styles.tableCell}>
+                    <Text style={styles.totalsText}></Text>
+                  </View>
+                  <View style={styles.tableCell}>
+                    <Text style={styles.totalsText}></Text>
+                  </View>
+                  <View style={styles.tableCell}>
+                    <Text style={styles.totalsText}></Text>
+                  </View>
+                  <View style={styles.tableCell}>
+                    <Text style={styles.totalsAmountText}>{formatNumber(totalDebit)}</Text>
+                  </View>
+                  <View style={styles.tableCell}>
+                    <Text style={styles.totalsAmountText}>{formatNumber(totalCredit)}</Text>
+                  </View>
+                  <View style={[styles.tableCell, styles.lastCell]}>
+                    <Text style={styles.totalsAmountText}>{formatNumber(Math.abs(closingBalance))}</Text>
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.noDataContainer}>
+                <MaterialIcons
+                  name="receipt-long"
+                  size={60}
+                  color={APPCOLORS.TEXTFIELDCOLOR}
+                />
+                <Text style={styles.noDataText}>
+                  {selectedAccount && loading
+                    ? 'Loading transactions...'
+                    : selectedAccount
+                      ? 'No transactions found for selected filters'
+                      : 'Please select an account to view transactions'}
+                </Text>
+              </View>
+            )}
           </View>
-        ) : (
-          <FlatList
-            data={ledgerData}
-            renderItem={renderSection}
-            keyExtractor={(item, index) => index.toString()}
-            scrollEnabled={false}
-          />
-        )}
-      </Animated.ScrollView>
+        </ScrollView>
+      </ScrollView>
     </View>
   );
 };
@@ -569,9 +910,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
-    paddingBottom: Platform.OS === 'android' ? 20 : 15, // Android ke liye extra padding
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
@@ -580,33 +920,37 @@ const styles = StyleSheet.create({
     color: APPCOLORS.WHITE,
     fontSize: 18,
     fontWeight: 'bold',
+    textAlign: 'center',
+    flex: 1,
   },
   filterContainer: {
-    backgroundColor: '#F0F2F5',
-    padding: 16,
-    margin: 12,
+    backgroundColor: '#FFFFFF',
+    padding: 12,
+    marginHorizontal: 12,
+    marginTop: 12,
     borderRadius: 16,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
   },
   filterRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
+    alignItems: 'center',
     gap: 10,
+    marginBottom: 12,
+    flexWrap: 'wrap',
   },
-  fullWidthContainer: {
+  dropdownContainer: {
     flex: 1,
+    minWidth: 150,
   },
   dateContainer: {
-    flex: 1,
+    minWidth: 100,
   },
   actionButtonsContainer: {
     flexDirection: 'row',
-    width: 100,
     gap: 8,
   },
   dropdown: {
@@ -615,17 +959,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     backgroundColor: '#FFFFFF',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
   },
   placeholderStyle: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#9CA3AF',
   },
   selectedTextStyle: {
-    fontSize: 14,
+    fontSize: 12,
     color: APPCOLORS.BLACK,
     fontWeight: '500',
   },
@@ -640,23 +984,21 @@ const styles = StyleSheet.create({
   },
   dateInput: {
     justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 12,
     padding: 14,
     backgroundColor: '#FFFFFF',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
     height: 48,
   },
   dateText: {
-    fontSize: 14,
+    fontSize: 12,
     color: APPCOLORS.BLACK,
     fontWeight: '500',
-  },
-  placeholderText: {
-    color: '#9CA3AF',
   },
   resetButton: {
     backgroundColor: '#E8EAED',
@@ -666,7 +1008,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
@@ -679,7 +1021,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: APPCOLORS.Primary,
-    shadowOffset: {width: 0, height: 3},
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 4,
@@ -695,7 +1037,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
@@ -717,69 +1059,99 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 12,
+    width: '100%',
   },
-  dateHeader: {
-    fontSize: 15,
-    color: APPCOLORS.BLACK,
-    fontWeight: 'bold',
-    marginVertical: 12,
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  card: {
+  // Table Styles
+  tableContainer: {
     backgroundColor: APPCOLORS.WHITE,
     borderRadius: 12,
-    padding: 16,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 8,
-    shadowOffset: {width: 0, height: 3},
+    width: '100%',
+    shadowOffset: { width: 0, height: 3 },
     elevation: 4,
-    borderLeftWidth: 4,
-    borderLeftColor: APPCOLORS.Primary,
+    minWidth: '100%',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginBottom: 80,
   },
-  transactionContent: {
+  tableHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    backgroundColor: APPCOLORS.Primary,
+    paddingVertical: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: APPCOLORS.Secondary,
   },
-  transactionDetails: {
-    flex: 1,
+  headerCell: {
+    width: 110,
+    paddingHorizontal: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(255,255,255,0.3)',
   },
-  amountSection: {
-    alignItems: 'flex-end',
-    marginLeft: 10,
+  lastHeaderCell: {
+    borderRightWidth: 0,
   },
-  refText: {
-    color: APPCOLORS.BLACK,
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 6,
-  },
-  personText: {
-    color: '#4B5563',
-    fontSize: 13,
-    marginBottom: 6,
-  },
-  memoText: {
-    color: '#6B7280',
+  headerText: {
+    color: APPCOLORS.WHITE,
     fontSize: 12,
-    marginTop: 4,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    borderStyle: 'dashed',
+  },
+  evenRow: {
+    backgroundColor: '#F9FAFB',
+  },
+  tableCell: {
+    width: 110,
+    paddingHorizontal: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#D1D5DB',
+    borderStyle: 'dashed',
+  },
+  lastCell: {
+    borderRightWidth: 0,
+  },
+  cellText: {
+    fontSize: 11,
+    color: '#374151',
+    textAlign: 'center',
+    flexWrap: 'wrap',
   },
   amountText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
+    fontWeight: '700',
+    color: APPCOLORS.Primary,
+    fontSize: 11,
   },
-  balanceText: {
+  totalsRow: {
+    flexDirection: 'row',
+    paddingVertical: 12,
+    backgroundColor: '#E5E7EB',
+    borderTopWidth: 2,
+    borderTopColor: APPCOLORS.Primary,
+  },
+  totalsText: {
     fontSize: 12,
-    color: '#6B7280',
+    fontWeight: 'bold',
+    color: '#374151',
+    textAlign: 'center',
+  },
+  totalsAmountText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: APPCOLORS.Primary,
+    textAlign: 'center',
   },
   loader: {
     flex: 1,

@@ -6,9 +6,11 @@ import {
   ActivityIndicator,
   FlatList,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import axios from 'axios';
 import PieChart from 'react-native-pie-chart';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {formatNumber} from '../../../../utils/NumberUtils';
@@ -48,19 +50,45 @@ const PayrollExpenseDetail = ({route, navigation}) => {
   const [chartSeries, setChartSeries] = useState([
     {value: 1, color: COLORS.GREY},
   ]);
+  const [currentTotal, setCurrentTotal] = useState(total);
+
+  // Date Filter State
+  const [startDate, setStartDate] = useState(from_date ? new Date(from_date) : new Date(new Date().setDate(new Date().getDate() - 30)));
+  const [endDate, setEndDate] = useState(to_date ? new Date(to_date) : new Date());
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [dateMode, setDateMode] = useState('start');
+
+  const formatDisplayDate = date => {
+    if (!date) return '';
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatDateForApi = date => {
+    if (!date) return '';
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   useEffect(() => {
-    fetchData();
+    fetchData(startDate, endDate);
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (fromDt = startDate, toDt = endDate) => {
     try {
+      setLoading(true);
       const formData = new FormData();
-      formData.append('from_date', from_date);
-      formData.append('to_date', to_date);
+      formData.append('from_date', formatDateForApi(fromDt));
+      formData.append('to_date', formatDateForApi(toDt));
       formData.append('account_type', account_type);
 
-      console.log('Fetching Payroll Data:', {from_date, to_date, account_type});
+      console.log('Fetching Payroll Data:', {from_date: formatDateForApi(fromDt), to_date: formatDateForApi(toDt), account_type});
 
       const res = await axios.post(
         `${BASEURL}parent_expense_detail.php`,
@@ -70,17 +98,17 @@ const PayrollExpenseDetail = ({route, navigation}) => {
         },
       );
 
-      //   console.log('Payroll API Response:', res.data);
-
       if (res.data?.status === 'true' && Array.isArray(res.data?.data)) {
         const apiData = res.data.data;
         setData(apiData);
 
-        // Prepare Chart Data
+        // Calculate total and Prepare Chart Data
+        let calculatedTotal = 0;
         const series = [];
 
         apiData.forEach((item, index) => {
           const val = parseFloat(item.t_amount) || 0;
+          calculatedTotal += Math.abs(val);
           if (val > 0) {
             series.push({
               value: val,
@@ -89,6 +117,7 @@ const PayrollExpenseDetail = ({route, navigation}) => {
           }
         });
 
+        setCurrentTotal(calculatedTotal);
         if (series.length > 0) {
           setChartSeries(series);
         }
@@ -98,6 +127,10 @@ const PayrollExpenseDetail = ({route, navigation}) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleApplyFilter = () => {
+    fetchData(startDate, endDate);
   };
 
   const renderItem = ({item, index}) => {
@@ -121,6 +154,47 @@ const PayrollExpenseDetail = ({route, navigation}) => {
     <View style={styles.container}>
       <SimpleHeader title={title || 'Payroll Expenses'} />
 
+      {/* Date Filter Section */}
+      <View style={styles.filterContainer}>
+        <Text style={styles.filterLabel}>Filter:</Text>
+        <View style={styles.dateRow}>
+          <TouchableOpacity
+            style={styles.dateButton}
+            onPress={() => {
+              setDateMode('start');
+              setDatePickerVisibility(true);
+            }}>
+            <Text style={styles.dateText}>{formatDisplayDate(startDate)}</Text>
+          </TouchableOpacity>
+          <Text style={styles.toText}>to</Text>
+          <TouchableOpacity
+            style={styles.dateButton}
+            onPress={() => {
+              setDateMode('end');
+              setDatePickerVisibility(true);
+            }}>
+            <Text style={styles.dateText}>{formatDisplayDate(endDate)}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.applyBtn} onPress={handleApplyFilter}>
+            <Text style={styles.applyBtnText}>Apply</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={date => {
+          if (dateMode === 'start') {
+            setStartDate(date);
+          } else {
+            setEndDate(date);
+          }
+          setDatePickerVisibility(false);
+        }}
+        onCancel={() => setDatePickerVisibility(false)}
+      />
+
       {loading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={COLORS.ORANGE} />
@@ -137,7 +211,7 @@ const PayrollExpenseDetail = ({route, navigation}) => {
             {/* Center Text (Total) */}
             <View style={styles.centerTextContainer}>
               <Text style={styles.centerLabel}>Total</Text>
-              <Text style={styles.centerValue}>{formatNumber(total)}</Text>
+              <Text style={styles.centerValue}>{formatNumber(currentTotal)}</Text>
             </View>
           </View>
 
@@ -174,6 +248,58 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 20,
+  },
+  filterContainer: {
+    marginHorizontal: 15,
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  filterLabel: {
+    color: COLORS.TEXT_DARK,
+    fontSize: 14,
+    marginBottom: 5,
+    fontWeight: 'bold',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateButton: {
+    backgroundColor: COLORS.WHITE,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    flex: 1,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  dateText: {
+    color: COLORS.TEXT_DARK,
+    fontSize: 14,
+  },
+  toText: {
+    marginHorizontal: 10,
+    color: COLORS.TEXT_DARK,
+  },
+  applyBtn: {
+    backgroundColor: '#1a1c22',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    marginLeft: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  applyBtnText: {
+    color: COLORS.WHITE,
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   chartContainer: {
     alignItems: 'center',

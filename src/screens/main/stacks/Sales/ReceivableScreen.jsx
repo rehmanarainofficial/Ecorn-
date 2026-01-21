@@ -202,6 +202,8 @@ const ReceivableScreen = ({navigation}) => {
                           Name={item?.name || 'Unknown Customer'}
                           balance={balance}
                           perc={perc}
+                          type="Customer"
+                          item={item}
                         />
                       </View>
                     );

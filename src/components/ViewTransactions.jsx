@@ -109,19 +109,24 @@ const ViewTransactions = ({navigation, route}) => {
           </View>
         </View>
 
-        {/* Terms & Conditions Button */}
-        {item.term_cond && (
-          <TouchableOpacity
-            style={styles.termsButton}
-            onPress={() => {
-              setSelectedTerms(item.term_cond);
-              setModalVisible(true);
-            }}>
-            <Icon name="file-document-outline" size={20} color="#FFF" />
-            <Text style={styles.termsButtonText}>View Terms & Conditions</Text>
-          </TouchableOpacity>
-        )}
       </View>
+    );
+  };
+
+  // Terms & Conditions Button (shown after table)
+  const renderTermsButton = () => {
+    if (headerData.length === 0 || !headerData[0].term_cond) return null;
+    
+    return (
+      <TouchableOpacity
+        style={styles.termsButton}
+        onPress={() => {
+          setSelectedTerms(headerData[0].term_cond);
+          setModalVisible(true);
+        }}>
+        <Icon name="file-document-outline" size={20} color="#FFF" />
+        <Text style={styles.termsButtonText}>View Terms & Conditions</Text>
+      </TouchableOpacity>
     );
   };
 
@@ -220,7 +225,7 @@ const ViewTransactions = ({navigation, route}) => {
 
         {/* Footer: Totals */}
         {headerData.length > 0 && (
-          <View style={[styles.headerCard, {marginTop: 0, marginBottom: 20}]}>
+          <View style={[styles.headerCard, {marginTop: 10, marginBottom: 0}]}>
             <View
               style={[
                 styles.summaryRow,
@@ -235,6 +240,9 @@ const ViewTransactions = ({navigation, route}) => {
             </View>
           </View>
         )}
+
+        {/* Terms & Conditions Button - After Totals */}
+        {renderTermsButton()}
       </ScrollView>
 
       {/* Terms & Conditions Modal */}
@@ -314,7 +322,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1c22',
     padding: 12,
     borderRadius: 8,
-    marginTop: 15,
+    marginHorizontal: 12,
+    marginTop: 10,
+    marginBottom: 20,
   },
   termsButtonText: {
     color: '#FFF',

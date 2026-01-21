@@ -19,7 +19,7 @@ const NormalViewAll = ({navigation, route}) => {
       const lowerSearch = searchQuery.toLowerCase();
       const newData = AllData.filter(item => {
         const name =
-          dataname === 'Supplier'
+          dataname === 'Supplier' || dataname === 'Suppliers'
             ? item.supp_name
             : dataname === 'Bank'
             ? item?.bank_name
@@ -49,6 +49,7 @@ const NormalViewAll = ({navigation, route}) => {
       case 'Bank':
         return {Name: item?.bank_name, Balance: item?.bank_balance};
       case 'Supplier':
+      case 'Suppliers':
       case 'Payable':
         return {Name: item?.supp_name, Balance: item?.Balance};
       case 'Customer':

@@ -139,7 +139,7 @@ const PayableScreen = ({navigation}) => {
                   onPress={() =>
                     navigation.navigate('NormalViewAll', {
                       AllData: listData,
-                      dataname: 'Supplier',
+                      dataname: 'Suppliers',
                     })
                   }
                 />
@@ -182,6 +182,8 @@ const PayableScreen = ({navigation}) => {
                           Name={item?.supp_name || 'Unknown Supplier'}
                           balance={balance}
                           perc={perc}
+                          type="Suppliers"
+                          item={item}
                         />
                       </View>
                     );

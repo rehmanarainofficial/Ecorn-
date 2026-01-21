@@ -116,7 +116,6 @@ const MoreDetail = ({navigation, route}) => {
           break;
 
         default:
-          console.log('❌ [MoreDetail DEBUG] Unknown type:', type);
           break;
       }
 
@@ -124,7 +123,6 @@ const MoreDetail = ({navigation, route}) => {
       setCircleData(circleBar);
       setLoading(false);
     } catch (error) {
-      console.error('❌ [MoreDetail DEBUG] API Error:', error);
       setLoading(false);
     }
   };

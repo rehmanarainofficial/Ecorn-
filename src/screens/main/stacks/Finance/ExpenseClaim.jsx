@@ -10,51 +10,99 @@ import {
   ToastAndroid,
   Image,
   Modal,
+  Platform,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
 import PlatformGradient from '../../../../components/PlatformGradient';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
 import axios from 'axios';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {useSelector} from 'react-redux';
 import {formatNumber} from '../../../../utils/NumberUtils';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {APPCOLORS} from '../../../../utils/APPCOLORS';
+
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
   Primary: '#1a1c22',
   Secondary: '#5a5c6a',
+  CardBg: '#F8FAFC',
+  Border: '#E2E8F0',
+  LabelColor: '#64748B',
+  TextDark: '#1E293B',
+  AccentBlue: '#3B82F6',
+  CheckboxActive: '#10B981',
 };
 
+// Purpose options for checkboxes
+const PURPOSE_OPTIONS = [
+  {id: 'monthly_exp', label: 'Monthly Exp'},
+  {id: 'official_travel', label: 'Official Travel'},
+  {id: 'client_meeting', label: 'Client Meeting'},
+  {id: 'office_supplies', label: 'Office Supplies'},
+  {id: 'training_seminar', label: 'Training / Seminar'},
+  {id: 'site_visit', label: 'Site Visit'},
+  {id: 'other', label: 'Other'},
+];
+
 export default function ExpenseClaim({navigation}) {
+  const insets = useSafeAreaInsets();
   const {id} = useSelector(state => state.Data.currentData);
-  const [date, setDate] = useState(new Date());
-  const [showDate, setShowDate] = useState(false);
-
-  const [accountTitle, setAccountTitle] = useState(null);
-  const [accountTitles, setAccountTitles] = useState([]);
+  
+  // Claim Details State
+  const [claimNo, setClaimNo] = useState('');
+  const [submissionDate, setSubmissionDate] = useState(new Date());
+  const [periodFromDate, setPeriodFromDate] = useState(new Date());
+  const [periodToDate, setPeriodToDate] = useState(new Date());
+  const [selectedPurposes, setSelectedPurposes] = useState([]);
+  const [otherPurposeText, setOtherPurposeText] = useState('');
+  const [accompaniedBy, setAccompaniedBy] = useState('');
+  
+  // Date Picker States
+  const [showSubmissionDatePicker, setShowSubmissionDatePicker] = useState(false);
+  const [showFromDatePicker, setShowFromDatePicker] = useState(false);
+  const [showToDatePicker, setShowToDatePicker] = useState(false);
+  const [showItemDatePicker, setShowItemDatePicker] = useState(false);
+  
+  // Expense Item Form State
+  const [itemDate, setItemDate] = useState(new Date());
+  const [expenseCategory, setExpenseCategory] = useState(null);
+  const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  const [memo, setMemo] = useState('');
-  const [overallMemo, setOverallMemo] = useState('');
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [imageLoading, setImageLoading] = useState(false);
-
+  
+  // Data State
+  const [accountTitles, setAccountTitles] = useState([]);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [accountsLoading, setAccountsLoading] = useState(false);
+  
+  // Image State
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  
+  // Overall Memo
+  const [overallMemo, setOverallMemo] = useState('');
 
-  // Fetch Account Titles from API
+  // Generate Claim No on mount
   useEffect(() => {
+    generateClaimNo();
     fetchAccountTitles();
   }, []);
+
+  const generateClaimNo = () => {
+    const timestamp = Date.now().toString().slice(-8);
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    setClaimNo(`EC-${timestamp}-${random}`);
+  };
 
   const fetchAccountTitles = async () => {
     setAccountsLoading(true);
     try {
       const response = await axios.get(`${BASEURL}get_gl_account.php`);
-
       if (response.data.status === 'true') {
         const formattedAccounts = response.data.data.map(account => ({
           label: account.account_name,
@@ -72,6 +120,29 @@ export default function ExpenseClaim({navigation}) {
     } finally {
       setAccountsLoading(false);
     }
+  };
+
+  const formatDate = (date) => {
+    const d = new Date(date);
+    const day = d.getDate().toString().padStart(2, '0');
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day} / ${month} / ${year}`;
+  };
+
+  const formatDateForApi = (date) => {
+    const d = new Date(date);
+    return d.toISOString().split('T')[0];
+  };
+
+  const togglePurpose = (purposeId) => {
+    setSelectedPurposes(prev => {
+      if (prev.includes(purposeId)) {
+        return prev.filter(id => id !== purposeId);
+      } else {
+        return [...prev, purposeId];
+      }
+    });
   };
 
   const handleImagePicker = () => {
@@ -101,43 +172,50 @@ export default function ExpenseClaim({navigation}) {
   };
 
   const handleAddItem = () => {
-    if (!accountTitle || !amount) {
-      ToastAndroid.show('Please fill all fields', ToastAndroid.SHORT);
+    if (!expenseCategory || !amount) {
+      ToastAndroid.show('Please fill required fields', ToastAndroid.SHORT);
       return;
     }
 
-    const selectedAccount = accountTitles.find(
-      acc => acc.value === accountTitle,
-    );
+    const selectedAccount = accountTitles.find(acc => acc.value === expenseCategory);
 
     setItems(prev => [
       ...prev,
       {
         id: Date.now().toString(),
-        accountTitle: accountTitle,
-        accountTitleLabel: selectedAccount?.account_name || '',
+        srNo: prev.length + 1,
+        date: new Date(itemDate),
+        expenseCategory: expenseCategory,
+        expenseCategoryLabel: selectedAccount?.account_name || '',
         accountCode: selectedAccount?.account_code || '',
+        description: description,
         amount: amount,
-        memo: memo,
       },
     ]);
 
     // Reset form fields
-    setAccountTitle(null);
+    setExpenseCategory(null);
+    setDescription('');
     setAmount('');
-    setMemo('');
+    setItemDate(new Date());
   };
 
-  const handleRemoveItem = id => {
-    setItems(prev => prev.filter(item => item.id !== id));
+  const handleRemoveItem = (id) => {
+    setItems(prev => {
+      const filtered = prev.filter(item => item.id !== id);
+      // Re-number the items
+      return filtered.map((item, index) => ({...item, srNo: index + 1}));
+    });
   };
 
   const handleSubmit = async () => {
     if (items.length === 0) {
-      ToastAndroid.show(
-        'Please add at least one expense item',
-        ToastAndroid.SHORT,
-      );
+      ToastAndroid.show('Please add at least one expense item', ToastAndroid.SHORT);
+      return;
+    }
+
+    if (selectedPurposes.length === 0) {
+      ToastAndroid.show('Please select at least one purpose', ToastAndroid.SHORT);
       return;
     }
 
@@ -148,22 +226,34 @@ export default function ExpenseClaim({navigation}) {
         (sum, item) => sum + parseFloat(item.amount || 0),
         0,
       );
+      
       const glDetail = items.map(item => ({
         type: '41',
         account_code: item.accountCode,
         amount: parseFloat(item.amount),
-        memo_: item.memo || '',
+        memo_: item.description || '',
+        trans_date: formatDateForApi(item.date),
       }));
+
+      const purposeLabels = selectedPurposes.map(id => {
+        if (id === 'other') return `Other: ${otherPurposeText}`;
+        return PURPOSE_OPTIONS.find(p => p.id === id)?.label || '';
+      });
 
       const formData = new FormData();
       formData.append('type', '41');
+      formData.append('claim_no', claimNo);
+      formData.append('submission_date', formatDateForApi(submissionDate));
+      formData.append('period_from', formatDateForApi(periodFromDate));
+      formData.append('period_to', formatDateForApi(periodToDate));
+      formData.append('purposes', JSON.stringify(purposeLabels));
+      formData.append('accompanied_by', accompaniedBy);
       formData.append('comments', overallMemo || '');
-      formData.append('trans_date', date.toISOString().split('T')[0]);
+      formData.append('trans_date', formatDateForApi(submissionDate));
       formData.append('amount', totalAmount.toString());
       formData.append('gl_detail', JSON.stringify(glDetail));
       formData.append('user_id', id);
 
-      // Add image file if selected
       if (selectedImage) {
         const imageFile = {
           uri: selectedImage,
@@ -186,27 +276,29 @@ export default function ExpenseClaim({navigation}) {
         response.data?.status === 'true' ||
         response.data?.status == 1
       ) {
-        ToastAndroid.show(
-          'Expense claim submitted successfully',
-          ToastAndroid.LONG,
-        );
+        ToastAndroid.show('Expense claim submitted successfully', ToastAndroid.LONG);
 
+        // Reset all fields
         setItems([]);
-        setAccountTitle(null);
+        setExpenseCategory(null);
+        setDescription('');
         setAmount('');
-        setMemo('');
-        setOverallMemo('');
-        setDate(new Date());
+        setSubmissionDate(new Date());
+        setPeriodFromDate(new Date());
+        setPeriodToDate(new Date());
+        setSelectedPurposes([]);
+        setOtherPurposeText('');
+        setAccompaniedBy('');
         setSelectedImage(null);
+        generateClaimNo();
       } else {
-        console.log('⚠️ Server rejected submission');
         ToastAndroid.show(
           response.data?.message || 'Server rejected submission',
           ToastAndroid.LONG,
         );
       }
     } catch (error) {
-      console.log('❌ Error:', error.response?.data || error.message);
+      console.log('Error:', error.response?.data || error.message);
       ToastAndroid.show('Submission failed', ToastAndroid.LONG);
     } finally {
       setLoading(false);
@@ -219,182 +311,335 @@ export default function ExpenseClaim({navigation}) {
     );
   };
 
+  const paddingTop = Platform.OS === 'ios' ? insets.top + 10 : insets.top + 15;
+
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={{flex: 1}}>
+    <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+      <PlatformGradient
+        colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
+        style={[styles.header, {paddingTop}]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="chevron-back" color={COLORS.WHITE} size={28} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Expense Claim Form</Text>
+        <Text style={styles.headerTitle}>Expense Claim Submission</Text>
         <View style={{width: 28}} />
-      </View>
+      </PlatformGradient>
 
-      <ScrollView contentContainerStyle={{padding: 20, paddingBottom: 100}}>
-        <TouchableOpacity
-          style={styles.dateButton}
-          onPress={() => setShowDate(true)}>
-          <Text style={styles.dateText}>
-            {date.toISOString().split('T')[0]}
-          </Text>
-        </TouchableOpacity>
-
-        {showDate && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display="default"
-            onChange={(event, selected) => {
-              setShowDate(false);
-              if (selected) setDate(selected);
-            }}
-          />
-        )}
-
-        {/* Expense Items Form */}
-        <Text style={styles.sectionTitle}>Add Expense Item</Text>
-
-        <View style={styles.rowContainer}>
-          <Dropdown
-            style={[styles.dropdown, {flex: 2}]}
-            data={accountTitles}
-            search
-            searchPlaceholder="Search account title..."
-            labelField="account_name"
-            valueField="account_code"
-            value={accountTitle}
-            onChange={item => setAccountTitle(item.account_code)}
-            placeholder={
-              accountsLoading ? 'Loading accounts...' : 'Account Title'
-            }
-            placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-            selectedTextStyle={{color: COLORS.WHITE}}
-            itemTextStyle={{color: COLORS.BLACK}}
-            renderLeftIcon={() =>
-              accountsLoading && (
-                <ActivityIndicator
-                  size="small"
-                  color={COLORS.WHITE}
-                  style={{marginRight: 8}}
-                />
-              )
-            }
-          />
-
-          <TextInput
-            style={[styles.textInput, {flex: 1}]}
-            placeholder="Amount"
-            placeholderTextColor="rgba(255,255,255,0.6)"
-            keyboardType="numeric"
-            value={amount}
-            onChangeText={setAmount}
-          />
-        </View>
-
-        <View style={styles.rowContainer}>
-          <TextInput
-            style={[styles.textInput, {flex: 1}]}
-            placeholder="Memo"
-            placeholderTextColor="rgba(255,255,255,0.6)"
-            value={memo}
-            onChangeText={setMemo}
-          />
-
-          <TouchableOpacity onPress={handleAddItem} style={styles.addButton}>
-            <Ionicons name="add" size={24} color={COLORS.WHITE} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Expense Items Table */}
-        {items.length > 0 && (
-          <View style={styles.tableContainer}>
-            <Text style={styles.sectionTitle}>Expense Items</Text>
-
-            {/* Table Header */}
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableHeaderText, {flex: 1.5}]}>Account</Text>
-              <Text style={[styles.tableHeaderText, {flex: 1}]}>Amount</Text>
-              <Text style={[styles.tableHeaderText, {flex: 1.2}]}>Memo</Text>
-              <Text style={[styles.tableHeaderText, {flex: 0.3}]}></Text>
-            </View>
-
-            {/* Table Rows */}
-            {items.map((item, index) => (
-              <View key={item.id} style={styles.tableRow}>
-                <View style={[styles.tableCell, {flex: 1.5}]}>
-                  <Text style={styles.tableText} numberOfLines={2}>
-                    {item.accountTitleLabel}
-                  </Text>
-                </View>
-                <Text style={[styles.tableText, {flex: 1}]}>
-                  {formatNumber(item.amount)}
-                </Text>
-                <Text style={[styles.tableText, {flex: 1.2}]} numberOfLines={2}>
-                  {item.memo}
-                </Text>
-                <TouchableOpacity
-                  style={[styles.actionButton, {flex: 0.3}]}
-                  onPress={() => handleRemoveItem(item.id)}>
-                  <Ionicons name="trash-outline" size={18} color="#ff6b6b" />
-                </TouchableOpacity>
-              </View>
-            ))}
-
-            {/* Total Row */}
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Total Amount:</Text>
-              <Text style={styles.totalAmount}>{calculateTotal()}</Text>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}>
+        
+        {/* Claim Details Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Claim Details</Text>
+          
+          {/* Expense Claim No */}
+          <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>Expense Claim No.:</Text>
+            <View style={styles.autoGeneratedField}>
+              <Text style={styles.autoGeneratedText}>{claimNo}</Text>
             </View>
           </View>
-        )}
 
-        {/* Overall Memo */}
-        <Text style={styles.sectionTitle}>Overall Memo</Text>
-        <TextInput
-          style={[styles.textInput, styles.textArea]}
-          placeholder="Enter overall description or notes..."
-          placeholderTextColor="rgba(255,255,255,0.6)"
-          multiline
-          numberOfLines={4}
-          value={overallMemo}
-          onChangeText={setOverallMemo}
-        />
+          {/* Claim Submission Date */}
+          <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>Claim Submission Date:</Text>
+            <TouchableOpacity 
+              style={styles.dateInputField}
+              onPress={() => setShowSubmissionDatePicker(true)}>
+              <Text style={styles.dateInputText}>{formatDate(submissionDate)}</Text>
+              <Ionicons name="calendar-outline" size={20} color={COLORS.LabelColor} />
+            </TouchableOpacity>
+          </View>
 
-        {/* Attach Image Section */}
-        <Text style={styles.sectionTitle}>Attach Receipt/Document</Text>
+          {/* Expense Period */}
+          <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>Expense Period:</Text>
+            <View style={styles.periodContainer}>
+              <Text style={styles.periodLabel}>From</Text>
+              <TouchableOpacity 
+                style={styles.periodDateField}
+                onPress={() => setShowFromDatePicker(true)}>
+                <Text style={styles.periodDateText}>{formatDate(periodFromDate)}</Text>
+              </TouchableOpacity>
+              <Text style={styles.periodLabel}>To</Text>
+              <TouchableOpacity 
+                style={styles.periodDateField}
+                onPress={() => setShowToDatePicker(true)}>
+                <Text style={styles.periodDateText}>{formatDate(periodToDate)}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Purpose of Expense */}
+          <View style={styles.purposeSection}>
+            <Text style={styles.fieldLabel}>Purpose of Expense:</Text>
+            <Text style={styles.purposeHint}>(Check Box - can select more than one)</Text>
+            <View style={styles.checkboxGrid}>
+              {PURPOSE_OPTIONS.map((purpose) => (
+                <TouchableOpacity
+                  key={purpose.id}
+                  style={styles.checkboxRow}
+                  onPress={() => togglePurpose(purpose.id)}>
+                  <View style={[
+                    styles.checkbox,
+                    selectedPurposes.includes(purpose.id) && styles.checkboxChecked
+                  ]}>
+                    {selectedPurposes.includes(purpose.id) && (
+                      <Ionicons name="checkmark" size={14} color={COLORS.WHITE} />
+                    )}
+                  </View>
+                  <Text style={styles.checkboxLabel}>{purpose.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            
+            {/* Other Specify Field */}
+            {selectedPurposes.includes('other') && (
+              <TextInput
+                style={styles.otherSpecifyInput}
+                placeholder="Please specify..."
+                placeholderTextColor={COLORS.LabelColor}
+                value={otherPurposeText}
+                onChangeText={setOtherPurposeText}
+              />
+            )}
+          </View>
+
+        </View>
+
+        {/* Expense Items Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Expense Items</Text>
+          
+          {/* Add Item Form */}
+          <View style={styles.addItemForm}>
+            {/* Date Field */}
+            <View style={styles.formRow}>
+              <Text style={styles.formLabel}>Date:</Text>
+              <TouchableOpacity 
+                style={styles.formDateField}
+                onPress={() => setShowItemDatePicker(true)}>
+                <Text style={styles.formDateText}>{formatDate(itemDate)}</Text>
+                <Ionicons name="calendar-outline" size={18} color={COLORS.LabelColor} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Expense Category Dropdown */}
+            <View style={styles.formRow}>
+              <Text style={styles.formLabel}>Expense Category:</Text>
+              <Dropdown
+                style={styles.formDropdown}
+                data={accountTitles}
+                search
+                searchPlaceholder="Search account..."
+                labelField="account_name"
+                valueField="account_code"
+                value={expenseCategory}
+                onChange={item => setExpenseCategory(item.account_code)}
+                placeholder={accountsLoading ? 'Loading...' : 'Select Category'}
+                placeholderStyle={styles.dropdownPlaceholder}
+                selectedTextStyle={styles.dropdownSelectedText}
+                itemTextStyle={styles.dropdownItemText}
+                containerStyle={styles.dropdownContainer}
+                renderLeftIcon={() =>
+                  accountsLoading && (
+                    <ActivityIndicator size="small" color={COLORS.AccentBlue} style={{marginRight: 8}} />
+                  )
+                }
+              />
+            </View>
+
+            {/* Description Field */}
+            <View style={styles.formRow}>
+              <Text style={styles.formLabel}>Description:</Text>
+              <TextInput
+                style={styles.formInput}
+                placeholder="Enter description..."
+                placeholderTextColor={COLORS.LabelColor}
+                value={description}
+                onChangeText={setDescription}
+              />
+            </View>
+
+            {/* Amount Field */}
+            <View style={styles.formRow}>
+              <Text style={styles.formLabel}>Amount:</Text>
+              <TextInput
+                style={styles.formInput}
+                placeholder="0.00"
+                placeholderTextColor={COLORS.LabelColor}
+                keyboardType="numeric"
+                value={amount}
+                onChangeText={setAmount}
+              />
+            </View>
+
+            {/* Add Item Button */}
+            <TouchableOpacity style={styles.addItemBtn} onPress={handleAddItem}>
+              <Ionicons name="add-circle" size={22} color={COLORS.BLACK} />
+              <Text style={styles.addItemBtnText}>Add Item</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Items Table */}
+          {items.length > 0 && (
+            <View style={styles.tableContainer}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View>
+                  {/* Table Header */}
+                  <View style={styles.tableHeader}>
+                    <Text style={[styles.tableHeaderCell, styles.colSr]}>Sr.</Text>
+                    <Text style={[styles.tableHeaderCell, styles.colDate]}>Date</Text>
+                    <Text style={[styles.tableHeaderCell, styles.colCategory]}>Expense Category</Text>
+                    <Text style={[styles.tableHeaderCell, styles.colDesc]}>Description</Text>
+                    <Text style={[styles.tableHeaderCell, styles.colAmount]}>Amount</Text>
+                    <Text style={[styles.tableHeaderCell, styles.colAction]}></Text>
+                  </View>
+
+                  {/* Table Rows */}
+                  {items.map((item, index) => (
+                    <View 
+                      key={item.id} 
+                      style={[styles.tableRow, index % 2 === 0 && styles.tableRowEven]}>
+                      <Text style={[styles.tableCell, styles.colSr]}>{item.srNo}</Text>
+                      <Text style={[styles.tableCell, styles.colDate]}>{formatDate(item.date)}</Text>
+                      <Text style={[styles.tableCell, styles.colCategory]} numberOfLines={2}>
+                        {item.expenseCategoryLabel}
+                      </Text>
+                      <Text style={[styles.tableCell, styles.colDesc]} numberOfLines={2}>
+                        {item.description || '-'}
+                      </Text>
+                      <Text style={[styles.tableCell, styles.colAmount]}>{formatNumber(item.amount)}</Text>
+                      <TouchableOpacity
+                        style={[styles.tableCell, styles.colAction]}
+                        onPress={() => handleRemoveItem(item.id)}>
+                        <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+
+                  {/* Total Row */}
+                  <View style={styles.totalRow}>
+                    <Text style={[styles.totalCell, styles.colSr]}></Text>
+                    <Text style={[styles.totalCell, styles.colDate]}></Text>
+                    <Text style={[styles.totalCell, styles.colCategory]}></Text>
+                    <Text style={[styles.totalLabel, styles.colDesc]}>Total:</Text>
+                    <Text style={[styles.totalAmount, styles.colAmount]}>{calculateTotal()}</Text>
+                    <Text style={[styles.totalCell, styles.colAction]}></Text>
+                  </View>
+                </View>
+              </ScrollView>
+            </View>
+          )}
+        </View>
+
+        {/* Additional Notes Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Additional Notes <Text style={styles.cardTitleHint}>(Names of Accompanying Person(s) if any)</Text></Text>
+          <TextInput
+            style={styles.notesInput}
+            placeholder=""
+            placeholderTextColor={COLORS.LabelColor}
+            multiline
+            numberOfLines={4}
+            value={accompaniedBy}
+            onChangeText={setAccompaniedBy}
+          />
+        </View>
+
+        {/* Attach Receipt Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Attach Receipt / Document <Text style={styles.cardTitleHint}>(Take photos of your bills before submitting the form.)</Text></Text>
+          <TouchableOpacity
+            onPress={handleImagePicker}
+            style={styles.attachButton}>
+            {imageLoading ? (
+              <ActivityIndicator size="small" color={COLORS.AccentBlue} />
+            ) : (
+              <>
+                <Ionicons
+                  name={selectedImage ? 'checkmark-circle' : 'cloud-upload-outline'}
+                  size={32}
+                  color={selectedImage ? COLORS.CheckboxActive : COLORS.AccentBlue}
+                />
+                <Text style={styles.attachButtonText}>
+                  {selectedImage ? 'Image Selected - Tap to Change' : 'Tap to Upload Image'}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          {selectedImage && (
+            <TouchableOpacity
+              style={styles.imagePreviewContainer}
+              onPress={() => setShowImageModal(true)}>
+              <Image source={{uri: selectedImage}} style={styles.imagePreview} />
+              <Text style={styles.imagePreviewText}>Tap to view full image</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Submit Button */}
         <TouchableOpacity
-          onPress={handleImagePicker}
-          style={styles.attachImageButton}>
-          {imageLoading ? (
-            <ActivityIndicator size="small" color={COLORS.WHITE} />
+          style={[styles.submitBtn, (loading || items.length === 0) && styles.submitBtnDisabled]}
+          onPress={handleSubmit}
+          disabled={loading || items.length === 0}>
+          {loading ? (
+            <ActivityIndicator color={COLORS.BLACK} />
           ) : (
             <>
-              <Ionicons
-                name={selectedImage ? 'checkmark-circle' : 'camera'}
-                size={28}
-                color={selectedImage ? '#4CAF50' : COLORS.WHITE}
-              />
-              <Text style={styles.attachImageText}>
-                {selectedImage
-                  ? 'Image Selected - Tap to Change'
-                  : 'Select Image'}
-              </Text>
+              <Ionicons name="paper-plane" size={22} color={COLORS.BLACK} />
+              <Text style={styles.submitBtnText}>Submit Expense Claim</Text>
             </>
           )}
         </TouchableOpacity>
 
-        {/* Selected Image Preview */}
-        {selectedImage && (
-          <TouchableOpacity
-            style={styles.imagePreviewContainer}
-            onPress={() => setShowImageModal(true)}>
-            <Image source={{uri: selectedImage}} style={styles.imagePreview} />
-            <Text style={styles.imagePreviewText}>Tap to view full image</Text>
-          </TouchableOpacity>
-        )}
+        <View style={{height: 40}} />
       </ScrollView>
+
+      {/* Date Pickers */}
+      <DateTimePickerModal
+        isVisible={showSubmissionDatePicker}
+        mode="date"
+        onConfirm={(date) => {
+          setSubmissionDate(date);
+          setShowSubmissionDatePicker(false);
+        }}
+        onCancel={() => setShowSubmissionDatePicker(false)}
+      />
+
+      <DateTimePickerModal
+        isVisible={showFromDatePicker}
+        mode="date"
+        onConfirm={(date) => {
+          setPeriodFromDate(date);
+          setShowFromDatePicker(false);
+        }}
+        onCancel={() => setShowFromDatePicker(false)}
+      />
+
+      <DateTimePickerModal
+        isVisible={showToDatePicker}
+        mode="date"
+        onConfirm={(date) => {
+          setPeriodToDate(date);
+          setShowToDatePicker(false);
+        }}
+        onCancel={() => setShowToDatePicker(false)}
+      />
+
+      <DateTimePickerModal
+        isVisible={showItemDatePicker}
+        mode="date"
+        onConfirm={(date) => {
+          setItemDate(date);
+          setShowItemDatePicker(false);
+        }}
+        onCancel={() => setShowItemDatePicker(false)}
+      />
 
       {/* Image Preview Modal */}
       <Modal
@@ -407,7 +652,7 @@ export default function ExpenseClaim({navigation}) {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Image Preview</Text>
               <TouchableOpacity onPress={() => setShowImageModal(false)}>
-                <Ionicons name="close" size={24} color={COLORS.WHITE} />
+                <Ionicons name="close" size={24} color={COLORS.TextDark} />
               </TouchableOpacity>
             </View>
             {selectedImage && (
@@ -421,200 +666,451 @@ export default function ExpenseClaim({navigation}) {
           </View>
         </View>
       </Modal>
-
-      {/* Bottom Process Button */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity
-          style={styles.submitBtn}
-          onPress={handleSubmit}
-          disabled={loading || items.length === 0}>
-          {loading ? (
-            <ActivityIndicator color={COLORS.WHITE} />
-          ) : (
-            <Text style={styles.submitBtnText}>Process Expense Claim</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </PlatformGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+  },
   header: {
-    height: 80,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
+    paddingBottom: 16,
+  },
+  backBtn: {
+    padding: 4,
   },
   headerTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  sectionTitle: {
-    fontSize: 18,
     color: COLORS.WHITE,
+    fontSize: 18,
     fontWeight: '700',
-    marginTop: 20,
-    marginBottom: 10,
   },
-  dateButton: {
-    height: 52,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  
+  // Card Styles
+  card: {
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.TextDark,
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.Border,
+    paddingBottom: 12,
+  },
+  cardTitleHint: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: COLORS.LabelColor,
+    fontStyle: 'italic',
+  },
+  
+  // Field Styles
+  fieldRow: {
+    marginBottom: 16,
+  },
+  fieldLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.TextDark,
+    marginBottom: 8,
+  },
+  autoGeneratedField: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  dateText: {
-    color: COLORS.WHITE,
-    fontSize: 16,
-  },
-  dropdown: {
-    height: 52,
+    backgroundColor: '#F1F5F9',
     borderRadius: 10,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
   },
-  textInput: {
-    height: 52,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    color: COLORS.WHITE,
-    fontSize: 16,
+  autoGeneratedText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.TextDark,
   },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
-    paddingTop: 12,
+  autoGeneratedBadge: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: COLORS.AccentBlue,
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
-  rowContainer: {
+  dateInputField: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 10,
-  },
-  imageButton: {
-    height: 52,
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 10,
+    borderColor: COLORS.Border,
   },
-  addButton: {
-    width: 52,
-    height: 52,
+  dateInputText: {
+    fontSize: 15,
+    color: COLORS.TextDark,
+  },
+  
+  // Period Styles
+  periodContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.Secondary,
-    borderRadius: 10,
+    flexWrap: 'wrap',
+    gap: 8,
   },
-  imagePreviewContainer: {
-    alignItems: 'center',
-    marginBottom: 10,
-    padding: 10,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+  periodLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.LabelColor,
   },
-  imagePreview: {
-    width: 100,
-    height: 100,
+  periodDateField: {
+    backgroundColor: COLORS.WHITE,
     borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+    minWidth: 110,
   },
-  imagePreviewText: {
-    color: COLORS.WHITE,
+  periodDateText: {
+    fontSize: 13,
+    color: COLORS.TextDark,
+    textAlign: 'center',
+  },
+  
+  // Purpose Checkbox Styles
+  purposeSection: {
+    marginBottom: 16,
+  },
+  purposeHint: {
     fontSize: 12,
-    marginTop: 5,
+    color: COLORS.LabelColor,
+    marginBottom: 12,
+    fontStyle: 'italic',
   },
+  checkboxGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+    marginBottom: 4,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: COLORS.LabelColor,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  checkboxChecked: {
+    backgroundColor: COLORS.CheckboxActive,
+    borderColor: COLORS.CheckboxActive,
+  },
+  checkboxLabel: {
+    fontSize: 13,
+    color: COLORS.TextDark,
+    fontWeight: '500',
+  },
+  otherSpecifyInput: {
+    marginTop: 12,
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+    fontSize: 14,
+    color: COLORS.TextDark,
+  },
+  
+  
+  // Add Item Form Styles
+  addItemForm: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  formRow: {
+    marginBottom: 14,
+  },
+  formRowSplit: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 14,
+  },
+  formHalf: {
+    flex: 1,
+  },
+  formLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.TextDark,
+    marginBottom: 6,
+  },
+  formDateField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+  },
+  formDateText: {
+    fontSize: 14,
+    color: COLORS.TextDark,
+  },
+  formDropdown: {
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+    height: 44,
+  },
+  formInput: {
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+    fontSize: 14,
+    color: COLORS.TextDark,
+    height: 44,
+  },
+  dropdownPlaceholder: {
+    color: COLORS.LabelColor,
+    fontSize: 14,
+  },
+  dropdownSelectedText: {
+    color: COLORS.TextDark,
+    fontSize: 14,
+  },
+  dropdownItemText: {
+    color: COLORS.TextDark,
+    fontSize: 14,
+  },
+  dropdownContainer: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+  },
+  addItemBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 10,
+    paddingVertical: 12,
+    gap: 8,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: COLORS.BLACK,
+  },
+  addItemBtnText: {
+    color: COLORS.BLACK,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  
+  // Table Styles
   tableContainer: {
-    marginTop: 10,
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.Border,
   },
   tableHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    padding: 12,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    backgroundColor: APPCOLORS.Primary,
+    paddingVertical: 12,
   },
-  tableHeaderText: {
+  tableHeaderCell: {
     color: COLORS.WHITE,
-    fontWeight: '700',
-    textAlign: 'center',
     fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+    paddingHorizontal: 8,
   },
   tableRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    backgroundColor: COLORS.WHITE,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.Border,
     alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(255,255,255,0.2)',
-    backgroundColor: 'rgba(255,255,255,0.02)',
+  },
+  tableRowEven: {
+    backgroundColor: '#F8FAFC',
   },
   tableCell: {
-    justifyContent: 'center',
-  },
-  tableText: {
-    color: COLORS.WHITE,
-    textAlign: 'center',
     fontSize: 12,
-  },
-  accountCodeText: {
-    color: 'rgba(255,255,255,0.6)',
+    color: COLORS.TextDark,
     textAlign: 'center',
-    fontSize: 10,
-    marginTop: 2,
-  },
-  actionButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 4,
+    paddingHorizontal: 8,
   },
   totalRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
+    backgroundColor: '#E2E8F0',
+    paddingVertical: 12,
+  },
+  totalCell: {
+    paddingHorizontal: 8,
   },
   totalLabel: {
-    color: COLORS.WHITE,
+    fontSize: 13,
     fontWeight: '700',
-    fontSize: 16,
+    color: COLORS.TextDark,
+    textAlign: 'right',
+    paddingHorizontal: 8,
   },
   totalAmount: {
-    color: COLORS.WHITE,
+    fontSize: 13,
     fontWeight: '700',
-    fontSize: 16,
+    color: COLORS.AccentBlue,
+    textAlign: 'center',
+    paddingHorizontal: 8,
   },
+  
+  // Column Widths
+  colSr: {width: 40},
+  colDate: {width: 100},
+  colCategory: {width: 150},
+  colDesc: {width: 130},
+  colAmount: {width: 100},
+  colAction: {width: 40, alignItems: 'center', justifyContent: 'center'},
+  
+  // Notes Styles
+  notesInput: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+    fontSize: 14,
+    color: COLORS.TextDark,
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  
+  // Attach Button Styles
+  attachButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F0F9FF',
+    borderRadius: 12,
+    paddingVertical: 24,
+    borderWidth: 2,
+    borderColor: COLORS.AccentBlue,
+    borderStyle: 'dashed',
+    gap: 12,
+  },
+  attachButtonText: {
+    color: COLORS.AccentBlue,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  imagePreviewContainer: {
+    alignItems: 'center',
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+  },
+  imagePreview: {
+    width: 120,
+    height: 120,
+    borderRadius: 8,
+  },
+  imagePreviewText: {
+    color: COLORS.LabelColor,
+    fontSize: 12,
+    marginTop: 8,
+  },
+  
+  // Submit Button Styles
+  submitBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 14,
+    paddingVertical: 16,
+    gap: 10,
+    borderWidth: 1.5,
+    borderColor: COLORS.BLACK,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  submitBtnDisabled: {
+    backgroundColor: '#E5E7EB',
+    borderColor: '#9CA3AF',
+  },
+  submitBtnText: {
+    color: COLORS.BLACK,
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  
+  // Modal Styles
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.9)',
+    backgroundColor: 'rgba(0,0,0,0.8)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: COLORS.Primary,
-    borderRadius: 12,
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 16,
     padding: 20,
     margin: 20,
     width: '90%',
@@ -626,7 +1122,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   modalTitle: {
-    color: COLORS.WHITE,
+    color: COLORS.TextDark,
     fontSize: 18,
     fontWeight: '700',
   },
@@ -637,54 +1133,14 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   modalCloseButton: {
-    backgroundColor: COLORS.Secondary,
+    backgroundColor: COLORS.AccentBlue,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
   },
   modalCloseText: {
     color: COLORS.WHITE,
     fontSize: 16,
-    fontWeight: '600',
-  },
-  attachImageButton: {
-    height: 60,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    marginBottom: 10,
-  },
-  attachImageText: {
-    color: COLORS.WHITE,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
-    backgroundColor: COLORS.Primary,
-    borderTopWidth: 0.5,
-    borderTopColor: 'rgba(255,255,255,0.1)',
-  },
-  submitBtn: {
-    height: 56,
-    backgroundColor: COLORS.Secondary,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  submitBtnText: {
-    color: COLORS.WHITE,
-    fontSize: 18,
     fontWeight: '600',
   },
 });

@@ -12,8 +12,6 @@ export const GetBankBalance = async () => {
   };
 
  const res = await axios.request(config)
- console.log("res", res);
- 
  return res.data
 
 };
