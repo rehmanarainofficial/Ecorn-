@@ -82,7 +82,12 @@ const ApprovalCard = ({
     setViewLoading(true);
     try {
       if (isJobCardScreen) {
-        // For Electrical/Mechanical Job Cards
+        // For Electrical/Mechanical Job Cards - only send trans_no
+        console.log('View clicked - Job Card Screen');
+        console.log('trans_no:', trans_no);
+        console.log('reference:', reference);
+        console.log('screenType:', screenType);
+        
         navigation.navigate('ManufacturingView', {
           trans_no: trans_no,
         });

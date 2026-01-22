@@ -66,8 +66,8 @@ const ApprovalListScreen = ({route, navigation}) => {
     // Initial API call with default dates
     fetchInitialData(threeMonthsAgo, today, '');
 
-    // Fetch software types for voucher, electrical & mechanical approval dropdown
-    if (listKey === 'voucher_approval' || listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards') {
+    // Fetch software types for voucher approval dropdown only
+    if (listKey === 'voucher_approval') {
       fetchSoftwareTypes();
     }
   }, []);
@@ -82,6 +82,8 @@ const ApprovalListScreen = ({route, navigation}) => {
           value: item.id,
         }));
         setSoftwareTypes(formattedData);
+        console.log('formattedData: ', formattedData);
+        
       }
     } catch (err) {
       console.log('Software Types API Error:', err);
@@ -119,7 +121,8 @@ const ApprovalListScreen = ({route, navigation}) => {
           'Content-Type': 'multipart/form-data',
         },
       });
-
+      console.log('res: ', res);
+      
       const mappedKey = keyMap[listKey];
       const newData = res.data?.[mappedKey] || [];
 
@@ -165,10 +168,17 @@ const ApprovalListScreen = ({route, navigation}) => {
       formData.append('to_date', formatDateForAPI(toDate));
       formData.append('ref', reference);
       
-      // Add type for voucher, electrical & mechanical approval
-      if ((listKey === 'voucher_approval' || listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards') && selectedType) {
+      // Add type for voucher approval only
+      if (listKey === 'voucher_approval' && selectedType) {
         formData.append('type', selectedType);
       }
+      
+      // Add cost_center if searchLocation has value
+      if (searchLocation.trim() !== '') {
+        formData.append('cost_center', searchLocation);
+      }
+
+      console.log('Filter FormData - cost_center:', searchLocation);
 
       const res = await axios.post(`${BASEURL}dash_approval.php`, formData, {
         headers: {
@@ -250,12 +260,23 @@ const ApprovalListScreen = ({route, navigation}) => {
   };
 
   const handleApprove = async item => {
+    console.log('Approve clicked - trans_no:', item.trans_no);
+    console.log('Approve clicked - full item:', item);
+    console.log('listKey:', listKey);
+    
     try {
       const formData = new FormData();
-      formData.append('id', currentUser?.user_id);
-      formData.append('trans_no', item.trans_no);
-      formData.append('type', item.type);
-      formData.append('approval', 0);
+      
+      // For Electrical & Mechanical, only send trans_no
+      if (listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards') {
+        console.log('Electrical/Mechanical - sending only trans_no:', item.trans_no);
+        formData.append('trans_no', item.trans_no);
+      } else {
+        formData.append('id', currentUser?.user_id);
+        formData.append('trans_no', item.trans_no);
+        formData.append('type', item.type);
+        formData.append('approval', 0);
+      }
 
       const res = await axios.post(
         `${BASEURL}dash_approval_post.php`,
@@ -346,25 +367,9 @@ const ApprovalListScreen = ({route, navigation}) => {
           </View>
         </View>
 
-        {/* Row 3: Name Search / Type Dropdown and Buttons */}
+        {/* Row 3: Name Search / Type Dropdown / Cost Center and Buttons */}
         <View style={styles.searchRow}>
-          {listKey !== 'voucher_approval' && listKey !== 'electrocal_job_cards' && listKey !== 'mechnical_job_cards' ? (
-            <View style={styles.searchContainer}>
-              <Icon
-                name="account-search"
-                size={20}
-                color="#666"
-                style={styles.searchIcon}
-              />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search by name..."
-                placeholderTextColor="#888"
-                value={searchName}
-                onChangeText={setSearchName}
-              />
-            </View>
-          ) : (
+          {listKey === 'voucher_approval' ? (
             <View style={{flex: 1, marginRight: 8}}>
               <Dropdown
                 style={styles.dropdown}
@@ -378,6 +383,38 @@ const ApprovalListScreen = ({route, navigation}) => {
                 placeholder="Select Type"
                 value={selectedType}
                 onChange={item => setSelectedType(item.value)}
+              />
+            </View>
+          ) : listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards' ? (
+            <View style={styles.searchContainer}>
+              <Icon
+                name="map-marker-outline"
+                size={20}
+                color="#666"
+                style={styles.searchIcon}
+              />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search by cost center..."
+                placeholderTextColor="#888"
+                value={searchLocation}
+                onChangeText={setSearchLocation}
+              />
+            </View>
+          ) : (
+            <View style={styles.searchContainer}>
+              <Icon
+                name="account-search"
+                size={20}
+                color="#666"
+                style={styles.searchIcon}
+              />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search by name..."
+                placeholderTextColor="#888"
+                value={searchName}
+                onChangeText={setSearchName}
               />
             </View>
           )}
@@ -402,8 +439,8 @@ const ApprovalListScreen = ({route, navigation}) => {
           </View>
         </View>
 
-        {/* Row 4: Cost Center Search (Full Width) */}
-        {listKey !== 'quotation_approval' && listKey !== 'voucher_approval' && (
+        {/* Row 4: Cost Center Search (Full Width) - Not for Electrical/Mechanical */}
+        {listKey !== 'quotation_approval' && listKey !== 'voucher_approval' && listKey !== 'electrocal_job_cards' && listKey !== 'mechnical_job_cards' && (
           <View style={[styles.searchRow, {marginTop: 8}]}>
             <View style={[styles.searchContainer, {marginRight: 0}]}>
               <Icon

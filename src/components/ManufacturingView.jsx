@@ -41,6 +41,8 @@ const ManufacturingView = ({navigation, route}) => {
 
       const formData = new FormData();
       formData.append('trans_no', trans_no);
+      console.log('formData: ', formData);
+      
 
       const res = await axios.post(
         `${BASEURL}view_manufacturing.php`,

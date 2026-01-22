@@ -16,7 +16,6 @@ import RevenueCards from '../../../../components/RevenueCards';
 import {responsiveHeight, responsiveWidth} from '../../../../utils/Responsive';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import axios from 'axios';
-import TopTen from '../../../../components/TopTen';
 import {useSelector} from 'react-redux';
 import {formatNumber} from '../../../../utils/NumberUtils';
 

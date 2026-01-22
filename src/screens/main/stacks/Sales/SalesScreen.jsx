@@ -18,7 +18,16 @@ const buttons = [
     name: 'Receivable',
     icon: 'format-list-bulleted',
     navigate: 'ReceivableScreen',
-  },
+  },{
+    name: 'Cost Center',
+    icon: 'chart-bar',
+    navigate: 'CostCenterScreen',
+  },{
+    name: 'Sales Transactions',
+    icon: 'check-circle',
+    navigate: 'ApprovedRecordsScreen',
+    screen: 'ApprovedRecordsScreen',
+  }
 ];
 
 export default function SalesScreen({navigation}) {
@@ -30,27 +39,22 @@ export default function SalesScreen({navigation}) {
       style={styles.buttonWrapper}>
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => navigation.navigate(item.navigate)}>
-        <PlatformGradient
-          colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)']}
-          style={styles.buttonContainer}>
-          <Animatable.View
-            animation="pulse"
-            iterationCount="infinite"
-            iterationDelay={4000}
-            style={styles.iconContainer}>
-            <Icon name={item.icon} size={22} color="#fff" />
-          </Animatable.View>
-          <Text style={styles.buttonText}>{item.name}</Text>
-        </PlatformGradient>
+        onPress={() => navigation.navigate(item.navigate)}
+        style={styles.buttonContainer}>
+        <Animatable.View
+          animation="pulse"
+          iterationCount="infinite"
+          iterationDelay={4000}
+          style={styles.iconContainer}>
+          <Icon name={item.icon} size={22} color="#FFFFFF" />
+        </Animatable.View>
+        <Text style={styles.buttonText}>{item.name}</Text>
       </TouchableOpacity>
     </Animatable.View>
   );
 
   return (
-    <PlatformGradient
-      colors={['#1a1c22', '#5a5c6a', '#000000']}
-      style={styles.container}>
+    <View style={styles.container}>
       <SimpleHeader title="Sales" />
       <FlatList
         data={buttons}
@@ -58,22 +62,24 @@ export default function SalesScreen({navigation}) {
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={{paddingVertical: 20}}
       />
-    </PlatformGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F3F4F6',
   },
   buttonWrapper: {
     marginVertical: 8,
     marginHorizontal: 16,
     borderRadius: 12,
-    overflow: 'hidden',
+    backgroundColor: '#1a1c22',
     shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
     elevation: 4,
   },
   buttonContainer: {
@@ -86,10 +92,10 @@ const styles = StyleSheet.create({
     padding: 10,
     marginRight: 12,
     borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(255,255,255,0.15)',
   },
   buttonText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
