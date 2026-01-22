@@ -214,7 +214,7 @@ const ViewDetailsScreen = ({route}) => {
                 <View style={{marginTop: 10}}>
                   <AppText
                     title={
-                      isPurchaseOrder || isGRN ? 'Supplier Name:' : 'Customer:'
+                      isPurchaseOrder || isGRN ? 'Supplier Name:' : 'Customer:' 
                     }
                     titleSize={2}
                     titleColor={APPCOLORS.WHITE}

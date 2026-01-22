@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   TouchableOpacity,
   StyleSheet,
@@ -6,16 +6,16 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
-import Animated, {FadeInUp} from 'react-native-reanimated';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import PlatformGradient from '../../../../components/PlatformGradient';
 import AppText from '../../../../components/AppText';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import axios from 'axios';
 import Toast from 'react-native-toast-message';
-import {generateAndDownloadPDF} from '../../../../components/PDFGenerator';
-import {BASEURL} from '../../../../utils/BaseUrl';
-import {formatDateString} from '../../../../utils/DateUtils';
-import {formatNumber} from '../../../../utils/NumberUtils';
+import { generateAndDownloadPDF } from '../../../../components/PDFGenerator';
+import { BASEURL } from '../../../../utils/BaseUrl';
+import { formatDateString } from '../../../../utils/DateUtils';
+import { formatNumber } from '../../../../utils/NumberUtils';
 
 const ApprovalCard = ({
   reference,
@@ -23,14 +23,18 @@ const ApprovalCard = ({
   name,
   total,
   onApprove,
+  onUnapprove,
   trans_no,
   type,
   navigation,
   screenType,
   serialNo,
+  location_name,
+  isApproved = false,
 }) => {
   const [viewLoading, setViewLoading] = useState(false);
   const [approveLoading, setApproveLoading] = useState(false);
+  const [unapproveLoading, setUnapproveLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [glViewLoading, setGlViewLoading] = useState(false);
 
@@ -42,6 +46,9 @@ const ApprovalCard = ({
 
   // ✅ Check if this is Location Transfer screen
   const isLocationTransferScreen = screenType === 'location_transfer_app';
+  
+  // ✅ Check if this is Delivery screen
+  const isDeliveryScreen = screenType === 'delivery_approval';
 
   const formatAmount = amount => {
     return formatNumber(amount);
@@ -82,12 +89,6 @@ const ApprovalCard = ({
     setViewLoading(true);
     try {
       if (isJobCardScreen) {
-        // For Electrical/Mechanical Job Cards - only send trans_no
-        console.log('View clicked - Job Card Screen');
-        console.log('trans_no:', trans_no);
-        console.log('reference:', reference);
-        console.log('screenType:', screenType);
-        
         navigation.navigate('ManufacturingView', {
           trans_no: trans_no,
         });
@@ -145,6 +146,17 @@ const ApprovalCard = ({
     }
   };
 
+  const handleUnapprovePress = async () => {
+    setUnapproveLoading(true);
+    try {
+      if (onUnapprove) {
+        await onUnapprove();
+      }
+    } finally {
+      setUnapproveLoading(false);
+    }
+  };
+
   const handleDownloadPDF = async () => {
     setDownloadLoading(true);
     try {
@@ -174,17 +186,17 @@ const ApprovalCard = ({
   return (
     <PlatformGradient
       colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-      start={{x: 0, y: 0}}
-      end={{x: 1, y: 1}}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
       style={styles.screen}>
-      <ScrollView contentContainerStyle={{padding: 15}}>
+      <ScrollView contentContainerStyle={{ padding: 15 }}>
         <Animated.View
           entering={FadeInUp.delay(200)}
           style={styles.cardWrapper}>
           <PlatformGradient
             colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 1}}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.card}>
             {/* Top row: Reference and Serial No */}
             <View style={styles.topRow}>
@@ -208,22 +220,70 @@ const ApprovalCard = ({
 
             {/* Details */}
             <View style={styles.detailsContainer}>
-              <AppText
-                title={`Date: ${formatDateString(ord_date)}`}
-                titleSize={2}
-                titleColor={APPCOLORS.WHITE}
-              />
-              <AppText
-                title={name}
-                titleSize={2}
-                titleColor={APPCOLORS.WHITE}
-              />
-              <AppText
-                title={`Total: ${formatNumber(total)}`}
-                titleSize={2}
-                titleColor={APPCOLORS.WHITE}
-                titleWeight
-              />
+              {isJobCardScreen ? (
+                <>
+                  <AppText
+                    title={`Reference: ${reference}`}
+                    titleSize={2}
+                    titleColor={APPCOLORS.WHITE}
+                  />
+                  <AppText
+                    title={`Cost Center: ${name}`}
+                    titleSize={2}
+                    titleColor={APPCOLORS.WHITE}
+                  />
+                  <AppText
+                    title={`Date: ${formatDateString(ord_date)}`}
+                    titleSize={2}
+                    titleColor={APPCOLORS.WHITE}
+                  />
+                </>
+              ) : screenType === 'quotation_approval' ? (
+                <>
+                  <AppText
+                    title={`Date: ${formatDateString(ord_date)}`}
+                    titleSize={2}
+                    titleColor={APPCOLORS.WHITE}
+                  />
+                  <AppText
+                    title={name}
+                    titleSize={2}
+                    titleColor={APPCOLORS.WHITE}
+                  />
+                  <AppText
+                    title={`Total: ${formatNumber(total)}`}
+                    titleSize={2}
+                    titleColor={APPCOLORS.WHITE}
+                    titleWeight
+                  />
+                </>
+              ) : (
+                <>
+                  <AppText
+                    title={name}
+                    titleSize={2}
+                    titleColor={APPCOLORS.WHITE}
+                  />
+                  {location_name ? (
+                    <AppText
+                      title={`Cost Center: ${location_name}`}
+                      titleSize={2}
+                      titleColor={APPCOLORS.WHITE}
+                    />
+                  ) : null}
+                  <AppText
+                    title={`Date: ${formatDateString(ord_date)}`}
+                    titleSize={2}
+                    titleColor={APPCOLORS.WHITE}
+                  />
+                  <AppText
+                    title={`Total: ${formatNumber(total)}`}
+                    titleSize={2}
+                    titleColor={APPCOLORS.WHITE}
+                    titleWeight
+                  />
+                </>
+              )}
             </View>
 
             {/* Row 1: View + PDF */}
@@ -235,8 +295,8 @@ const ApprovalCard = ({
                 style={[styles.buttonWrapper, styles.halfButton]}>
                 <PlatformGradient
                   colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 0}}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
                   style={styles.button}>
                   {viewLoading ? (
                     <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
@@ -258,8 +318,8 @@ const ApprovalCard = ({
                 style={[styles.buttonWrapper, styles.halfButton]}>
                 <PlatformGradient
                   colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 0}}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
                   style={styles.button}>
                   {downloadLoading ? (
                     <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
@@ -275,30 +335,57 @@ const ApprovalCard = ({
               </TouchableOpacity>
             </View>
 
-            {/* Row 2: Approve (+ GL View for Voucher) */}
-            <View style={[styles.buttonsRow, {marginTop: 8}]}>
-              {/* Approve Button */}
-              <TouchableOpacity
-                onPress={handleApprovePress}
-                disabled={approveLoading}
-                style={[styles.buttonWrapper, isVoucherScreen ? styles.halfButton : styles.fullButton]}>
-                <PlatformGradient
-                  colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 0}}
-                  style={styles.button}>
-                  {approveLoading ? (
-                    <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
-                  ) : (
-                    <AppText
-                      title="Approve"
-                      titleSize={1.8}
-                      titleColor={APPCOLORS.WHITE}
-                      titleWeight
-                    />
-                  )}
-                </PlatformGradient>
-              </TouchableOpacity>
+            {/* Row 2: Approve/Unapprove (+ GL View for Voucher) */}
+            <View style={[styles.buttonsRow, { marginTop: 8 }]}>
+              {/* Approve Button - Only show if not already approved */}
+              {!isApproved && (
+                <TouchableOpacity
+                  onPress={handleApprovePress}
+                  disabled={approveLoading}
+                  style={[styles.buttonWrapper, isVoucherScreen ? styles.halfButton : styles.fullButton]}>
+                  <PlatformGradient
+                    colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.button}>
+                    {approveLoading ? (
+                      <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
+                    ) : (
+                      <AppText
+                        title="Approve"
+                        titleSize={1.8}
+                        titleColor={APPCOLORS.WHITE}
+                        titleWeight
+                      />
+                    )}
+                  </PlatformGradient>
+                </TouchableOpacity>
+              )}
+
+              {/* Unapprove Button - Only show if already approved */}
+              {isApproved && (
+                <TouchableOpacity
+                  onPress={handleUnapprovePress}
+                  disabled={unapproveLoading}
+                  style={[styles.buttonWrapper, isVoucherScreen ? styles.halfButton : styles.fullButton]}>
+                  <PlatformGradient
+                    colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.button}>
+                    {unapproveLoading ? (
+                      <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
+                    ) : (
+                      <AppText
+                        title="Un-approve"
+                        titleSize={1.8}
+                        titleColor={APPCOLORS.WHITE}
+                        titleWeight
+                      />
+                    )}
+                  </PlatformGradient>
+                </TouchableOpacity>
+              )}
 
               {/* GL View Button - Only show for Voucher screen */}
               {isVoucherScreen && (
@@ -308,8 +395,8 @@ const ApprovalCard = ({
                   style={[styles.buttonWrapper, styles.halfButton]}>
                   <PlatformGradient
                     colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
-                    start={{x: 0, y: 0}}
-                    end={{x: 1, y: 0}}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
                     style={styles.button}>
                     {glViewLoading ? (
                       <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
@@ -349,7 +436,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     shadowColor: APPCOLORS.BLACK,
     shadowOpacity: 0.3,
-    shadowOffset: {width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowRadius: 6,
   },
   topRow: {

@@ -28,6 +28,7 @@ const buttons = [
     name: 'Inventory Transactions',
     icon: 'check-circle',
     screen: 'ApprovedRecordsScreen',
+    params: {screenType: 'inventory'},
   }
 ];
 
@@ -40,7 +41,7 @@ export default function InventoryScreen({navigation}) {
       style={styles.buttonWrapper}>
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => navigation.navigate(item.screen)}
+        onPress={() => navigation.navigate(item.screen, item.params || {})}
         style={styles.buttonContainer}>
         <Animatable.View
           animation="pulse"

@@ -19,7 +19,7 @@ const buttons = [
     screen: 'PdcDetailScreen',
   },
   {name: 'Payable Summary', icon: 'cash-multiple', screen: 'PayableSummary'},
-  {name: 'Purchase Transactions', icon: 'check-circle', screen: 'ApprovedRecordsScreen'},
+  {name: 'Purchase Transactions', icon: 'check-circle', screen: 'ApprovedRecordsScreen', params: {screenType: 'purchase'}},
 ];
 
 export default function PurchaseScreen({navigation}) {
@@ -31,7 +31,7 @@ export default function PurchaseScreen({navigation}) {
       style={styles.buttonWrapper}>
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => navigation.navigate(item.screen)}
+        onPress={() => navigation.navigate(item.screen, item.params || {})}
         style={styles.buttonContainer}>
         <Animatable.View
           animation="pulse"

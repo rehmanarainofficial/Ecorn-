@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   ActivityIndicator,
@@ -8,21 +8,20 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import {Dropdown} from 'react-native-element-dropdown';
+import { Dropdown } from 'react-native-element-dropdown';
 import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import ApprovalCard from './ApprovalCard';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {useSelector} from 'react-redux';
+import { useSelector } from 'react-redux';
 import Toast from 'react-native-toast-message';
-import {BASEURL} from '../../../../utils/BaseUrl';
-import {formatDate} from '../../../../utils/DateUtils';
-import {formatNumber} from '../../../../utils/NumberUtils';
+import { BASEURL } from '../../../../utils/BaseUrl';
+import { formatDate } from '../../../../utils/DateUtils';
 
-const ApprovalListScreen = ({route, navigation}) => {
-  const {listKey, title} = route.params;
+const ApprovalListScreen = ({ route, navigation }) => {
+  const { listKey, title, isApproved = false } = route.params;
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -42,6 +41,9 @@ const ApprovalListScreen = ({route, navigation}) => {
   const [softwareTypes, setSoftwareTypes] = useState([]);
 
   const currentUser = useSelector(state => state.Data.currentData);
+  
+  // Determine API endpoint based on isApproved flag
+  const apiEndpoint = isApproved ? `${BASEURL}dash_approved.php` : `${BASEURL}dash_approval.php`;
 
   const keyMap = {
     quotation_approval: 'data_unapprove_quote',
@@ -50,9 +52,12 @@ const ApprovalListScreen = ({route, navigation}) => {
     grn_approval: 'data_unapprove_grn_order',
     voucher_approval: 'data_unapprove_voucher',
     delivery_approval: 'data_unapprove_deliveries',
+    invoice_approval: 'data_unapprove_invoice',
+    po_invoice_approval: 'data_unapprove_po_invoice',
     electrocal_job_cards: 'data_electrical_job_cards',
     mechnical_job_cards: 'data_Mechnical_job_cards',
     location_transfer_app: 'data_unapprove_loc_transfer',
+    adjustment_app: 'data_unapprove_adjustment',
   };
 
   useEffect(() => {
@@ -83,23 +88,20 @@ const ApprovalListScreen = ({route, navigation}) => {
         }));
         setSoftwareTypes(formattedData);
         console.log('formattedData: ', formattedData);
-        
+
       }
     } catch (err) {
       console.log('Software Types API Error:', err);
     }
   };
 
-  const formatPrice = price => {
-    return formatNumber(price);
-  };
 
   const formatDateForAPI = date => {
     if (!date) return '';
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    return `${year}/${month}/${day}`;
+    return `${year}-${month}-${day}`;
   };
 
   const formatDateForDisplay = date => {
@@ -115,16 +117,27 @@ const ApprovalListScreen = ({route, navigation}) => {
       formData.append('from_date', formatDateForAPI(from));
       formData.append('to_date', formatDateForAPI(to));
       formData.append('ref', ref);
+      formData.append('cost_center', searchLocation);
 
-      const res = await axios.post(`${BASEURL}dash_approval.php`, formData, {
+
+
+      console.log('========== FETCH INITIAL DEBUG ==========');
+      console.log('API Endpoint:', isApproved ? 'dash_approved.php' : 'dash_approval.php');
+      console.log('isApproved:', isApproved);
+      console.log('listKey:', listKey);
+      console.log('==========================================');
+
+      const res = await axios.post(apiEndpoint, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       console.log('res: ', res);
-      
+
       const mappedKey = keyMap[listKey];
+      console.log('Mapped Key:', mappedKey);
       const newData = res.data?.[mappedKey] || [];
+      console.log('Data found:', newData.length, 'records');
 
       setData(newData);
       setFilteredData(newData);
@@ -167,27 +180,38 @@ const ApprovalListScreen = ({route, navigation}) => {
       formData.append('from_date', formatDateForAPI(fromDate));
       formData.append('to_date', formatDateForAPI(toDate));
       formData.append('ref', reference);
-      
+
       // Add type for voucher approval only
       if (listKey === 'voucher_approval' && selectedType) {
         formData.append('type', selectedType);
       }
-      
+
       // Add cost_center if searchLocation has value
       if (searchLocation.trim() !== '') {
         formData.append('cost_center', searchLocation);
       }
 
-      console.log('Filter FormData - cost_center:', searchLocation);
+      // Add name if searchName has value
+      if (searchName.trim() !== '') {
+        formData.append('name', searchName);
+      }
 
-      const res = await axios.post(`${BASEURL}dash_approval.php`, formData, {
+      console.log('========== FILTER DEBUG ==========');
+      console.log('API Endpoint:', isApproved ? 'dash_approved.php' : 'dash_approval.php');
+      console.log('isApproved:', isApproved);
+      console.log('listKey:', listKey);
+      console.log('===================================');
+
+      const res = await axios.post(apiEndpoint, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
       const mappedKey = keyMap[listKey];
+      console.log('Mapped Key:', mappedKey);
       const newData = res.data?.[mappedKey] || [];
+      console.log('Data found after filter:', newData.length, 'records');
 
       setData(newData);
 
@@ -209,7 +233,9 @@ const ApprovalListScreen = ({route, navigation}) => {
         );
       }
 
-      if (searchLocation.trim() !== '') {
+      // For Electrical/Mechanical - cost center is in 'name' field, for others it's in 'location_name' or 'loc_name'
+      // Skip local filter for cost_center since API already filters it
+      if (searchLocation.trim() !== '' && listKey !== 'electrocal_job_cards' && listKey !== 'mechnical_job_cards') {
         filtered = filtered.filter(
           item =>
             (item.location_name &&
@@ -263,10 +289,10 @@ const ApprovalListScreen = ({route, navigation}) => {
     console.log('Approve clicked - trans_no:', item.trans_no);
     console.log('Approve clicked - full item:', item);
     console.log('listKey:', listKey);
-    
+
     try {
       const formData = new FormData();
-      
+
       // For Electrical & Mechanical, only send trans_no
       if (listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards') {
         console.log('Electrical/Mechanical - sending only trans_no:', item.trans_no);
@@ -313,16 +339,71 @@ const ApprovalListScreen = ({route, navigation}) => {
     }
   };
 
+  // Handle Unapprove for approved records
+  const handleUnapprove = async item => {
+    console.log('Unapprove clicked - trans_no:', item.trans_no);
+    console.log('Unapprove clicked - full item:', item);
+    console.log('listKey:', listKey);
+
+    try {
+      const formData = new FormData();
+
+      // For Electrical & Mechanical, only send trans_no
+      if (listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards') {
+        console.log('Electrical/Mechanical Unapprove - sending only trans_no:', item.trans_no);
+        formData.append('trans_no', item.trans_no);
+      } else {
+        formData.append('id', currentUser?.user_id);
+        formData.append('trans_no', item.trans_no);
+        formData.append('type', item.type);
+        formData.append('approval', 1); // 1 for unapprove
+      }
+
+      const res = await axios.post(
+        `${BASEURL}dash_approval_post.php`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+
+      if (res.data?.status === true) {
+        Toast.show({
+          type: 'success',
+          text1: 'Unapproved Successfully',
+        });
+
+        setData(prev => prev.filter(d => d.trans_no !== item.trans_no));
+        setFilteredData(prev => prev.filter(d => d.trans_no !== item.trans_no));
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Unapproval Failed',
+          text2: res.data?.message || 'Something went wrong',
+        });
+      }
+    } catch (err) {
+      console.log('Unapprove Error:', err);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Network or Server error',
+      });
+    }
+  };
+
   if (loading && data.length === 0) {
     return (
-      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator size="large" color={APPCOLORS.Primary} />
       </View>
     );
   }
 
   return (
-    <View style={{flex: 1, backgroundColor: '#F3F4F6'}}>
+    <View style={{ flex: 1, backgroundColor: '#F3F4F6' }}>
       <SimpleHeader title={title || 'Approvals'} />
 
       {/* Filter Section - Black & White Theme */}
@@ -331,7 +412,7 @@ const ApprovalListScreen = ({route, navigation}) => {
         <View style={styles.dateRow}>
           <TouchableOpacity
             style={styles.dateButton}
-            onPress={() => setShowDatePicker({visible: true, type: 'from'})}>
+            onPress={() => setShowDatePicker({ visible: true, type: 'from' })}>
             <Icon name="calendar" size={16} color="#000" />
             <Text style={styles.dateButtonText}>
               From: {formatDateForDisplay(fromDate)}
@@ -340,7 +421,7 @@ const ApprovalListScreen = ({route, navigation}) => {
 
           <TouchableOpacity
             style={styles.dateButton}
-            onPress={() => setShowDatePicker({visible: true, type: 'to'})}>
+            onPress={() => setShowDatePicker({ visible: true, type: 'to' })}>
             <Icon name="calendar" size={16} color="#000" />
             <Text style={styles.dateButtonText}>
               To: {formatDateForDisplay(toDate)}
@@ -349,8 +430,8 @@ const ApprovalListScreen = ({route, navigation}) => {
         </View>
 
         {/* Row 2: Reference Search (Full Width) */}
-        <View style={[styles.searchRow, {marginBottom: 8}]}>
-          <View style={[styles.searchContainer, {marginRight: 0}]}>
+        <View style={[styles.searchRow, { marginBottom: 8 }]}>
+          <View style={[styles.searchContainer, { marginRight: 0 }]}>
             <Icon
               name="magnify"
               size={20}
@@ -362,7 +443,10 @@ const ApprovalListScreen = ({route, navigation}) => {
               placeholder="Search by reference..."
               placeholderTextColor="#888"
               value={reference}
-              onChangeText={setReference}
+              onChangeText={(text) => {
+                console.log('Reference Input Changed:', text);
+                setReference(text);
+              }}
             />
           </View>
         </View>
@@ -370,12 +454,12 @@ const ApprovalListScreen = ({route, navigation}) => {
         {/* Row 3: Name Search / Type Dropdown / Cost Center and Buttons */}
         <View style={styles.searchRow}>
           {listKey === 'voucher_approval' ? (
-            <View style={{flex: 1, marginRight: 8}}>
+            <View style={{ flex: 1, marginRight: 8 }}>
               <Dropdown
                 style={styles.dropdown}
                 placeholderStyle={styles.placeholderStyle}
                 selectedTextStyle={styles.selectedTextStyle}
-                itemTextStyle={{color: '#000'}}
+                itemTextStyle={{ color: '#000' }}
                 data={softwareTypes}
                 maxHeight={300}
                 labelField="label"
@@ -398,7 +482,10 @@ const ApprovalListScreen = ({route, navigation}) => {
                 placeholder="Search by cost center..."
                 placeholderTextColor="#888"
                 value={searchLocation}
-                onChangeText={setSearchLocation}
+                onChangeText={(text) => {
+                  console.log('Cost Center Input Changed:', text);
+                  setSearchLocation(text);
+                }}
               />
             </View>
           ) : (
@@ -414,7 +501,10 @@ const ApprovalListScreen = ({route, navigation}) => {
                 placeholder="Search by name..."
                 placeholderTextColor="#888"
                 value={searchName}
-                onChangeText={setSearchName}
+                onChangeText={(text) => {
+                  console.log('Name Input Changed:', text);
+                  setSearchName(text);
+                }}
               />
             </View>
           )}
@@ -441,8 +531,8 @@ const ApprovalListScreen = ({route, navigation}) => {
 
         {/* Row 4: Cost Center Search (Full Width) - Not for Electrical/Mechanical */}
         {listKey !== 'quotation_approval' && listKey !== 'voucher_approval' && listKey !== 'electrocal_job_cards' && listKey !== 'mechnical_job_cards' && (
-          <View style={[styles.searchRow, {marginTop: 8}]}>
-            <View style={[styles.searchContainer, {marginRight: 0}]}>
+          <View style={[styles.searchRow, { marginTop: 8 }]}>
+            <View style={[styles.searchContainer, { marginRight: 0 }]}>
               <Icon
                 name="map-marker-outline"
                 size={20}
@@ -454,7 +544,10 @@ const ApprovalListScreen = ({route, navigation}) => {
                 placeholder="Search by cost center..."
                 placeholderTextColor="#888"
                 value={searchLocation}
-                onChangeText={setSearchLocation}
+                onChangeText={(text) => {
+                  console.log('Cost Center (Row4) Input Changed:', text);
+                  setSearchLocation(text);
+                }}
               />
             </View>
           </View>
@@ -472,7 +565,7 @@ const ApprovalListScreen = ({route, navigation}) => {
           mode="date"
           display="default"
           onChange={(event, selectedDate) => {
-            setShowDatePicker({visible: false, type: null});
+            setShowDatePicker({ visible: false, type: null });
             if (selectedDate) {
               if (showDatePicker.type === 'from') {
                 setFromDate(selectedDate);
@@ -484,7 +577,7 @@ const ApprovalListScreen = ({route, navigation}) => {
         />
       )}
 
-      <ScrollView contentContainerStyle={{padding: 15, flexGrow: 1}}>
+      <ScrollView contentContainerStyle={{ padding: 15, flexGrow: 1 }}>
         {filteredData && filteredData.length > 0 ? (
           filteredData.map((item, index) => (
             <ApprovalCard
@@ -496,9 +589,12 @@ const ApprovalListScreen = ({route, navigation}) => {
               total={item.total || '0'}
               trans_no={item.trans_no || 'N/A'}
               type={item.type || 'N/A'}
+              location_name={item.location_name || item.loc_name || ''}
               navigation={navigation}
               screenType={listKey}
               onApprove={() => handleApprove(item)}
+              onUnapprove={() => handleUnapprove(item)}
+              isApproved={isApproved}
             />
           ))
         ) : (
@@ -529,11 +625,11 @@ const ApprovalListScreen = ({route, navigation}) => {
                 paddingHorizontal: 20,
               }}>
               {reference ||
-              searchName ||
-              searchLocation ||
-              selectedType ||
-              fromDate ||
-              toDate
+                searchName ||
+                searchLocation ||
+                selectedType ||
+                fromDate ||
+                toDate
                 ? 'No records found matching your filters'
                 : 'There are no records pending for approval in this module.'}
             </Text>
@@ -543,12 +639,12 @@ const ApprovalListScreen = ({route, navigation}) => {
               selectedType ||
               fromDate ||
               toDate) && (
-              <TouchableOpacity
-                style={styles.retryButton}
-                onPress={handleClearFilters}>
-                <Text style={styles.retryButtonText}>Clear Filters</Text>
-              </TouchableOpacity>
-            )}
+                <TouchableOpacity
+                  style={styles.retryButton}
+                  onPress={handleClearFilters}>
+                  <Text style={styles.retryButtonText}>Clear Filters</Text>
+                </TouchableOpacity>
+              )}
           </View>
         )}
       </ScrollView>
@@ -565,7 +661,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,

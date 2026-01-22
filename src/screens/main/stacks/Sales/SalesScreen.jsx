@@ -18,7 +18,7 @@ const buttons = [
     name: 'Receivable',
     icon: 'format-list-bulleted',
     navigate: 'ReceivableScreen',
-  },{
+  },  {
     name: 'Cost Center',
     icon: 'chart-bar',
     navigate: 'CostCenterScreen',
@@ -26,7 +26,7 @@ const buttons = [
     name: 'Sales Transactions',
     icon: 'check-circle',
     navigate: 'ApprovedRecordsScreen',
-    screen: 'ApprovedRecordsScreen',
+    params: {screenType: 'sales'},
   }
 ];
 
@@ -39,7 +39,7 @@ export default function SalesScreen({navigation}) {
       style={styles.buttonWrapper}>
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => navigation.navigate(item.navigate)}
+        onPress={() => navigation.navigate(item.navigate, item.params || {})}
         style={styles.buttonContainer}>
         <Animatable.View
           animation="pulse"

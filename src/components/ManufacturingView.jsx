@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,12 +12,12 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SimpleHeader from '../components/SimpleHeader';
 import axios from 'axios';
-import {BASEURL} from '../utils/BaseUrl';
-import {formatDateString} from '../utils/DateUtils';
-import {formatNumber} from '../utils/NumberUtils';
+import { BASEURL } from '../utils/BaseUrl';
+import { formatDateString } from '../utils/DateUtils';
+import { formatNumber } from '../utils/NumberUtils';
 
-const ManufacturingView = ({navigation, route}) => {
-  const {trans_no} = route.params || {};
+const ManufacturingView = ({ navigation, route }) => {
+  const { trans_no } = route.params || {};
   const [loading, setLoading] = useState(true);
   const [headerData, setHeaderData] = useState([]);
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -42,7 +42,7 @@ const ManufacturingView = ({navigation, route}) => {
       const formData = new FormData();
       formData.append('trans_no', trans_no);
       console.log('formData: ', formData);
-      
+
 
       const res = await axios.post(
         `${BASEURL}view_manufacturing.php`,
@@ -82,6 +82,11 @@ const ManufacturingView = ({navigation, route}) => {
 
   // Function to format key names in proper readable format
   const formatKeyName = key => {
+    // Special case for units -> UOM
+    if (key.toLowerCase() === 'units' || key.toLowerCase() === 'unit') {
+      return 'UOM';
+    }
+    
     // If key contains underscore, replace with space and capitalize each word
     if (key.includes('_')) {
       return key
@@ -124,9 +129,25 @@ const ManufacturingView = ({navigation, route}) => {
   };
 
   const renderCard = (item, index) => {
-    // Get all fields for display
+    // Fields to exclude
+    const excludeFields = ['trans_no', 'trans_date', 'reference', 'stock_item_name', 'stockItemName', 'StockItemName', 'location_name', 'qty', 'pro_qty'];
+
+    // Calculate balance qty
+    const orderedQty = parseFloat(item.qty) || 0;
+    const proQty = parseFloat(item.pro_qty) || 0;
+    const balanceQty = orderedQty - proQty;
+
+    // Get item name (stock_item_name)
+    const itemName = item.stock_item_name || 'N/A';
+
+    // Get cost center (location_name)
+    const costCenter = item.location_name || 'N/A';
+
+    // Get all fields for display (excluding specific ones)
     const allFields = Object.entries(item).filter(
-      ([key, value]) => value || value === 0 || value === false,
+      ([key, value]) =>
+        (value || value === 0 || value === false) &&
+        !excludeFields.includes(key),
     );
 
     return (
@@ -146,29 +167,31 @@ const ManufacturingView = ({navigation, route}) => {
             ],
           },
         ]}>
-        {/* Card Header */}
+        {/* Card Header - Item Name at top */}
         <View style={styles.cardHeader}>
           <View style={styles.cardTitleContainer}>
-            <Text style={styles.cardTitle}>
-              {item.reference || `Record ${index + 1}`}
-            </Text>
-            <Text style={styles.cardSubtitle}>
-              {item.type || 'Manufacturing'} •{' '}
-              {formatDateDisplay(item.trans_date)}
-            </Text>
+            <Text style={styles.cardTitle}>{item.reference || 'N/A'}</Text>
+            <Text style={styles.cardSubtitle}>Cost Center: {costCenter}</Text>
           </View>
-          {item.total && (
-            <View style={styles.totalBadge}>
-              <Text style={styles.totalText}>
-                Rs. {formatAmount(item.total)}
-              </Text>
-            </View>
-          )}
+          <View style={styles.serialBadge}>
+            <Text style={styles.serialText}>{index + 1}</Text>
+          </View>
         </View>
 
         {/* Key-Value Pairs */}
         <View style={styles.keyValueContainer}>
-          {allFields.map(([key, value], idx) => (
+          {/* Item Name */}
+          <View style={styles.keyValueRow}>
+            <View style={styles.keyContainer}>
+              <Text style={styles.keyText}>Item Name</Text>
+            </View>
+            <View style={styles.valueContainer}>
+              <Text style={styles.valueText}>{item.StockItemName || item.stock_item_name || 'N/A'}</Text>
+            </View>
+          </View>
+
+            {/* Other fields */}
+            {allFields.map(([key, value], idx) => (
             <View key={idx} style={styles.keyValueRow}>
               <View style={styles.keyContainer}>
                 <Text style={styles.keyText}>{formatKeyName(key)}</Text>
@@ -180,13 +203,40 @@ const ManufacturingView = ({navigation, route}) => {
               </View>
             </View>
           ))}
-        </View>
 
-        {/* Card Footer */}
-        <View style={styles.cardFooter}>
-          <Text style={styles.footerText}>
-            {allFields.length} fields • Transaction: {item.trans_no || 'N/A'}
-          </Text>
+          {/* Ordered Qty */}
+          <View style={styles.keyValueRow}>
+            <View style={styles.keyContainer}>
+              <Text style={styles.keyText}>Ordered Qty</Text>
+            </View>
+            <View style={styles.valueContainer}>
+              <Text style={styles.valueText}>{formatAmount(orderedQty)}</Text>
+            </View>
+          </View>
+
+          {/* Pro Qty */}
+          <View style={styles.keyValueRow}>
+            <View style={styles.keyContainer}>
+              <Text style={styles.keyText}>Pro Qty</Text>
+            </View>
+            <View style={styles.valueContainer}>
+              <Text style={styles.valueText}>{formatAmount(proQty)}</Text>
+            </View>
+          </View>
+
+          {/* Balance Qty */}
+          <View style={styles.keyValueRow}>
+            <View style={styles.keyContainer}>
+              <Text style={styles.keyText}>Balance Qty</Text>
+            </View>
+            <View style={styles.valueContainer}>
+              <Text style={[styles.valueText, { color: balanceQty > 0 ? '#e74c3c' : '#27ae60', fontWeight: 'bold' }]}>
+                {formatAmount(balanceQty)}
+              </Text>
+            </View>
+          </View>
+
+        
         </View>
       </Animated.View>
     );
@@ -222,18 +272,13 @@ const ManufacturingView = ({navigation, route}) => {
           </View>
         ) : (
           <>
-            <View style={styles.summaryContainer}>
+            {/* <View style={styles.summaryContainer}>
               <View style={styles.summaryItem}>
                 <Icon name="file-document-multiple" size={24} color="#1a1c22" />
-                <Text style={styles.summaryLabel}>Total Records</Text>
+                <Text style={styles.summaryLabel}>Total Items</Text>
                 <Text style={styles.summaryValue}>{headerData.length}</Text>
               </View>
-              <View style={styles.summaryItem}>
-                <Icon name="cash" size={24} color="#1a1c22" />
-                <Text style={styles.summaryLabel}>Transaction No</Text>
-                <Text style={styles.summaryValue}>{trans_no}</Text>
-              </View>
-            </View>
+            </View> */}
 
             {headerData.map((item, index) => renderCard(item, index))}
           </>
@@ -293,7 +338,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     padding: 20,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
@@ -319,7 +364,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     elevation: 4,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 3},
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
     overflow: 'hidden',
@@ -357,6 +402,19 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   totalText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#FFF',
+  },
+  serialBadge: {
+    backgroundColor: '#1a1c22',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  serialText: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#FFF',

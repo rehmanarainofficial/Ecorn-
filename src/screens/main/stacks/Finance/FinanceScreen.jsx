@@ -12,7 +12,7 @@ const buttons = [
     name: 'Expense Claim Submission',
     icon: 'file-document-edit',
     screen: 'ExpenseClaim',
-  },{
+  },  {
     name: 'Attendance',
     icon: 'account-clock',
     screen: 'Attendance',
@@ -20,6 +20,7 @@ const buttons = [
     name: 'Financial Transactions',
     icon: 'check-circle',
     screen: 'ApprovedRecordsScreen',
+    params: {screenType: 'finance'},
   }
 ];
 
@@ -32,7 +33,7 @@ export default function FinanceScreen({navigation}) {
       style={styles.buttonWrapper}>
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => navigation.navigate(item.screen)}
+        onPress={() => navigation.navigate(item.screen, item.params || {})}
         style={styles.buttonContainer}>
         <Animatable.View
           animation="pulse"

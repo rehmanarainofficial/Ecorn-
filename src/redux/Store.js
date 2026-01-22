@@ -1,5 +1,6 @@
 import { combineReducers, configureStore , Tuple,  } from '@reduxjs/toolkit'
 import counterReducer from './AuthSlice'
+import approvedReducer from './ApprovedSlice'
 import {
     persistStore,
     persistReducer,
@@ -25,6 +26,7 @@ const persistedReducer = persistReducer(persistConfig, counterReducer);
 export const Store = configureStore({
     reducer: {
         Data: persistedReducer,
+        Approved: approvedReducer,
     },
     devTools: process.env.NODE_ENV !== 'production',
     

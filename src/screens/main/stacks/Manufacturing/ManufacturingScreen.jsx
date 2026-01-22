@@ -21,6 +21,12 @@ const buttons = [
     name: 'Product Options',
     icon: 'cube-outline',
     screen: 'ProductOptionsScreen',
+  },
+  {
+    name: 'Manufacturing Transactions',
+    icon: 'check-circle',
+    screen: 'ApprovedRecordsScreen',
+    params: {screenType: 'manufacturing'},
   }
 ];
 
@@ -33,27 +39,22 @@ export default function ManufacturingScreen({navigation}) {
       style={styles.buttonWrapper}>
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => navigation.navigate(item.screen)}>
-        <PlatformGradient
-          colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)']}
-          style={styles.buttonContainer}>
-          <Animatable.View
-            animation="pulse"
-            iterationCount="infinite"
-            iterationDelay={4000}
-            style={styles.iconContainer}>
-            <Icon name={item.icon} size={22} color="#fff" />
-          </Animatable.View>
-          <Text style={styles.buttonText}>{item.name}</Text>
-        </PlatformGradient>
+        onPress={() => navigation.navigate(item.screen, item.params || {})}
+        style={styles.buttonContainer}>
+        <Animatable.View
+          animation="pulse"
+          iterationCount="infinite"
+          iterationDelay={4000}
+          style={styles.iconContainer}>
+          <Icon name={item.icon} size={22} color="#FFFFFF" />
+        </Animatable.View>
+        <Text style={styles.buttonText}>{item.name}</Text>
       </TouchableOpacity>
     </Animatable.View>
   );
 
   return (
-    <PlatformGradient
-      colors={[APPCOLORS.BLACK, '#1c1c1c', APPCOLORS.WHITE]}
-      style={styles.container}>
+    <View style={styles.container}>
       <SimpleHeader title="Manufacturing" />
       <FlatList
         data={buttons}
@@ -61,22 +62,24 @@ export default function ManufacturingScreen({navigation}) {
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={{paddingVertical: 20}}
       />
-    </PlatformGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F3F4F6',
   },
   buttonWrapper: {
     marginVertical: 8,
     marginHorizontal: 16,
     borderRadius: 12,
-    overflow: 'hidden',
+    backgroundColor: '#1a1c22',
     shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
     elevation: 4,
   },
   buttonContainer: {
@@ -89,10 +92,10 @@ const styles = StyleSheet.create({
     padding: 10,
     marginRight: 12,
     borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(255,255,255,0.15)',
   },
   buttonText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
