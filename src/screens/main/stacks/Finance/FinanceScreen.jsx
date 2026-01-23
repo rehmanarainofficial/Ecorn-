@@ -12,16 +12,23 @@ const buttons = [
     name: 'Expense Claim Submission',
     icon: 'file-document-edit',
     screen: 'ExpenseClaim',
-  },  {
+  },
+  {
+    name: 'Local Purchase',
+    icon: 'cart-plus',
+    screen: 'LocalPurchase',
+  },
+  {
     name: 'Attendance',
     icon: 'account-clock',
     screen: 'Attendance',
-  },{
+  },
+  {
     name: 'Financial Transactions',
     icon: 'check-circle',
     screen: 'ApprovedRecordsScreen',
     params: {screenType: 'finance'},
-  }
+  },
 ];
 
 export default function FinanceScreen({navigation}) {

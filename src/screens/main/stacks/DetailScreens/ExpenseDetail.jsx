@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import PlatformGradient from '../../../../components/PlatformGradient';
 import PieChart from 'react-native-pie-chart';
@@ -148,7 +149,16 @@ const ExpenseDetail = ({navigation, route}) => {
             <Text style={styles.dateText}>{formatDisplayDate(endDate)}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.applyBtn} onPress={handleApplyFilter}>
-            <Text style={styles.applyBtnText}>Apply</Text>
+            <Ionicons name="search" size={18} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.clearBtn}
+            onPress={() => {
+              setStartDate(new Date(new Date().setDate(new Date().getDate() - 30)));
+              setEndDate(new Date());
+              fetchExpenseData(new Date(new Date().setDate(new Date().getDate() - 30)), new Date());
+            }}>
+            <Ionicons name="close-circle" size={18} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
@@ -299,17 +309,21 @@ const styles = StyleSheet.create({
   },
   applyBtn: {
     backgroundColor: '#1a1c22',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
+    width: 40,
+    height: 36,
     borderRadius: 8,
     marginLeft: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  applyBtnText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 14,
+  clearBtn: {
+    backgroundColor: '#dc3545',
+    width: 40,
+    height: 36,
+    borderRadius: 8,
+    marginLeft: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sectionTitle: {
     fontSize: 20,

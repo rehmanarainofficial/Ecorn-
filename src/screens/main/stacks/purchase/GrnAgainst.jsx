@@ -79,6 +79,7 @@ const GrnAgainst = ({navigation, route}) => {
             value: l.loc_code,
           })),
         );
+        console.log(res.data.data);
       }
     } catch (err) {
       console.log('Location API Error:', err);
@@ -97,21 +98,19 @@ const GrnAgainst = ({navigation, route}) => {
         const day = String(d.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
       };
-
+      console.log(selectedLocation);
+      
       // 🔸 Prepare POST data
       const formData = new FormData();
       formData.append('from_date', format(fDate));
       formData.append('to_date', format(tDate));
       formData.append('loc_code', selectedLocation || '');
-      formData.append('customer_id', selectedCustomer || '');
+      formData.append('person_id', selectedCustomer || '');
 
       // 🔸 POST request
       const res = await axios.post(`${BASEURL}pending_po.php`, formData, {
         headers: {'Content-Type': 'multipart/form-data'},
       });
-
-      console.log(res.data);
-
       // 🧠 Handle extra junk text
       if (typeof res.data === 'string') {
         const match = res.data.match(/\{.*\}/s);
@@ -125,7 +124,6 @@ const GrnAgainst = ({navigation, route}) => {
         setTransactions([]);
       }
     } catch (err) {
-      console.log('❌ Transactions API Error:', err);
       setTransactions([]);
     } finally {
       setLoading(false);
@@ -183,7 +181,7 @@ const GrnAgainst = ({navigation, route}) => {
               type: 30, // Sales Order type
             })
           }>
-          <Icon name="eye-outline" size={22} color="#1a1c22" />
+          <Icon name="eye-outline" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
     </Animatable.View>
@@ -246,9 +244,24 @@ const GrnAgainst = ({navigation, route}) => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.morphButton, {backgroundColor: '#1a1c22'}]}
+            style={styles.iconButton}
             onPress={() => fetchTransactions()}>
-            <Text style={{color: '#fff', fontWeight: 'bold'}}>Apply</Text>
+            <Icon name="magnify" size={20} color="#fff" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={() => {
+              const today = new Date();
+              const lastMonth = new Date();
+              lastMonth.setMonth(today.getMonth() - 1);
+              setFromDate(lastMonth);
+              setToDate(today);
+              setSelectedCustomer(null);
+              setSelectedLocation(null);
+              fetchTransactions(lastMonth, today);
+            }}>
+            <Icon name="close-circle" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
 
@@ -403,6 +416,21 @@ const styles = StyleSheet.create({
   },
 
   iconButton: {
-    padding: 5,
+    width: 44,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#1a1c22',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 3,
+  },
+  clearButton: {
+    width: 44,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#dc3545',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 3,
   },
 });

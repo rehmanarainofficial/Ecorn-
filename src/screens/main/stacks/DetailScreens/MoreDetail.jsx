@@ -10,7 +10,6 @@ import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
-import PlatformGradient from '../../../../components/PlatformGradient';
 import PieChart from 'react-native-pie-chart';
 import {
   GetReceivable,
@@ -24,6 +23,11 @@ const COLORS = {
   BLACK: '#000000',
   Primary: '#1a1c22',
   Secondary: '#5a5c6a',
+  Background: '#F3F4F6',
+  Border: '#E2E8F0',
+  TextDark: '#1E293B',
+  TextMuted: '#64748B',
+  CardBg: '#FFFFFF',
 };
 
 const MoreDetail = ({navigation, route}) => {
@@ -34,16 +38,16 @@ const MoreDetail = ({navigation, route}) => {
   const [loading, setLoading] = useState(true);
 
   const colors = [
-    '#00E0FF',
-    '#FF6B6B',
-    '#FFD93D',
-    '#6BCB77',
-    '#4D96FF',
-    '#FFB347',
-    '#9D4EDD',
-    '#38BDF8',
-    '#FF007F',
-    '#FFAA00',
+    '#3B82F6',
+    '#EF4444',
+    '#F59E0B',
+    '#10B981',
+    '#8B5CF6',
+    '#F97316',
+    '#EC4899',
+    '#06B6D4',
+    '#84CC16',
+    '#6366F1',
   ];
 
   useEffect(() => {
@@ -185,14 +189,12 @@ const MoreDetail = ({navigation, route}) => {
   }, 0);
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={{flex: 1}}>
+    <View style={styles.mainContainer}>
       <SimpleHeader title={getTitle()} />
 
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={COLORS.WHITE} />
+          <ActivityIndicator size="large" color={COLORS.Primary} />
           <Text style={styles.loaderText}>Loading {getTitle()}...</Text>
         </View>
       ) : (
@@ -203,17 +205,19 @@ const MoreDetail = ({navigation, route}) => {
           <View style={styles.container}>
             {/* Chart Section */}
             {circleData && circleData.length > 0 && (
-              <View style={styles.chartContainer}>
-                <PieChart
-                  widthAndHeight={220}
-                  series={circleData}
-                  cover={{radius: 0.65, color: COLORS.BLACK}}
-                />
-                <View style={styles.centerTextContainer}>
-                  <Text style={styles.centerValue}>
-                    {formatNumber(totalBalance)}
-                  </Text>
-                  <Text style={styles.centerLabel}>Total</Text>
+              <View style={styles.chartCard}>
+                <View style={styles.chartContainer}>
+                  <PieChart
+                    widthAndHeight={200}
+                    series={circleData}
+                    cover={{radius: 0.65, color: COLORS.WHITE}}
+                  />
+                  <View style={styles.centerTextContainer}>
+                    <Text style={styles.centerValue}>
+                      {formatNumber(totalBalance)}
+                    </Text>
+                    <Text style={styles.centerLabel}>Total</Text>
+                  </View>
                 </View>
               </View>
             )}
@@ -241,7 +245,7 @@ const MoreDetail = ({navigation, route}) => {
                           {backgroundColor: colors[index % colors.length]},
                         ]}
                       />
-                      <Text style={styles.legendText}>
+                      <Text style={styles.legendText} numberOfLines={1}>
                         {item.bank_name || item.supp_name || item.name}
                       </Text>
                     </View>
@@ -289,7 +293,6 @@ const MoreDetail = ({navigation, route}) => {
                       item.bank_name || item.supp_name || item.name || 'item'
                     }`
                   }
-                  // In MoreDetail.jsx - Update the FlatList renderItem section
                   renderItem={({item, index}) => {
                     const balance =
                       type === 'bank' || type === 'cash'
@@ -357,8 +360,8 @@ const MoreDetail = ({navigation, route}) => {
                               : 'Unknown'
                           }
                           balance={balance}
-                          type={containerType} // Pass the type here
-                          item={item} // Pass the complete item object
+                          type={containerType}
+                          item={item}
                           perc={perc}
                         />
                       </View>
@@ -381,21 +384,26 @@ const MoreDetail = ({navigation, route}) => {
           </View>
         </ScrollView>
       )}
-    </PlatformGradient>
+    </View>
   );
 };
 
 export default MoreDetail;
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+  },
   scrollView: {
     flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
+    paddingBottom: 80,
   },
   container: {
-    padding: 20,
+    padding: 16,
   },
   loaderContainer: {
     flex: 1,
@@ -404,38 +412,26 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   loaderText: {
-    color: COLORS.WHITE,
+    color: COLORS.TextDark,
     fontSize: 16,
   },
-  summaryContainer: {
-    marginBottom: 20,
-    gap: 15,
-  },
-  summaryCard: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    padding: 20,
+  chartCard: {
+    backgroundColor: COLORS.WHITE,
     borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
     alignItems: 'center',
-  },
-  summaryTitle: {
-    color: COLORS.WHITE,
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  summaryAmount: {
-    color: '#00E0FF',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 4,
   },
   chartContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 20,
-    marginBottom: 30,
     position: 'relative',
   },
   centerTextContainer: {
@@ -444,45 +440,82 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   centerLabel: {
-    fontSize: 14,
-    color: '#999',
+    fontSize: 13,
+    color: COLORS.TextMuted,
     fontWeight: '600',
   },
   centerValue: {
-    fontSize: 18,
-    color: COLORS.WHITE,
+    fontSize: 16,
+    color: COLORS.TextDark,
     fontWeight: 'bold',
   },
+  summaryContainer: {
+    marginBottom: 16,
+    gap: 12,
+  },
+  summaryCard: {
+    backgroundColor: COLORS.WHITE,
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  summaryTitle: {
+    color: COLORS.TextDark,
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  summaryAmount: {
+    color: '#3B82F6',
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
   summarySubtitle: {
-    color: 'rgba(255,255,255,0.7)',
+    color: COLORS.TextMuted,
     fontSize: 14,
   },
   legendContainer: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    padding: 15,
+    backgroundColor: COLORS.WHITE,
+    padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   legendTitle: {
-    color: COLORS.WHITE,
+    color: COLORS.TextDark,
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 10,
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.Border,
+    paddingBottom: 8,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   legendColor: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    marginRight: 10,
+    marginRight: 12,
   },
   legendText: {
-    color: 'rgba(255,255,255,0.85)',
+    color: COLORS.TextDark,
     fontSize: 14,
     flex: 1,
   },
@@ -490,43 +523,54 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 20,
-    marginBottom: 10,
+    marginTop: 8,
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.WHITE,
+    color: COLORS.TextDark,
   },
   listContainer: {
-    marginTop: 10,
+    marginTop: 4,
   },
   listContent: {
     gap: 10,
   },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    padding: 12,
+    backgroundColor: COLORS.WHITE,
+    padding: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   emptyContainer: {
     alignItems: 'center',
     padding: 20,
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
   },
   emptyText: {
-    color: COLORS.WHITE,
-    fontSize: 16,
-    opacity: 0.7,
+    color: COLORS.TextMuted,
+    fontSize: 15,
   },
   noDataContainer: {
     alignItems: 'center',
     padding: 40,
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
   },
   noDataText: {
-    color: COLORS.WHITE,
-    fontSize: 16,
-    opacity: 0.7,
+    color: COLORS.TextMuted,
+    fontSize: 15,
   },
 });

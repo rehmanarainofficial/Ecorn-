@@ -246,7 +246,7 @@ const DeliveryScreen = ({navigation}) => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.morphButton, {backgroundColor: '#1a1c22', borderColor: '#1a1c22'}]}
+            style={styles.iconButton}
             onPress={() =>
               fetchTransactions(
                 fromDate,
@@ -255,7 +255,22 @@ const DeliveryScreen = ({navigation}) => {
                 selectedCustomer,
               )
             }>
-            <Text style={{color: '#fff', fontWeight: 'bold'}}>Apply</Text>
+            <Icon name="magnify" size={20} color="#fff" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={() => {
+              const today = new Date();
+              const lastMonth = new Date();
+              lastMonth.setMonth(today.getMonth() - 1);
+              setFromDate(lastMonth);
+              setToDate(today);
+              setSelectedCustomer(null);
+              setSelectedLocation(null);
+              fetchTransactions(lastMonth, today, '', '');
+            }}>
+            <Icon name="close-circle" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
 
@@ -412,6 +427,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconButton: {
+    width: 44,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#1a1c22',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  clearButton: {
+    width: 44,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#dc3545',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  actionIcon: {
     padding: 5,
     backgroundColor: '#1a1c22',
     borderRadius: 6,

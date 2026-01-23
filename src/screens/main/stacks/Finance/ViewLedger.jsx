@@ -682,129 +682,6 @@ const ViewLedger = ({ navigation, route }) => {
         </TouchableOpacity>
       </PlatformGradient>
 
-      {/* Filter Section - Full Width */}
-      <View style={styles.filterContainer}>
-        <View style={styles.filterRow}>
-          {/* Account Dropdown */}
-          <View style={styles.dropdownContainer}>
-            <Dropdown
-              style={styles.dropdown}
-              placeholderStyle={styles.placeholderStyle}
-              selectedTextStyle={styles.selectedTextStyle}
-              inputSearchStyle={styles.inputSearchStyle}
-              iconStyle={styles.iconStyle}
-              data={accounts}
-              search
-              maxHeight={300}
-              labelField="label"
-              valueField="value"
-              placeholder={accountsLoading ? 'Loading...' : 'Select Account'}
-              searchPlaceholder="Search accounts..."
-              value={selectedAccount}
-              onChange={handleAccountChange}
-            />
-          </View>
-
-          {/* Counter Party Dropdown */}
-          {selectedAccount && counterParties.length > 0 && (
-            <View style={styles.dropdownContainer}>
-              <Dropdown
-                style={styles.dropdown}
-                placeholderStyle={styles.placeholderStyle}
-                selectedTextStyle={styles.selectedTextStyle}
-                inputSearchStyle={styles.inputSearchStyle}
-                iconStyle={styles.iconStyle}
-                data={counterParties}
-                search
-                maxHeight={300}
-                labelField="label"
-                valueField="value"
-                placeholder={counterPartiesLoading ? 'Loading...' : 'Counter Party'}
-                searchPlaceholder="Search..."
-                value={selectedCounterParty}
-                onChange={setSelectedCounterParty}
-              />
-            </View>
-          )}
-
-          {/* From Date */}
-          <View style={styles.dateContainer}>
-            <TouchableOpacity
-              style={styles.dateInput}
-              onPress={() => setShowFromDatePicker(true)}>
-              <Text style={styles.dateText}>
-                {formatDateDisplay(fromDate)}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* To Date */}
-          <View style={styles.dateContainer}>
-            <TouchableOpacity
-              style={styles.dateInput}
-              onPress={() => setShowToDatePicker(true)}>
-              <Text style={styles.dateText}>
-                {formatDateDisplay(toDate)}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Action Buttons */}
-          <View style={styles.actionButtonsContainer}>
-            <TouchableOpacity
-              style={styles.resetButton}
-              onPress={handleResetFilter}>
-              <MaterialIcons
-                name="refresh"
-                size={20}
-                color={APPCOLORS.Primary}
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.applyButton, !selectedAccount && styles.disabledButton]}
-              onPress={handleApplyFilter}
-              disabled={!selectedAccount || loading}>
-              {loading ? (
-                <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
-              ) : (
-                <MaterialIcons
-                  name="search"
-                  size={20}
-                  color={APPCOLORS.WHITE}
-                />
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Balance Information */}
-        {(openingBalance !== 0 || closingBalance !== 0 || flatData.length > 0) && selectedAccount && (
-          <View style={styles.balanceContainer}>
-            <View style={styles.balanceInfo}>
-              <Text style={styles.balanceLabel}>Opening Balance</Text>
-              <Text style={styles.balanceValue}>{formatNumber(openingBalance)}</Text>
-            </View>
-            {flatData.length > 0 && (
-              <View style={styles.balanceInfo}>
-                <Text style={styles.balanceLabel}>Net Difference</Text>
-                <Text style={[styles.balanceValue, (totalDebit - totalCredit) < 0 && { color: '#DC2626' }]}>
-                  {formatNumber(totalDebit - totalCredit)}
-                </Text>
-              </View>
-            )}
-            {flatData.length > 0 && (
-              <View style={styles.balanceInfo}>
-                <Text style={styles.balanceLabel}>Closing Balance</Text>
-                <Text style={styles.balanceValue}>
-                  {formatNumber(closingBalance)}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
-      </View>
-
       {/* Date Pickers */}
       {showFromDatePicker && (
         <DateTimePicker
@@ -823,16 +700,141 @@ const ViewLedger = ({ navigation, route }) => {
         />
       )}
 
-      {/* Main Content with Horizontal Scroll */}
+      {/* Main Content with Scroll - Filter included */}
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={true}
+        showsVerticalScrollIndicator={true}
         nestedScrollEnabled={true}
-        contentContainerStyle={{ flexGrow: 1 }}>
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}>
+        
+        {/* Filter Section - Now inside ScrollView */}
+        <View style={styles.filterContainer}>
+          <View style={styles.filterRow}>
+            {/* Account Dropdown */}
+            <View style={styles.dropdownContainer}>
+              <Dropdown
+                style={styles.dropdown}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                inputSearchStyle={styles.inputSearchStyle}
+                iconStyle={styles.iconStyle}
+                data={accounts}
+                search
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder={accountsLoading ? 'Loading...' : 'Select Account'}
+                searchPlaceholder="Search accounts..."
+                value={selectedAccount}
+                onChange={handleAccountChange}
+              />
+            </View>
+
+            {/* Counter Party Dropdown */}
+            {selectedAccount && counterParties.length > 0 && (
+              <View style={styles.dropdownContainer}>
+                <Dropdown
+                  style={styles.dropdown}
+                  placeholderStyle={styles.placeholderStyle}
+                  selectedTextStyle={styles.selectedTextStyle}
+                  inputSearchStyle={styles.inputSearchStyle}
+                  iconStyle={styles.iconStyle}
+                  data={counterParties}
+                  search
+                  maxHeight={300}
+                  labelField="label"
+                  valueField="value"
+                  placeholder={counterPartiesLoading ? 'Loading...' : 'Counter Party'}
+                  searchPlaceholder="Search..."
+                  value={selectedCounterParty}
+                  onChange={setSelectedCounterParty}
+                />
+              </View>
+            )}
+
+            {/* From Date */}
+            <View style={styles.dateContainer}>
+              <TouchableOpacity
+                style={styles.dateInput}
+                onPress={() => setShowFromDatePicker(true)}>
+                <Text style={styles.dateText}>
+                  {formatDateDisplay(fromDate)}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* To Date */}
+            <View style={styles.dateContainer}>
+              <TouchableOpacity
+                style={styles.dateInput}
+                onPress={() => setShowToDatePicker(true)}>
+                <Text style={styles.dateText}>
+                  {formatDateDisplay(toDate)}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Action Buttons */}
+            <View style={styles.actionButtonsContainer}>
+              <TouchableOpacity
+                style={styles.resetButton}
+                onPress={handleResetFilter}>
+                <MaterialIcons
+                  name="refresh"
+                  size={20}
+                  color={APPCOLORS.Primary}
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.applyButton, !selectedAccount && styles.disabledButton]}
+                onPress={handleApplyFilter}
+                disabled={!selectedAccount || loading}>
+                {loading ? (
+                  <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
+                ) : (
+                  <MaterialIcons
+                    name="search"
+                    size={20}
+                    color={APPCOLORS.WHITE}
+                  />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Balance Information */}
+          {(openingBalance !== 0 || closingBalance !== 0 || flatData.length > 0) && selectedAccount && (
+            <View style={styles.balanceContainer}>
+              <View style={styles.balanceInfo}>
+                <Text style={styles.balanceLabel}>Opening Balance</Text>
+                <Text style={styles.balanceValue}>{formatNumber(openingBalance)}</Text>
+              </View>
+              {flatData.length > 0 && (
+                <View style={styles.balanceInfo}>
+                  <Text style={styles.balanceLabel}>Net Difference</Text>
+                  <Text style={[styles.balanceValue, (totalDebit - totalCredit) < 0 && { color: '#DC2626' }]}>
+                    {formatNumber(totalDebit - totalCredit)}
+                  </Text>
+                </View>
+              )}
+              {flatData.length > 0 && (
+                <View style={styles.balanceInfo}>
+                  <Text style={styles.balanceLabel}>Closing Balance</Text>
+                  <Text style={styles.balanceValue}>
+                    {formatNumber(closingBalance)}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+
+        {/* Horizontal Scroll for Table */}
         <ScrollView
-          showsVerticalScrollIndicator={true}
+          horizontal
+          showsHorizontalScrollIndicator={true}
           nestedScrollEnabled={true}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 20, minWidth: '100%' }}>
+          contentContainerStyle={{ flexGrow: 1, minWidth: '100%' }}>
 
           {/* Transactions Table */}
           <View style={styles.container}>

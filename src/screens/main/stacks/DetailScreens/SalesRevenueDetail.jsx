@@ -11,6 +11,7 @@ import {
 import axios from 'axios';
 import PieChart from 'react-native-pie-chart';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {formatNumber} from '../../../../utils/NumberUtils';
@@ -246,7 +247,17 @@ const SalesRevenueDetail = ({route, navigation}) => {
             <Text style={styles.dateText}>{formatDisplayDate(endDate)}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.applyBtn} onPress={handleApplyFilter}>
-            <Text style={styles.applyBtnText}>Apply</Text>
+            <Ionicons name="search" size={18} color={COLORS.WHITE} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.clearBtn}
+            onPress={() => {
+              setStartDate(new Date(new Date().setDate(new Date().getDate() - 30)));
+              setEndDate(new Date());
+              setSelectedOption('revenue');
+              fetchData(new Date(new Date().setDate(new Date().getDate() - 30)), new Date());
+            }}>
+            <Ionicons name="close-circle" size={18} color={COLORS.WHITE} />
           </TouchableOpacity>
         </View>
       </View>
@@ -384,17 +395,21 @@ const styles = StyleSheet.create({
   },
   applyBtn: {
     backgroundColor: '#1a1c22',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
+    width: 40,
+    height: 36,
     borderRadius: 8,
     marginLeft: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  applyBtnText: {
-    color: COLORS.WHITE,
-    fontWeight: 'bold',
-    fontSize: 14,
+  clearBtn: {
+    backgroundColor: '#dc3545',
+    width: 40,
+    height: 36,
+    borderRadius: 8,
+    marginLeft: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   chartContainer: {
     alignItems: 'center',

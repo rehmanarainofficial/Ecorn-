@@ -11,6 +11,7 @@ import {formatNumber} from '../../../../utils/NumberUtils';
 const ShowUnapprovedDetails = ({route, navigation}) => {
   const {dataDetail, type} = route.params;
   const currentUser = useSelector(state => state.Data.currentData);
+  
 
   const [filteredData, setFilteredData] = useState(dataDetail);
   const [searchText, setSearchText] = useState('');
@@ -43,7 +44,8 @@ const ShowUnapprovedDetails = ({route, navigation}) => {
     data.append('trans_no', item?.trans_no);
     data.append('type', item?.type);
     data.append('approval', JSON.stringify(status));
-    data.append('user_id', currentUser?.user_id);
+    data.append('user_id', currentUser?.id);
+    
 
     let config = {
       method: 'post',

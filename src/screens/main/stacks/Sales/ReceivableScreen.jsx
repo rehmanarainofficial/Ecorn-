@@ -11,7 +11,6 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
 import {GetReceivable} from '../../../../global/ChartApisCall';
-import PlatformGradient from '../../../../components/PlatformGradient';
 import {formatNumber} from '../../../../utils/NumberUtils';
 
 const COLORS = {
@@ -19,6 +18,11 @@ const COLORS = {
   BLACK: '#000000',
   Primary: '#1a1c22',
   Secondary: '#5a5c6a',
+  Background: '#F3F4F6',
+  Border: '#E2E8F0',
+  TextDark: '#1E293B',
+  TextMuted: '#64748B',
+  CardBg: '#FFFFFF',
 };
 
 const ReceivableScreen = ({navigation}) => {
@@ -26,19 +30,17 @@ const ReceivableScreen = ({navigation}) => {
   const [circleData, setCircleData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  console.log('🔍 [Receivable DEBUG] Screen loaded');
-
   const colors = [
-    '#00E0FF',
-    '#FF6B6B',
-    '#FFD93D',
-    '#6BCB77',
-    '#4D96FF',
-    '#FFB347',
-    '#9D4EDD',
-    '#38BDF8',
-    '#FF007F',
-    '#FFAA00',
+    '#3B82F6',
+    '#EF4444',
+    '#F59E0B',
+    '#10B981',
+    '#8B5CF6',
+    '#F97316',
+    '#EC4899',
+    '#06B6D4',
+    '#84CC16',
+    '#6366F1',
   ];
 
   useEffect(() => {
@@ -49,12 +51,10 @@ const ReceivableScreen = ({navigation}) => {
   }, [navigation]);
 
   const fetchData = async () => {
-    console.log('🔄 [Receivable DEBUG] Fetching receivable data...');
     setLoading(true);
 
     try {
       const apiResponse = await GetReceivable();
-      console.log('✅ [Receivable DEBUG] API Response:', apiResponse);
 
       if (apiResponse?.data_cust_bal) {
         const circleBar = apiResponse.data_cust_bal.map((item, index) => {
@@ -64,21 +64,19 @@ const ReceivableScreen = ({navigation}) => {
             color: colors[index % colors.length],
           };
         });
-        console.log('📊 [Receivable DEBUG] Circle Data:', circleBar);
         setCircleData(circleBar);
       }
 
       setDataState(apiResponse);
       setLoading(false);
     } catch (error) {
-      console.error('❌ [Receivable DEBUG] API Error:', error);
+      console.error('API Error:', error);
       setLoading(false);
     }
   };
 
   const getListData = () => {
     const data = dataState?.data_cust_bal || [];
-    console.log('📋 [Receivable DEBUG] List Data:', data);
     return data;
   };
 
@@ -90,14 +88,12 @@ const ReceivableScreen = ({navigation}) => {
   }, 0);
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={{flex: 1}}>
+    <View style={styles.mainContainer}>
       <SimpleHeader title="Receivable Balance" />
 
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={COLORS.WHITE} />
+          <ActivityIndicator size="large" color={COLORS.Primary} />
           <Text style={styles.loaderText}>Loading Receivable Data...</Text>
         </View>
       ) : (
@@ -106,7 +102,7 @@ const ReceivableScreen = ({navigation}) => {
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={true}>
           <View style={styles.container}>
-            {/* Summary Section - PieChart ki jagah */}
+            {/* Summary Section */}
             <View style={styles.summaryContainer}>
               <View style={styles.summaryCard}>
                 <Text style={styles.summaryTitle}>Total Receivable</Text>
@@ -150,7 +146,6 @@ const ReceivableScreen = ({navigation}) => {
               {listData.length > 0 && (
                 <ViewAll
                   onPress={() => {
-                    console.log('🔄 [Receivable DEBUG] View All Pressed');
                     navigation.navigate('NormalViewAll', {
                       AllData: listData,
                       dataname: 'Customer',
@@ -182,12 +177,6 @@ const ReceivableScreen = ({navigation}) => {
                             2,
                           )
                         : 0;
-
-                    console.log(`📊 [Receivable DEBUG] Customer ${index}:`, {
-                      name: item.name,
-                      balance,
-                      perc,
-                    });
 
                     return (
                       <View
@@ -228,21 +217,26 @@ const ReceivableScreen = ({navigation}) => {
           </View>
         </ScrollView>
       )}
-    </PlatformGradient>
+    </View>
   );
 };
 
 export default ReceivableScreen;
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+  },
   scrollView: {
     flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
+    paddingBottom: 80,
   },
   container: {
-    padding: 20,
+    padding: 16,
   },
   loaderContainer: {
     flex: 1,
@@ -251,54 +245,67 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   loaderText: {
-    color: COLORS.WHITE,
+    color: COLORS.TextDark,
     fontSize: 16,
   },
   summaryContainer: {
-    marginBottom: 20,
-    gap: 15,
+    marginBottom: 16,
+    gap: 12,
   },
   summaryCard: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     padding: 20,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   summaryTitle: {
-    color: COLORS.WHITE,
+    color: COLORS.TextDark,
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 8,
   },
   summaryAmount: {
-    color: '#00E0FF',
-    fontSize: 24,
+    color: '#3B82F6',
+    fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   summarySubtitle: {
-    color: 'rgba(255,255,255,0.7)',
+    color: COLORS.TextMuted,
     fontSize: 14,
   },
   legendContainer: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    padding: 15,
+    backgroundColor: COLORS.WHITE,
+    padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   legendTitle: {
-    color: COLORS.WHITE,
+    color: COLORS.TextDark,
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 10,
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.Border,
+    paddingBottom: 8,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
     gap: 10,
   },
   legendColor: {
@@ -307,64 +314,74 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   legendText: {
-    color: 'rgba(255,255,255,0.85)',
+    color: COLORS.TextDark,
     fontSize: 14,
     flex: 1,
   },
   legendBalance: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 12,
+    color: COLORS.TextMuted,
+    fontSize: 13,
     fontWeight: '600',
   },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 20,
-    marginBottom: 10,
+    marginTop: 8,
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.WHITE,
+    color: COLORS.TextDark,
   },
   listContainer: {
-    marginTop: 10,
+    marginTop: 4,
   },
   listContent: {
     gap: 10,
   },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    padding: 12,
+    backgroundColor: COLORS.WHITE,
+    padding: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   emptyContainer: {
     alignItems: 'center',
     padding: 20,
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
   },
   emptyText: {
-    color: COLORS.WHITE,
-    fontSize: 16,
-    opacity: 0.7,
+    color: COLORS.TextMuted,
+    fontSize: 15,
   },
   noDataContainer: {
     alignItems: 'center',
     padding: 40,
     gap: 10,
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
   },
   noDataText: {
-    color: COLORS.WHITE,
+    color: COLORS.TextDark,
     fontSize: 18,
     fontWeight: '600',
-    opacity: 0.8,
   },
   noDataSubtext: {
-    color: COLORS.WHITE,
+    color: COLORS.TextMuted,
     fontSize: 14,
-    opacity: 0.6,
     textAlign: 'center',
   },
 });

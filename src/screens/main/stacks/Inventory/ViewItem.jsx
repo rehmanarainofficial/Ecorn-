@@ -210,7 +210,7 @@ const ViewItem = ({navigation}) => {
 
         <View style={[styles.searchRow, {alignItems: 'center', marginTop: 12}]}>
           <TextInput
-            style={[styles.searchInput, {flex: 0.75}]}
+            style={[styles.searchInput, {flex: 1}]}
             placeholder="Search by Name"
             placeholderTextColor="rgba(255,255,255,0.6)"
             value={searchName}
@@ -219,7 +219,18 @@ const ViewItem = ({navigation}) => {
           <TouchableOpacity
             onPress={handleApplyFilter}
             style={styles.applyButton}>
-            <Text style={{color: COLORS.WHITE, fontWeight: '700'}}>Apply</Text>
+            <Ionicons name="search" size={20} color={COLORS.WHITE} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              setCategory(null);
+              setSearchCode('');
+              setSearchName('');
+              setPage(1);
+              fetchItems();
+            }}
+            style={styles.clearButton}>
+            <Ionicons name="close-circle" size={20} color={COLORS.WHITE} />
           </TouchableOpacity>
         </View>
       </View>
@@ -304,13 +315,25 @@ const styles = StyleSheet.create({
   },
   applyButton: {
     height: 48,
-    flex: 0.25,
+    width: 48,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.Primary,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
+    marginLeft: 8,
+  },
+  clearButton: {
+    height: 48,
+    width: 48,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#dc3545',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    marginLeft: 8,
   },
   card: {
     borderRadius: 16,

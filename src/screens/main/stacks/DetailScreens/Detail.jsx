@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import React, {useEffect, useState} from 'react';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import SimpleHeader from '../../../../components/SimpleHeader';
@@ -24,15 +25,14 @@ const COLORS = {
   BLACK: '#000000',
   Primary: '#1a1c22',
   Secondary: '#5a5c6a',
+  Background: '#F3F4F6',
+  Border: '#E2E8F0',
+  TextDark: '#1E293B',
+  TextMuted: '#64748B',
+  AccentBlue: '#3B82F6',
 };
 
 const getCardColors = () => {
-  if (Platform.OS === 'ios') {
-    return {
-      topColor: '#2d2f3a',
-      bottomColor: '#3d3f4a',
-    };
-  }
   return {
     topColor: COLORS.Primary,
     bottomColor: COLORS.Secondary,
@@ -234,7 +234,16 @@ const Detail = ({navigation}) => {
             <Text style={styles.dateText}>{formatDate(endDate)}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.applyBtn} onPress={getMoneyData}>
-            <Text style={styles.applyBtnText}>Apply</Text>
+            <Ionicons name="search" size={18} color={COLORS.WHITE} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.clearBtn}
+            onPress={() => {
+              setStartDate(new Date(new Date().setDate(new Date().getDate() - 30)));
+              setEndDate(new Date());
+              getMoneyData();
+            }}>
+            <Ionicons name="close-circle" size={18} color={COLORS.WHITE} />
           </TouchableOpacity>
         </View>
       </View>
@@ -376,47 +385,54 @@ let styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
-    paddingBottom: 20,
+    paddingBottom: 80,
   },
   box: {
     backgroundColor: COLORS.WHITE,
     marginHorizontal: 15,
     marginTop: 15,
     borderRadius: 16,
-    padding: 15,
+    padding: 16,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   boxHeader: {
     fontSize: 18,
     fontWeight: '700',
-    marginBottom: 10,
-    color: COLORS.BLACK,
+    marginBottom: 12,
+    color: '#1E293B',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    paddingBottom: 10,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
+    borderBottomColor: '#F1F5F9',
   },
   rowTitle: {
-    fontSize: 16,
-    color: '#333333',
+    fontSize: 15,
+    color: '#334155',
     flex: 1,
+    fontWeight: '500',
   },
   cell: {
-    fontSize: 16,
-    color: '#333333',
+    fontSize: 15,
+    color: '#1E293B',
     textAlign: 'right',
+    fontWeight: '600',
   },
   rowAmount: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.BLACK,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1E293B',
   },
   revenueSection: {
     marginTop: 20,
@@ -425,9 +441,9 @@ let styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.BLACK,
+    color: '#1E293B',
     marginLeft: 15,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   gridContainer: {
     flexDirection: 'row',
@@ -445,22 +461,36 @@ let styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     marginTop: 20,
+    backgroundColor: COLORS.WHITE,
+    marginHorizontal: 15,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   noCardsText: {
-    color: COLORS.BLACK,
-    fontSize: 16,
-    opacity: 0.7,
+    color: '#64748B',
+    fontSize: 15,
   },
   filterContainer: {
     marginHorizontal: 15,
-    marginTop: 10,
+    marginTop: 12,
     marginBottom: 5,
+    backgroundColor: COLORS.WHITE,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   filterLabel: {
-    color: COLORS.BLACK,
+    color: '#1E293B',
     fontSize: 14,
-    marginBottom: 5,
-    fontWeight: 'bold',
+    marginBottom: 8,
+    fontWeight: '600',
   },
   dateRow: {
     flexDirection: 'row',
@@ -468,39 +498,41 @@ let styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   dateButton: {
-    backgroundColor: COLORS.WHITE,
-    paddingVertical: 8,
+    backgroundColor: '#F8FAFC',
+    paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#E2E8F0',
     flex: 1,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
   },
   dateText: {
-    color: COLORS.BLACK,
+    color: '#1E293B',
     fontSize: 14,
+    fontWeight: '500',
   },
   toText: {
     marginHorizontal: 10,
-    color: COLORS.BLACK,
+    color: '#64748B',
+    fontWeight: '500',
   },
   applyBtn: {
-    backgroundColor: COLORS.Primary,
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 8,
+    backgroundColor: '#1a1c22',
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     marginLeft: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  applyBtnText: {
-    color: COLORS.WHITE,
-    fontWeight: 'bold',
-    fontSize: 14,
+  clearBtn: {
+    backgroundColor: '#dc3545',
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    marginLeft: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

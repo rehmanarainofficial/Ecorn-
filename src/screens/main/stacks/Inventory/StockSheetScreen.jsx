@@ -179,7 +179,10 @@ export default function StockSheetScreen({navigation}) {
             onChange={item => setCategory(item.value)}
           />
           <TouchableOpacity onPress={applyFilters} style={styles.applyButton}>
-            <Text style={{color: COLORS.WHITE, fontWeight: '700'}}>Apply</Text>
+            <Ionicons name="search" size={20} color={COLORS.WHITE} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={clearFilters} style={styles.clearButton}>
+            <Ionicons name="close-circle" size={20} color={COLORS.WHITE} />
           </TouchableOpacity>
         </View>
       </View>
@@ -246,9 +249,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#3b3f51',
     borderRadius: 10,
     height: 52,
+    width: 52,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 16,
+  },
+  clearButton: {
+    backgroundColor: '#dc3545',
+    borderRadius: 10,
+    height: 52,
+    width: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
   },
   card: {
     backgroundColor: 'rgba(255,255,255,0.08)',

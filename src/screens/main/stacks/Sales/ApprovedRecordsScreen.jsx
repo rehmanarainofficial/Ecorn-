@@ -166,11 +166,9 @@ const ApprovedRecordsScreen = ({navigation, route}) => {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
-
-  // Fetch data
   const fetchData = useCallback(() => {
     const fromDate = new Date();
-    fromDate.setMonth(fromDate.getMonth() - 2);
+    fromDate.setDate(fromDate.getDate() - 30); // 30 days ago
     const toDate = new Date();
     
     dispatch(

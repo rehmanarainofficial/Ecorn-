@@ -133,9 +133,11 @@ const GrnDeliveryNote = ({route}) => {
       formData.append('user_id', String(currentUser?.user_id ?? '1'));
       formData.append('purch_order_details', JSON.stringify(purchOrderDetails));
 
-      await axios.post(`${BASEURL}post_service_purch_sale.php`, formData, {
+      let res = await axios.post(`${BASEURL}post_service_purch_sale.php`, formData, {
         headers: {'Content-Type': 'multipart/form-data'},
       });
+
+      console.log(res.data);
 
       ToastAndroid.show(
         'Delivery Note submitted successfully!',
@@ -158,7 +160,7 @@ const GrnDeliveryNote = ({route}) => {
         <View style={styles.infoRow}>
           <View style={styles.infoContainer}>
             <Text style={styles.infoLabel}>Cost center:</Text>
-            <Text style={styles.infoValue}>{locCode || 'N/A'}</Text>
+            <Text style={styles.infoValue}>{location || 'N/A'}</Text>
           </View>
           <View style={styles.infoContainer}>
             <Text style={styles.infoLabel}>Location Name:</Text>

@@ -242,11 +242,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
         formData.append('name', searchName);
       }
 
-      console.log('========== FILTER DEBUG ==========');
-      console.log('API Endpoint:', isApproved ? 'dash_approved.php' : 'dash_approval.php');
-      console.log('isApproved:', isApproved);
-      console.log('listKey:', listKey);
-      console.log('===================================');
+     
 
       const res = await axios.post(apiEndpoint, formData, {
         headers: {
@@ -255,9 +251,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
       });
 
       const mappedKey = keyMap[listKey];
-      console.log('Mapped Key:', mappedKey);
       const newData = res.data?.[mappedKey] || [];
-      console.log('Data found after filter:', newData.length, 'records');
 
       setData(newData);
 
@@ -332,10 +326,6 @@ const ApprovalListScreen = ({ route, navigation }) => {
   };
 
   const handleApprove = async item => {
-    console.log('Approve clicked - trans_no:', item.trans_no);
-    console.log('Approve clicked - full item:', item);
-    console.log('listKey:', listKey);
-
     try {
       const formData = new FormData();
 
@@ -344,7 +334,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
         console.log('Electrical/Mechanical - sending only trans_no:', item.trans_no);
         formData.append('trans_no', item.trans_no);
       } else {
-        formData.append('user_id', currentUser?.user_id);
+        formData.append('user_id', currentUser?.id);
         formData.append('trans_no', item.trans_no);
         formData.append('type', item.type);
         formData.append('approval', 0);
@@ -392,10 +382,10 @@ const ApprovalListScreen = ({ route, navigation }) => {
 
       // For Electrical & Mechanical, only send trans_no
       if (listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards') {
-        console.log('Electrical/Mechanical Unapprove - sending only trans_no:', item.trans_no);
         formData.append('trans_no', item.trans_no);
       } else {
-        formData.append('user_id', currentUser?.user_id);
+        
+        formData.append('user_id', currentUser?.id);
         formData.append('trans_no', item.trans_no);
         formData.append('type', item.type);
         formData.append('approval', 1); // 1 for unapprove
@@ -410,7 +400,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
           },
         },
       );
-
+      console.log(formData);
       if (res.data?.status === true) {
         Toast.show({
           type: 'success',

@@ -86,6 +86,7 @@ import ViewLedger from '../screens/main/stacks/Finance/ViewLedger';
 import StockMovements from '../screens/main/stacks/Inventory/StockMovements';
 import ViewDetailsScreen from '../screens/main/stacks/AppAlerts/ViewDetailsScreen ';
 import ExpenseClaim from '../screens/main/stacks/Finance/ExpenseClaim';
+import LocalPurchase from '../screens/main/stacks/Finance/LocalPurchase';
 import GLViewScreen from '../screens/main/stacks/AppAlerts/GLViewScreen';
 import ViewTransactions from '../components/ViewTransactions';
 import ManufacturingView from '../components/ManufacturingView';
@@ -215,6 +216,7 @@ const Main = () => {
       <Stack.Screen name="StockMovements" component={StockMovements} />
       <Stack.Screen name="ViewDetailsScreen" component={ViewDetailsScreen} />
       <Stack.Screen name="ExpenseClaim" component={ExpenseClaim} />
+      <Stack.Screen name="LocalPurchase" component={LocalPurchase} />
       <Stack.Screen name="GLViewScreen" component={GLViewScreen} />
       <Stack.Screen name="ViewTransactions" component={ViewTransactions} />
       <Stack.Screen name="ManufacturingView" component={ManufacturingView} />

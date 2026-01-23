@@ -168,9 +168,23 @@ const PdcDetailScreen = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.morphButton, {backgroundColor: '#000'}]}
+            style={styles.iconButton}
             onPress={() => fetchTransactions()}>
-            <Text style={{color: '#fff', fontWeight: 'bold'}}>Apply</Text>
+            <Icon name="magnify" size={20} color="#fff" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={() => {
+              const today = new Date();
+              const lastMonth = new Date();
+              lastMonth.setMonth(today.getMonth() - 1);
+              setFromDate(lastMonth);
+              setToDate(today);
+              setSelectedCustomer(null);
+              fetchTransactions(lastMonth, today);
+            }}>
+            <Icon name="close-circle" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
 
@@ -297,5 +311,23 @@ const styles = StyleSheet.create({
     color: '#555',
     flex: 1,
     textAlign: 'right',
+  },
+  iconButton: {
+    width: 44,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#1a1c22',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 3,
+  },
+  clearButton: {
+    width: 44,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#dc3545',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 3,
   },
 });

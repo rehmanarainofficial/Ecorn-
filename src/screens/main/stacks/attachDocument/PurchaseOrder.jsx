@@ -164,28 +164,14 @@ export default function PurchaseOrder({navigation}) {
       <View style={styles.actionContainer}>
         <TouchableOpacity
           onPress={applyFilter}
-          style={{flex: 1, marginRight: 6}}>
-          <PlatformGradient
-            colors={['#28a745', '#218838']}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 1}}
-            style={styles.gradientButton}>
-            <Icon name="filter-check" size={18} color="#fff" />
-            <Text style={styles.buttonText}>Apply</Text>
-          </PlatformGradient>
+          style={styles.iconBtn}>
+          <Icon name="magnify" size={22} color="#fff" />
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={clearFilter}
-          style={{flex: 1, marginLeft: 6}}>
-          <PlatformGradient
-            colors={['#dc3545', '#a71d2a']}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 1}}
-            style={styles.gradientButton}>
-            <Icon name="close-circle" size={18} color="#fff" />
-            <Text style={styles.buttonText}>Clear</Text>
-          </PlatformGradient>
+          style={styles.clearBtn}>
+          <Icon name="close-circle" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
 
@@ -365,5 +351,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3,
     shadowOffset: {width: 1, height: 2},
+  },
+  iconBtn: {
+    width: 48,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: '#1a1c22',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  clearBtn: {
+    width: 48,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: '#dc3545',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

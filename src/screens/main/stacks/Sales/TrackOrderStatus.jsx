@@ -6,31 +6,31 @@ import {
   TextInput,
   ActivityIndicator,
   StyleSheet,
-  ScrollView,
   Animated,
-  Platform,
-  Alert,
   FlatList,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import PlatformGradient from '../../../../components/PlatformGradient';
+import SimpleHeader from '../../../../components/SimpleHeader';
 import axios from 'axios';
 import {Dropdown} from 'react-native-element-dropdown';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Toast from 'react-native-toast-message';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {formatDate, formatDateString} from '../../../../utils/DateUtils';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
   Primary: '#1a1c22',
   Secondary: '#5a5c6a',
+  Background: '#F3F4F6',
+  Border: '#E2E8F0',
+  TextDark: '#1E293B',
+  TextMuted: '#64748B',
+  CardBg: '#FFFFFF',
 };
 
 const TrackOrderStatus = ({navigation}) => {
-  const insets = useSafeAreaInsets();
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
 
@@ -71,7 +71,12 @@ const TrackOrderStatus = ({navigation}) => {
       }
     } catch (err) {
       console.log('Orders fetch error:', err);
-      Alert.alert('Error', 'Unable to fetch orders');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Unable to fetch orders',
+        position: 'bottom',
+      });
     } finally {
       setLoading(false);
     }
@@ -187,224 +192,157 @@ const TrackOrderStatus = ({navigation}) => {
     return formatDateString(dateStr);
   };
 
-  const renderCard = ({item, index}) => (
-    <Animated.View
-      key={item.order_no + index}
-      style={[
-        styles.card,
-        {
-          transform: [
-            {translateY: animValues[index % animValues.length].translateY},
-          ],
-          opacity: animValues[index % animValues.length].opacity,
-        },
-      ]}>
-      {/* Key-Value Pairs */}
-      <View style={styles.kvRow}>
-        <Text style={styles.kvKey}>Name:</Text>
-        <Text style={styles.kvValue}>{item.br_name}</Text>
-      </View>
-      <View style={styles.kvRow}>
-        <Text style={styles.kvKey}>Location:</Text>
-        <Text style={styles.kvValue}>{item.branch_ref}</Text>
-      </View>
-      <View style={styles.kvRow}>
-        <Text style={styles.kvKey}>Date:</Text>
-        <Text style={styles.kvValue}>{formatDateDisplay(item.ord_date)}</Text>
-      </View>
-
-      {/* Status Rows */}
-      <View style={styles.statusRow}>
-        <Text style={styles.statusText}>Order: {item.order_status}</Text>
-        <Text style={styles.statusText}>Delivery: {item.del_status}</Text>
-      </View>
-      <View style={styles.statusRow}>
-        <Text style={styles.statusText}>Invoice: {item.inv_status}</Text>
-        <Text style={styles.statusText}>Mfg: {item.manufacturing_status}</Text>
-      </View>
-    </Animated.View>
-  );
-
-  {
-    /* Data list */
-  }
-  {
-    loading ? (
-      <ActivityIndicator
-        size="large"
-        color={COLORS.WHITE}
-        style={{marginTop: 50}}
-      />
-    ) : (
-      <FlatList
-        data={filteredOrders}
-        keyExtractor={(item, idx) => item.order_no + idx}
-        renderItem={renderCard}
-        contentContainerStyle={{padding: 16}}
-        initialNumToRender={15} // 👈 speed improve
-        windowSize={10}
-        removeClippedSubviews={true}
-      />
-    );
-  }
+  const clearFilters = () => {
+    setSearch('');
+    setSelectedLocation(null);
+    setFromDate(null);
+    setToDate(null);
+    setChecks({mfg: false, delivery: false, invoice: false});
+    setFilteredOrders(orders);
+    Toast.show({
+      type: 'info',
+      text1: 'Filters Cleared',
+      position: 'bottom',
+    });
+  };
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={{flex: 1}}>
-      {/* Header */}
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop:
-              Platform.OS === 'ios' ? insets.top + 15 : insets.top + 20,
-            paddingBottom: 15,
-          },
-        ]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" color={COLORS.WHITE} size={28} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Track Orders</Text>
+    <View style={styles.container}>
+      <SimpleHeader title="Track Orders" />
 
-        {/* Clear Filter Btn */}
-        <TouchableOpacity
-          onPress={() => {
-            setSearch('');
-            setSelectedLocation(null);
-            setFromDate(null);
-            setToDate(null);
-            setFilteredOrders(orders);
-            Toast.show({
-              type: 'info',
-              text1: 'Filters Cleared',
-              position: 'bottom',
-            });
-          }}>
-          <Text style={{color: COLORS.WHITE, fontSize: 15, fontWeight: '600'}}>
-            Clear
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {/* Filter Section */}
+      <View style={styles.filterContainer}>
+        {/* Search bar */}
+        <View style={styles.searchContainer}>
+          <Ionicons
+            name="search"
+            size={20}
+            color={COLORS.TextMuted}
+            style={{marginLeft: 12}}
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search orders..."
+            placeholderTextColor={COLORS.TextMuted}
+            value={search}
+            onChangeText={setSearch}
+          />
+          {search.length > 0 && (
+            <TouchableOpacity onPress={() => setSearch('')} style={{paddingRight: 12}}>
+              <Ionicons name="close-circle" size={20} color={COLORS.TextMuted} />
+            </TouchableOpacity>
+          )}
+        </View>
 
-      {/* Search bar */}
-      <View style={styles.searchContainer}>
-        <Ionicons
-          name="search"
-          size={20}
-          color={'#aaa'}
-          style={{marginLeft: 8}}
-        />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search orders..."
-          placeholderTextColor="rgba(255,255,255,0.5)"
-          value={search}
-          onChangeText={setSearch}
-        />
-      </View>
-
-      {/* Location Dropdown */}
-      <View style={{paddingHorizontal: 16, marginTop: 12}}>
+        {/* Location Dropdown */}
         <Dropdown
           style={styles.dropdown}
+          placeholderStyle={styles.dropdownPlaceholder}
+          selectedTextStyle={styles.dropdownSelectedText}
+          inputSearchStyle={styles.dropdownInputSearch}
           data={locations}
           search
           maxHeight={300}
           labelField="label"
           valueField="value"
-          placeholder="Cost center"
-          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
+          placeholder="Select Cost Center"
           searchPlaceholder="Search..."
           value={selectedLocation}
           onChange={item => setSelectedLocation(item.value)}
         />
-      </View>
 
-      {/* Date filter row */}
-      <View style={styles.filterRow}>
-        <TouchableOpacity
-          style={styles.filterBtn}
-          onPress={() => setShowPicker({show: true, type: 'from'})}>
-          <Text style={styles.filterBtnText}>
-            {formatDate(fromDate) || 'From Date'}
-          </Text>
-        </TouchableOpacity>
+        {/* Date filter row */}
+        <View style={styles.dateRow}>
+          <TouchableOpacity
+            style={styles.dateBtn}
+            onPress={() => setShowPicker({show: true, type: 'from'})}>
+            <Ionicons name="calendar-outline" size={18} color={COLORS.TextMuted} />
+            <Text style={styles.dateBtnText}>
+              {formatDate(fromDate) || 'From Date'}
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.filterBtn}
-          onPress={() => setShowPicker({show: true, type: 'to'})}>
-          <Text style={styles.filterBtnText}>
-            {formatDate(toDate) || 'To Date'}
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.dateBtn}
+            onPress={() => setShowPicker({show: true, type: 'to'})}>
+            <Ionicons name="calendar-outline" size={18} color={COLORS.TextMuted} />
+            <Text style={styles.dateBtnText}>
+              {formatDate(toDate) || 'To Date'}
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.applyBtn} onPress={applyFilter}>
-          <Text style={{color: COLORS.WHITE, fontSize: 15, fontWeight: '600'}}>
-            Apply
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity style={styles.applyBtn} onPress={() => applyFilter()}>
+            <Ionicons name="search" size={18} color={COLORS.WHITE} />
+          </TouchableOpacity>
 
-      {/* Checkbox Row */}
-      <View style={styles.checkboxRow}>
-        <TouchableOpacity
-          style={styles.checkItem}
-          onPress={() => toggleCheck('mfg')}>
-          <Ionicons
-            name={checks.mfg ? 'checkbox' : 'checkbox-outline'}
-            size={24}
-            color={checks.mfg ? COLORS.Primary : '#aaa'}
-          />
-          <Text style={styles.checkLabel}>Mfg</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.clearBtn} onPress={clearFilters}>
+            <Ionicons name="close-circle" size={18} color={COLORS.WHITE} />
+          </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity
-          style={styles.checkItem}
-          onPress={() => toggleCheck('delivery')}>
-          <Ionicons
-            name={checks.delivery ? 'checkbox' : 'checkbox-outline'}
-            size={24}
-            color={checks.delivery ? COLORS.Primary : '#aaa'}
-          />
-          <Text style={styles.checkLabel}>Delivery</Text>
-        </TouchableOpacity>
+        {/* Checkbox Row */}
+        <View style={styles.checkboxRow}>
+          <TouchableOpacity
+            style={[styles.checkItem, checks.mfg && styles.checkItemActive]}
+            onPress={() => toggleCheck('mfg')}>
+            <Ionicons
+              name={checks.mfg ? 'checkbox' : 'checkbox-outline'}
+              size={20}
+              color={checks.mfg ? COLORS.WHITE : COLORS.TextDark}
+            />
+            <Text style={[styles.checkLabel, checks.mfg && styles.checkLabelActive]}>
+              Mfg
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.checkItem}
-          onPress={() => toggleCheck('invoice')}>
-          <Ionicons
-            name={checks.invoice ? 'checkbox' : 'checkbox-outline'}
-            size={24}
-            color={checks.invoice ? COLORS.Primary : '#aaa'}
-          />
-          <Text style={styles.checkLabel}>Invoice</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.checkItem, checks.delivery && styles.checkItemActive]}
+            onPress={() => toggleCheck('delivery')}>
+            <Ionicons
+              name={checks.delivery ? 'checkbox' : 'checkbox-outline'}
+              size={20}
+              color={checks.delivery ? COLORS.WHITE : COLORS.TextDark}
+            />
+            <Text style={[styles.checkLabel, checks.delivery && styles.checkLabelActive]}>
+              Delivery
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.checkItem, checks.invoice && styles.checkItemActive]}
+            onPress={() => toggleCheck('invoice')}>
+            <Ionicons
+              name={checks.invoice ? 'checkbox' : 'checkbox-outline'}
+              size={20}
+              color={checks.invoice ? COLORS.WHITE : COLORS.TextDark}
+            />
+            <Text style={[styles.checkLabel, checks.invoice && styles.checkLabelActive]}>
+              Invoice
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Date picker */}
-      {showPicker.show && (
-        <DateTimePicker
-          value={new Date()}
-          mode="date"
-          display="default"
-          onChange={(e, selected) => {
-            setShowPicker({show: false, type: null});
-            if (selected) {
-              if (showPicker.type === 'from') setFromDate(selected);
-              else setToDate(selected);
-            }
-          }}
-        />
-      )}
+      <DateTimePickerModal
+        isVisible={showPicker.show}
+        mode="date"
+        onConfirm={selected => {
+          setShowPicker({show: false, type: null});
+          if (selected) {
+            if (showPicker.type === 'from') setFromDate(selected);
+            else setToDate(selected);
+          }
+        }}
+        onCancel={() => setShowPicker({show: false, type: null})}
+      />
 
       {/* Data list */}
       {loading ? (
-        <ActivityIndicator
-          size="large"
-          color={COLORS.WHITE}
-          style={{marginTop: 50}}
-        />
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={COLORS.Primary} />
+          <Text style={styles.loaderText}>Loading orders...</Text>
+        </View>
       ) : (
         <FlatList
           data={filteredOrders}
@@ -441,163 +379,276 @@ const TrackOrderStatus = ({navigation}) => {
               </View>
 
               {/* Status Rows */}
-              <View style={styles.statusRow}>
-                <Text style={styles.statusText}>
-                  Order: {item.order_status}
-                </Text>
-                <Text style={styles.statusText}>
-                  Delivery: {item.del_status}
-                </Text>
-              </View>
-              <View style={styles.statusRow}>
-                <Text style={styles.statusText}>
-                  Invoice: {item.inv_status}
-                </Text>
-                <Text style={styles.statusText}>
-                  Mfg: {item.manufacturing_status}
-                </Text>
+              <View style={styles.statusContainer}>
+                <View style={styles.statusRow}>
+                  <View style={styles.statusItem}>
+                    <Text style={styles.statusLabel}>Order</Text>
+                    <Text style={[
+                      styles.statusValue,
+                      {color: item.order_status === 'Yes' ? '#10B981' : '#EF4444'}
+                    ]}>
+                      {item.order_status}
+                    </Text>
+                  </View>
+                  <View style={styles.statusItem}>
+                    <Text style={styles.statusLabel}>Delivery</Text>
+                    <Text style={[
+                      styles.statusValue,
+                      {color: item.del_status === 'Yes' ? '#10B981' : '#EF4444'}
+                    ]}>
+                      {item.del_status}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.statusRow}>
+                  <View style={styles.statusItem}>
+                    <Text style={styles.statusLabel}>Invoice</Text>
+                    <Text style={[
+                      styles.statusValue,
+                      {color: item.inv_status === 'Yes' ? '#10B981' : '#EF4444'}
+                    ]}>
+                      {item.inv_status}
+                    </Text>
+                  </View>
+                  <View style={styles.statusItem}>
+                    <Text style={styles.statusLabel}>Mfg</Text>
+                    <Text style={[
+                      styles.statusValue,
+                      {color: item.manufacturing_status === 'Yes' ? '#10B981' : '#EF4444'}
+                    ]}>
+                      {item.manufacturing_status}
+                    </Text>
+                  </View>
+                </View>
               </View>
             </Animated.View>
           )}
-          contentContainerStyle={{padding: 16}}
+          contentContainerStyle={styles.listContent}
           initialNumToRender={15}
           windowSize={10}
           removeClippedSubviews={true}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="document-text-outline" size={48} color={COLORS.TextMuted} />
+              <Text style={styles.emptyText}>No orders found</Text>
+            </View>
+          }
         />
       )}
-    </PlatformGradient>
+    </View>
   );
 };
 
 export default TrackOrderStatus;
 
 const styles = StyleSheet.create({
-  header: {
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+  container: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.WHITE,
+  filterContainer: {
+    backgroundColor: COLORS.WHITE,
+    margin: 16,
+    marginBottom: 8,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    marginHorizontal: 16,
-    marginTop: 14,
-    borderRadius: 14,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    height: 50,
+    borderColor: COLORS.Border,
+    height: 46,
+    marginBottom: 12,
   },
   searchInput: {
     flex: 1,
-    color: COLORS.WHITE,
+    color: COLORS.TextDark,
     fontSize: 15,
     paddingHorizontal: 10,
   },
   dropdown: {
-    height: 56,
-    borderRadius: 14,
+    height: 46,
+    borderRadius: 10,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: COLORS.Border,
+    marginBottom: 12,
   },
-  filterRow: {
+  dropdownPlaceholder: {
+    color: COLORS.TextMuted,
+    fontSize: 15,
+  },
+  dropdownSelectedText: {
+    color: COLORS.TextDark,
+    fontSize: 15,
+  },
+  dropdownInputSearch: {
+    height: 40,
+    fontSize: 15,
+    borderColor: COLORS.Border,
+  },
+  dateRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginVertical: 14,
-  },
-  filterBtn: {
-    flex: 1,
-    marginRight: 8,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    justifyContent: 'center',
     alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
   },
-  filterBtnText: {
-    color: COLORS.WHITE,
-    fontSize: 14,
+  dateBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 42,
+    borderRadius: 10,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+    gap: 6,
+  },
+  dateBtnText: {
+    color: COLORS.TextDark,
+    fontSize: 13,
   },
   applyBtn: {
-    width: 80,
-    height: 48,
-    borderRadius: 14,
+    width: 42,
+    height: 42,
+    borderRadius: 10,
     backgroundColor: COLORS.Primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.WHITE,
+  clearBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 10,
+    backgroundColor: '#dc3545',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  cardSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
-    marginBottom: 6,
-  },
-  cardDate: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.6)',
-    marginBottom: 10,
-  },
-  statusRow: {
+  checkboxRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    gap: 8,
   },
-  statusText: {
+  checkItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+  },
+  checkItemActive: {
+    backgroundColor: COLORS.Primary,
+    borderColor: COLORS.Primary,
+  },
+  checkLabel: {
+    color: COLORS.TextDark,
     fontSize: 14,
-    color: COLORS.WHITE,
     fontWeight: '500',
   },
+  checkLabelActive: {
+    color: COLORS.WHITE,
+  },
+  listContent: {
+    padding: 16,
+    paddingTop: 8,
+    paddingBottom: 80,
+  },
   card: {
+    backgroundColor: COLORS.WHITE,
     borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
-    backgroundColor: 'rgba(0,0,0,0.4)', // 👈 white overlay remove
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   kvRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between', // 👈 align value to right
-    marginBottom: 6,
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
   kvKey: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.WHITE,
+    color: COLORS.TextMuted,
   },
   kvValue: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.85)',
-    textAlign: 'right', // 👈 value right aligned
+    color: COLORS.TextDark,
+    fontWeight: '500',
+    textAlign: 'right',
     flex: 1,
+    marginLeft: 10,
   },
-  checkboxRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 16,
-    marginBottom: 10,
+  statusContainer: {
+    marginTop: 8,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    padding: 12,
   },
-  checkItem: {
+  statusRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  statusItem: {
+    flex: 1,
     alignItems: 'center',
-    gap: 6,
   },
-  checkLabel: {
-    color: '#fff',
+  statusLabel: {
+    fontSize: 12,
+    color: COLORS.TextMuted,
+    marginBottom: 4,
+  },
+  statusValue: {
     fontSize: 14,
+    fontWeight: '700',
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+  },
+  loaderText: {
+    color: COLORS.TextDark,
+    fontSize: 15,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+  },
+  emptyText: {
+    color: COLORS.TextMuted,
+    fontSize: 16,
+    marginTop: 12,
   },
 });
