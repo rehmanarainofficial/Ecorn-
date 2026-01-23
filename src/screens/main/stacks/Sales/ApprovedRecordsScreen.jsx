@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
@@ -12,8 +11,6 @@ import {
 import {useDispatch, useSelector} from 'react-redux';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import Toast from 'react-native-toast-message';
 import {fetchApprovedData} from '../../../../redux/ApprovedSlice';
 import * as Animatable from 'react-native-animatable';
 
@@ -21,20 +18,6 @@ const ApprovedRecordsScreen = ({navigation, route}) => {
   const {screenType = 'sales'} = route.params || {};
   const dispatch = useDispatch();
   const {approvalCounts, loading} = useSelector(state => state.Approved);
-
-  // Date states
-  const [fromDate, setFromDate] = useState(() => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - 2);
-    return date;
-  });
-  const [toDate, setToDate] = useState(new Date());
-  const [showFromPicker, setShowFromPicker] = useState(false);
-  const [showToPicker, setShowToPicker] = useState(false);
-
-  // Search states
-  const [searchCode, setSearchCode] = useState('');
-  const [searchName, setSearchName] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
   // Get screen title based on type
@@ -176,14 +159,6 @@ const ApprovedRecordsScreen = ({navigation, route}) => {
     }
   };
 
-  // Format date for display
-  const formatDateDisplay = date => {
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-
   // Format date for API
   const formatDateForAPI = date => {
     const year = date.getFullYear();
@@ -194,63 +169,24 @@ const ApprovedRecordsScreen = ({navigation, route}) => {
 
   // Fetch data
   const fetchData = useCallback(() => {
+    const fromDate = new Date();
+    fromDate.setMonth(fromDate.getMonth() - 2);
+    const toDate = new Date();
+    
     dispatch(
       fetchApprovedData({
         fromDate: formatDateForAPI(fromDate),
         toDate: formatDateForAPI(toDate),
-        reference: searchCode,
-        name: searchName,
+        reference: '',
+        name: '',
       }),
     );
-  }, [dispatch, fromDate, toDate, searchCode, searchName]);
+  }, [dispatch]);
 
   // Initial fetch
   useEffect(() => {
     fetchData();
   }, []);
-
-  // Handle filter
-  const handleFilter = () => {
-    if (fromDate > toDate) {
-      Toast.show({
-        type: 'error',
-        text1: 'Invalid Date Range',
-        text2: 'From date cannot be after To date',
-      });
-      return;
-    }
-    fetchData();
-    Toast.show({
-      type: 'success',
-      text1: 'Filtering...',
-      text2: 'Fetching filtered data',
-    });
-  };
-
-  // Handle clear
-  const handleClear = () => {
-    const newFromDate = new Date();
-    newFromDate.setMonth(newFromDate.getMonth() - 2);
-    setFromDate(newFromDate);
-    setToDate(new Date());
-    setSearchCode('');
-    setSearchName('');
-
-    dispatch(
-      fetchApprovedData({
-        fromDate: formatDateForAPI(newFromDate),
-        toDate: formatDateForAPI(new Date()),
-        reference: '',
-        name: '',
-      }),
-    );
-
-    Toast.show({
-      type: 'info',
-      text1: 'Filters Cleared',
-      text2: 'Showing all records',
-    });
-  };
 
   // Handle refresh
   const onRefresh = useCallback(() => {
@@ -295,88 +231,6 @@ const ApprovedRecordsScreen = ({navigation, route}) => {
     <View style={styles.container}>
       <SimpleHeader title={getScreenTitle()} />
 
-      {/* Filter Section */}
-      <View style={styles.filterContainer}>
-        {/* Date Pickers Row */}
-        <View style={styles.dateRow}>
-          <TouchableOpacity
-            style={styles.dateButton}
-            onPress={() => setShowFromPicker(true)}>
-            <Icon name="calendar" size={18} color="#666" />
-            <Text style={styles.dateText}>{formatDateDisplay(fromDate)}</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.toText}>to</Text>
-
-          <TouchableOpacity
-            style={styles.dateButton}
-            onPress={() => setShowToPicker(true)}>
-            <Icon name="calendar" size={18} color="#666" />
-            <Text style={styles.dateText}>{formatDateDisplay(toDate)}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Search Inputs Row */}
-        <View style={styles.searchRow}>
-          <View style={styles.searchInputContainer}>
-            <Icon name="barcode" size={18} color="#666" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search by code..."
-              placeholderTextColor="#999"
-              value={searchCode}
-              onChangeText={setSearchCode}
-            />
-          </View>
-          <View style={styles.searchInputContainer}>
-            <Icon name="account-search" size={18} color="#666" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search by name..."
-              placeholderTextColor="#999"
-              value={searchName}
-              onChangeText={setSearchName}
-            />
-          </View>
-        </View>
-
-        {/* Action Buttons */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.filterButton} onPress={handleFilter}>
-            <Icon name="filter" size={18} color="#FFF" />
-            <Text style={styles.filterButtonText}>Filter</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
-            <Icon name="close-circle" size={18} color="#666" />
-            <Text style={styles.clearButtonText}>Clear</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Date Pickers */}
-      {showFromPicker && (
-        <DateTimePicker
-          value={fromDate}
-          mode="date"
-          display="default"
-          onChange={(event, date) => {
-            setShowFromPicker(false);
-            if (date) setFromDate(date);
-          }}
-        />
-      )}
-      {showToPicker && (
-        <DateTimePicker
-          value={toDate}
-          mode="date"
-          display="default"
-          onChange={(event, date) => {
-            setShowToPicker(false);
-            if (date) setToDate(date);
-          }}
-        />
-      )}
-
       {/* Loading or Content */}
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
@@ -409,106 +263,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F3F4F6',
   },
-  filterContainer: {
-    backgroundColor: '#FFF',
-    margin: 12,
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  dateButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  dateText: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '500',
-  },
-  toText: {
-    marginHorizontal: 10,
-    color: '#666',
-    fontWeight: '500',
-  },
-  searchRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 12,
-  },
-  searchInputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: '#333',
-  },
-  actionRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  filterButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#1a1c22',
-    borderRadius: 10,
-    paddingVertical: 12,
-  },
-  filterButtonText: {
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 6,
-  },
-  clearButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F0F0F0',
-    borderRadius: 10,
-    paddingVertical: 12,
-  },
-  clearButtonText: {
-    color: '#666',
-    fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 6,
-  },
   listContent: {
     padding: 12,
-    paddingTop: 0,
   },
   card: {
     flexDirection: 'row',

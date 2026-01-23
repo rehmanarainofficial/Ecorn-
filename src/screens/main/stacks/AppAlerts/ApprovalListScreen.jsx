@@ -39,8 +39,18 @@ const ApprovalListScreen = ({ route, navigation }) => {
   });
   const [selectedType, setSelectedType] = useState(null);
   const [softwareTypes, setSoftwareTypes] = useState([]);
+  const [debtorsList, setDebtorsList] = useState([]);
+  const [suppliersList, setSuppliersList] = useState([]);
+  const [selectedDebtor, setSelectedDebtor] = useState(null);
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
 
   const currentUser = useSelector(state => state.Data.currentData);
+  
+  // Check if this is a sales screen (quotation, order, delivery)
+  const isSalesScreen = listKey === 'quotation_approval' || listKey === 'so_approval' || listKey === 'delivery_approval' || listKey === 'invoice_approval';
+  
+  // Check if this is a purchase screen (po, grn)
+  const isPurchaseScreen = listKey === 'po_approval' || listKey === 'grn_approval' || listKey === 'po_invoice_approval';
   
   // Determine API endpoint based on isApproved flag
   const apiEndpoint = isApproved ? `${BASEURL}dash_approved.php` : `${BASEURL}dash_approval.php`;
@@ -75,6 +85,16 @@ const ApprovalListScreen = ({ route, navigation }) => {
     if (listKey === 'voucher_approval') {
       fetchSoftwareTypes();
     }
+    
+    // Fetch debtors for sales screens
+    if (isSalesScreen) {
+      fetchDebtors();
+    }
+    
+    // Fetch suppliers for purchase screens
+    if (isPurchaseScreen) {
+      fetchSuppliers();
+    }
   }, []);
 
   // Fetch software types for dropdown
@@ -87,11 +107,41 @@ const ApprovalListScreen = ({ route, navigation }) => {
           value: item.id,
         }));
         setSoftwareTypes(formattedData);
-        console.log('formattedData: ', formattedData);
-
       }
     } catch (err) {
       console.log('Software Types API Error:', err);
+    }
+  };
+
+  // Fetch debtors for sales screens dropdown
+  const fetchDebtors = async () => {
+    try {
+      const res = await axios.get(`${BASEURL}debtors_master.php`);
+      if (res.data?.status === 'true' && Array.isArray(res.data?.data)) {
+        const formattedData = res.data.data.map(item => ({
+          label: item.name,
+          value: item.debtor_no,
+        }));
+        setDebtorsList(formattedData);
+      }
+    } catch (err) {
+      console.log('Debtors API Error:', err);
+    }
+  };
+
+  // Fetch suppliers for purchase screens dropdown
+  const fetchSuppliers = async () => {
+    try {
+      const res = await axios.get(`${BASEURL}suppliers.php`);
+      if (res.data?.status === 'true' && Array.isArray(res.data?.data)) {
+        const formattedData = res.data.data.map(item => ({
+          label: item.name,
+          value: item.supplier_id,
+        }));
+        setSuppliersList(formattedData);
+      }
+    } catch (err) {
+      console.log('Suppliers API Error:', err);
     }
   };
 
@@ -118,14 +168,6 @@ const ApprovalListScreen = ({ route, navigation }) => {
       formData.append('to_date', formatDateForAPI(to));
       formData.append('ref', ref);
       formData.append('cost_center', searchLocation);
-
-
-
-      console.log('========== FETCH INITIAL DEBUG ==========');
-      console.log('API Endpoint:', isApproved ? 'dash_approved.php' : 'dash_approval.php');
-      console.log('isApproved:', isApproved);
-      console.log('listKey:', listKey);
-      console.log('==========================================');
 
       const res = await axios.post(apiEndpoint, formData, {
         headers: {
@@ -191,8 +233,12 @@ const ApprovalListScreen = ({ route, navigation }) => {
         formData.append('cost_center', searchLocation);
       }
 
-      // Add name if searchName has value
-      if (searchName.trim() !== '') {
+      // Add name based on screen type
+      if (isSalesScreen && selectedDebtor) {
+        formData.append('name', selectedDebtor);
+      } else if (isPurchaseScreen && selectedSupplier) {
+        formData.append('name', selectedSupplier);
+      } else if (searchName.trim() !== '') {
         formData.append('name', searchName);
       }
 
@@ -233,8 +279,6 @@ const ApprovalListScreen = ({ route, navigation }) => {
         );
       }
 
-      // For Electrical/Mechanical - cost center is in 'name' field, for others it's in 'location_name' or 'loc_name'
-      // Skip local filter for cost_center since API already filters it
       if (searchLocation.trim() !== '' && listKey !== 'electrocal_job_cards' && listKey !== 'mechnical_job_cards') {
         filtered = filtered.filter(
           item =>
@@ -274,6 +318,8 @@ const ApprovalListScreen = ({ route, navigation }) => {
     setSearchName('');
     setSearchLocation('');
     setSelectedType(null);
+    setSelectedDebtor(null);
+    setSelectedSupplier(null);
     const today = new Date();
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(today.getMonth() - 3);
@@ -298,7 +344,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
         console.log('Electrical/Mechanical - sending only trans_no:', item.trans_no);
         formData.append('trans_no', item.trans_no);
       } else {
-        formData.append('id', currentUser?.user_id);
+        formData.append('user_id', currentUser?.user_id);
         formData.append('trans_no', item.trans_no);
         formData.append('type', item.type);
         formData.append('approval', 0);
@@ -341,10 +387,6 @@ const ApprovalListScreen = ({ route, navigation }) => {
 
   // Handle Unapprove for approved records
   const handleUnapprove = async item => {
-    console.log('Unapprove clicked - trans_no:', item.trans_no);
-    console.log('Unapprove clicked - full item:', item);
-    console.log('listKey:', listKey);
-
     try {
       const formData = new FormData();
 
@@ -353,7 +395,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
         console.log('Electrical/Mechanical Unapprove - sending only trans_no:', item.trans_no);
         formData.append('trans_no', item.trans_no);
       } else {
-        formData.append('id', currentUser?.user_id);
+        formData.append('user_id', currentUser?.user_id);
         formData.append('trans_no', item.trans_no);
         formData.append('type', item.type);
         formData.append('approval', 1); // 1 for unapprove
@@ -483,9 +525,46 @@ const ApprovalListScreen = ({ route, navigation }) => {
                 placeholderTextColor="#888"
                 value={searchLocation}
                 onChangeText={(text) => {
-                  console.log('Cost Center Input Changed:', text);
                   setSearchLocation(text);
                 }}
+              />
+            </View>
+          ) : isSalesScreen ? (
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Dropdown
+                style={styles.dropdown}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                inputSearchStyle={styles.inputSearchStyle}
+                itemTextStyle={{ color: '#000' }}
+                data={debtorsList}
+                search
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Select Customer"
+                searchPlaceholder="Search customer..."
+                value={selectedDebtor}
+                onChange={item => setSelectedDebtor(item.value)}
+              />
+            </View>
+          ) : isPurchaseScreen ? (
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Dropdown
+                style={styles.dropdown}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                inputSearchStyle={styles.inputSearchStyle}
+                itemTextStyle={{ color: '#000' }}
+                data={suppliersList}
+                search
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Select Supplier"
+                searchPlaceholder="Search supplier..."
+                value={selectedSupplier}
+                onChange={item => setSelectedSupplier(item.value)}
               />
             </View>
           ) : (
@@ -502,7 +581,6 @@ const ApprovalListScreen = ({ route, navigation }) => {
                 placeholderTextColor="#888"
                 value={searchName}
                 onChangeText={(text) => {
-                  console.log('Name Input Changed:', text);
                   setSearchName(text);
                 }}
               />
@@ -529,8 +607,8 @@ const ApprovalListScreen = ({ route, navigation }) => {
           </View>
         </View>
 
-        {/* Row 4: Cost Center Search (Full Width) - Not for Electrical/Mechanical */}
-        {listKey !== 'quotation_approval' && listKey !== 'voucher_approval' && listKey !== 'electrocal_job_cards' && listKey !== 'mechnical_job_cards' && (
+        {/* Row 4: Cost Center Search (Full Width) - Not for Electrical/Mechanical and not for sales/purchase screens */}
+        {!isSalesScreen && !isPurchaseScreen && listKey !== 'voucher_approval' && listKey !== 'electrocal_job_cards' && listKey !== 'mechnical_job_cards' && (
           <View style={[styles.searchRow, { marginTop: 8 }]}>
             <View style={[styles.searchContainer, { marginRight: 0 }]}>
               <Icon
@@ -577,7 +655,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
         />
       )}
 
-      <ScrollView contentContainerStyle={{ padding: 15, flexGrow: 1 }}>
+      <ScrollView contentContainerStyle={{ padding: 15, paddingBottom: 80, flexGrow: 1 }}>
         {filteredData && filteredData.length > 0 ? (
           filteredData.map((item, index) => (
             <ApprovalCard
@@ -628,6 +706,8 @@ const ApprovalListScreen = ({ route, navigation }) => {
                 searchName ||
                 searchLocation ||
                 selectedType ||
+                selectedDebtor ||
+                selectedSupplier ||
                 fromDate ||
                 toDate
                 ? 'No records found matching your filters'
@@ -637,6 +717,8 @@ const ApprovalListScreen = ({ route, navigation }) => {
               searchName ||
               searchLocation ||
               selectedType ||
+              selectedDebtor ||
+              selectedSupplier ||
               fromDate ||
               toDate) && (
                 <TouchableOpacity
@@ -744,6 +826,11 @@ const styles = StyleSheet.create({
     color: '#888',
   },
   selectedTextStyle: {
+    fontSize: 14,
+    color: '#000',
+  },
+  inputSearchStyle: {
+    height: 40,
     fontSize: 14,
     color: '#000',
   },

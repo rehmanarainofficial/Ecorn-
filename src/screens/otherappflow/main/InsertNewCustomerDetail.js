@@ -11,24 +11,13 @@ import {
   Platform,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
 import axios from 'axios';
-import PlatformGradient from '../../../components/PlatformGradient'; // install if not present
 import Toast from 'react-native-toast-message';
 import {BASEURL} from '../../../utils/BaseUrl';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-
-// Local color set (uses the values you gave)
-const COLORS = {
-  WHITE: '#FFFFFF',
-  BLACK: '#000000',
-  Primary: '#1a1c22',
-  Secondary: '#5a5c6a',
-};
+import SimpleHeader from '../../../components/SimpleHeader';
 
 const InsertNewCustomerDetail = ({navigation, route}) => {
-  const insets = useSafeAreaInsets();
   const [CustomerName, setCustomerName] = useState('');
   const [TradeName, setTradeName] = useState('');
   const [ContactNo, setContactNo] = useState('');
@@ -231,14 +220,13 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
       <TextInput
         style={styles.textInput}
         placeholder={placeholder}
-        placeholderTextColor={'rgba(255,255,255,0.6)'}
+        placeholderTextColor="#999"
         value={value}
         onChangeText={txt => {
-          console.log(`${fieldName}:`, txt); // 👈 Console log for debug
           setValue(txt);
         }}
         keyboardType={keyboardType || 'default'}
-        selectionColor={COLORS.WHITE}
+        selectionColor="#1a1c22"
         autoCapitalize="words"
       />
     </Animated.View>
@@ -251,36 +239,18 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: COLORS.BLACK,
+          backgroundColor: '#F3F4F6',
         }}>
-        <ActivityIndicator size="large" color={COLORS.Primary} />
+        <ActivityIndicator size="large" color="#1a1c22" />
       </View>
     );
   }
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      start={{x: 0, y: 0}}
-      end={{x: 1, y: 1}}
-      style={{flex: 1}}>
-      {/* Header with slight glass/morph feel */}
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop:
-              Platform.OS === 'ios' ? insets.top + 15 : insets.top + 20,
-            paddingBottom: 15,
-          },
-        ]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name={'chevron-back'} color={COLORS.WHITE} size={30} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add Customer</Text>
-      </View>
+    <View style={styles.container}>
+      <SimpleHeader title="Add Customer" />
 
-      <ScrollView contentContainerStyle={{padding: 20, gap: 20}}>
+      <ScrollView contentContainerStyle={{padding: 20, paddingBottom: 120, gap: 20}}>
         <Animated.View style={{gap: 18}}>
           <Text style={styles.sectionHeading}>Customer Information</Text>
 
@@ -314,16 +284,15 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
               labelField="label"
               valueField="value"
               placeholder="Select Tax Group *"
-              placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
+              placeholderStyle={{color: '#999'}}
               searchPlaceholder="Search..."
               value={taxValue}
               onChange={item => {
                 setTaxValue(item.value);
               }}
               selectedTextProps={{numberOfLines: 1}}
-              selectedTextStyle={{color: '#FFFFFF'}}
+              selectedTextStyle={{color: '#333'}}
               itemTextStyle={{color: '#000'}}
-              inputSearchStyle={{color: '#FFFFFF'}}
             />
           </Animated.View>
 
@@ -339,15 +308,14 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
               labelField="label"
               valueField="value"
               placeholder="Select Salesperson *"
-              placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
+              placeholderStyle={{color: '#999'}}
               searchPlaceholder="Search..."
               value={salesmanValue}
               onChange={item => {
                 setSalesmanValue(item.value);
               }}
-              selectedTextStyle={{color: '#FFFFFF'}}
+              selectedTextStyle={{color: '#333'}}
               itemTextStyle={{color: '#000'}}
-              inputSearchStyle={{color: '#FFFFFF'}}
             />
           </Animated.View>
 
@@ -362,14 +330,13 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
               labelField="label"
               valueField="value"
               placeholder="Select Province"
-              placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
+              placeholderStyle={{color: '#999'}}
               value={Province}
               onChange={item => {
                 setProvince(item.value);
               }}
-              selectedTextStyle={{color: '#FFFFFF'}}
+              selectedTextStyle={{color: '#333'}}
               itemTextStyle={{color: '#000'}}
-              inputSearchStyle={{color: '#FFFFFF'}}
             />
           </Animated.View>
         </Animated.View>
@@ -406,87 +373,69 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
             onPress={handleSubmit}
             disabled={submitting}>
             {submitting ? (
-              <ActivityIndicator color={COLORS.WHITE} />
+              <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={{color: COLORS.WHITE, fontSize: 18}}>Submit</Text>
+              <Text style={{color: '#fff', fontSize: 18, fontWeight: '600'}}>Submit</Text>
             )}
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
-    </PlatformGradient>
+    </View>
   );
 };
 
 export default InsertNewCustomerDetail;
 
 const styles = StyleSheet.create({
-  header: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderBottomRightRadius: 22,
-    borderBottomLeftRadius: 22,
-    alignItems: 'center',
-    flexDirection: 'row',
-    paddingHorizontal: 18,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 6},
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '700',
-    marginLeft: 12,
+  container: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
   },
   sectionHeading: {
     fontSize: 18,
-    color: '#fff',
+    color: '#333',
     fontWeight: '700',
     marginBottom: 6,
   },
-
   glassInput: {
-    backgroundColor: 'rgba(255,255,255,0.03)', // same as dropdown
-    borderRadius: 14,
+    backgroundColor: '#fff',
+    borderRadius: 12,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: '#E0E0E0',
     height: 56,
     justifyContent: 'center',
   },
-
   textInput: {
     height: 56,
-    color: '#fff',
+    color: '#333',
     fontSize: 16,
   },
   dropdown: {
     height: 56,
-    borderRadius: 14,
+    borderRadius: 12,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: '#E0E0E0',
     justifyContent: 'center',
   },
   submitBtn: {
     height: 56,
     backgroundColor: '#1a1c22',
-    borderRadius: 14,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 6,
-    // neumorphic raised
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: {width: 0, height: 8},
-        shadowOpacity: 0.35,
-        shadowRadius: 14,
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 6,
+        elevation: 4,
       },
     }),
   },

@@ -15,6 +15,7 @@ import SimpleHeader from '../../../../../components/SimpleHeader';
 import PlatformGradient from '../../../../../components/PlatformGradient';
 import {BASEURL} from '../../../../../utils/BaseUrl';
 import {formatQuantity} from '../../../../../utils/NumberUtils';
+import {formatDateString} from '../../../../../utils/DateUtils';
 
 const DeliveryNote = ({route}) => {
   const navigation = useNavigation();
@@ -27,6 +28,7 @@ const DeliveryNote = ({route}) => {
     name,
     location,
     reference,
+    date,
   } = route.params || {};
 
   const [driverName, setDriverName] = useState('');
@@ -48,8 +50,10 @@ const DeliveryNote = ({route}) => {
               'Content-Type': 'multipart/form-data',
             },
             responseType: 'text',
+            
           },
         );
+        console.log(res.data);
 
         let raw = res.data.trim();
         let jsonStr = raw.substring(raw.indexOf('{'));
@@ -188,6 +192,10 @@ const DeliveryNote = ({route}) => {
           <View style={styles.locationContainer}>
             <Text style={styles.locationLabel}>Cost center:</Text>
             <Text style={styles.locationValue}>{location || 'N/A'}</Text>
+            <Text style={[styles.locationLabel, {marginTop: 8}]}>
+              Del Date:
+            </Text>
+            <Text style={styles.locationValue}>{date ? formatDateString(date) : 'N/A'}</Text>
           </View>
         </View>
 
@@ -242,13 +250,13 @@ const DeliveryNote = ({route}) => {
                   </Text>
                 </View>
                 <View style={styles.dataBox}>
-                  <Text style={styles.label}>Del.Qty</Text>
+                  <Text style={styles.label}>Pen.Qty</Text>
                   <Text style={styles.value}>
                     {formatQuantity(item.out_qty)}
                   </Text>
                 </View>
                 <View style={styles.dataBox}>
-                  <Text style={styles.label}>Out.Qty</Text>
+                  <Text style={styles.label}>Curr.Delv</Text>
                   <TextInput
                     style={[
                       styles.valueInput,

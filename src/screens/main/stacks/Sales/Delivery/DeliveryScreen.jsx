@@ -12,7 +12,6 @@ import {Dropdown} from 'react-native-element-dropdown';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import SimpleHeader from '../../../../../components/SimpleHeader';
-import PlatformGradient from '../../../../../components/PlatformGradient';
 import {BASEURL} from '../../../../../utils/BaseUrl';
 import * as Animatable from 'react-native-animatable';
 import {formatDate, formatDateString} from '../../../../../utils/DateUtils';
@@ -115,8 +114,8 @@ const DeliveryScreen = ({navigation}) => {
       if (res.data?.status === 'true' && Array.isArray(res.data.data)) {
         const cleanData = [...res.data.data];
         setTransactions(cleanData);
+        console.log(cleanData);
       } else {
-        console.log('⚠️ No valid data array received', res.data);
         setTransactions([]);
       }
     } catch (err) {
@@ -166,6 +165,7 @@ const DeliveryScreen = ({navigation}) => {
                 name: item.name,
                 location: item.location_name,
                 reference: item.reference,
+                date: item.ord_date,
               })
             }>
             <Icon name="truck-delivery" size={22} color="#fff" />
@@ -187,9 +187,7 @@ const DeliveryScreen = ({navigation}) => {
     </Animatable.View>
   );
   return (
-    <PlatformGradient
-      colors={['#1a1c22', '#5a5c6a', '#000000']}
-      style={styles.container}>
+    <View style={styles.container}>
       <SimpleHeader title="Delivery" />
 
       <View style={styles.filterContainer}>
@@ -248,7 +246,7 @@ const DeliveryScreen = ({navigation}) => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.morphButton, {backgroundColor: '#1a1c22'}]}
+            style={[styles.morphButton, {backgroundColor: '#1a1c22', borderColor: '#1a1c22'}]}
             onPress={() =>
               fetchTransactions(
                 fromDate,
@@ -299,8 +297,8 @@ const DeliveryScreen = ({navigation}) => {
         <ActivityIndicator size="large" color="#1a1c22" />
       ) : transactions.length === 0 ? (
         <View style={{alignItems: 'center', marginTop: 30}}>
-          <Icon name="file-alert" size={40} color="#5a5c6a" />
-          <Text style={{marginTop: 10, color: '#5a5c6a'}}>No Data Found</Text>
+          <Icon name="file-alert" size={40} color="#666" />
+          <Text style={{marginTop: 10, color: '#666'}}>No Data Found</Text>
         </View>
       ) : (
         <FlatList
@@ -309,23 +307,32 @@ const DeliveryScreen = ({navigation}) => {
             item.order_no?.toString() || Math.random().toString()
           }
           renderItem={renderItem}
+          contentContainerStyle={{paddingBottom: 80}}
         />
       )}
-    </PlatformGradient>
+    </View>
   );
 };
 
 export default DeliveryScreen;
 
 const styles = StyleSheet.create({
-  container: {flex: 1},
+  container: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+  },
   filterContainer: {
     padding: 15,
     margin: 12,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
   },
   dateRow: {
     flexDirection: 'row',
@@ -336,33 +343,33 @@ const styles = StyleSheet.create({
   morphButton: {
     flex: 1,
     padding: 10,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 10,
+    backgroundColor: '#F8F9FA',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: '#E0E0E0',
     alignItems: 'center',
     justifyContent: 'center',
   },
   dateText: {
-    color: '#fff',
+    color: '#333',
     fontSize: 13,
     fontWeight: '600',
     textAlign: 'center',
   },
   dropdown: {
     height: 50,
-    borderRadius: 12,
+    borderRadius: 10,
     paddingHorizontal: 12,
     marginBottom: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: '#F8F9FA',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: '#E0E0E0',
   },
-  placeholderStyle: {fontSize: 14, color: 'rgba(255,255,255,0.5)'},
-  selectedTextStyle: {fontSize: 14, color: '#fff', fontWeight: '600'},
+  placeholderStyle: {fontSize: 14, color: '#999'},
+  selectedTextStyle: {fontSize: 14, color: '#333', fontWeight: '600'},
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#1a1c22',
     padding: 12,
     marginHorizontal: 12,
     borderRadius: 10,
@@ -380,18 +387,23 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     marginVertical: 4,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  cell: {fontSize: 12, color: '#fff', textAlign: 'center'},
+  cell: {fontSize: 12, color: '#333', textAlign: 'center'},
   cellWrapper: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderRightWidth: 1,
-    borderRightColor: 'rgba(255,255,255,0.1)',
+    borderRightColor: '#E0E0E0',
     paddingHorizontal: 4,
   },
   actionContainer: {
@@ -401,5 +413,7 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: 5,
+    backgroundColor: '#1a1c22',
+    borderRadius: 6,
   },
 });

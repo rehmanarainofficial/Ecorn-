@@ -11,19 +11,11 @@ import {
   Platform,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
 import axios from 'axios';
-import PlatformGradient from '../../../../components/PlatformGradient';
 import Toast from 'react-native-toast-message';
 import {BASEURL} from '../../../../utils/BaseUrl';
-
-const COLORS = {
-  WHITE: '#FFFFFF',
-  BLACK: '#000000',
-  Primary: '#1a1c22',
-  Secondary: '#5a5c6a',
-};
+import SimpleHeader from '../../../../components/SimpleHeader';
 
 const UploadSuppliers = ({navigation, route}) => {
   const [CustomerName, setCustomerName] = useState('');
@@ -196,13 +188,13 @@ const UploadSuppliers = ({navigation, route}) => {
       <TextInput
         style={styles.textInput}
         placeholder={placeholder}
-        placeholderTextColor={'rgba(255,255,255,0.6)'}
+        placeholderTextColor="#999"
         value={value}
         onChangeText={txt => {
           setValue(txt);
         }}
         keyboardType={keyboardType || 'default'}
-        selectionColor={COLORS.WHITE}
+        selectionColor="#1a1c22"
         autoCapitalize="words"
       />
     </Animated.View>
@@ -215,28 +207,18 @@ const UploadSuppliers = ({navigation, route}) => {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: COLORS.BLACK,
+          backgroundColor: '#F3F4F6',
         }}>
-        <ActivityIndicator size="large" color={COLORS.Primary} />
+        <ActivityIndicator size="large" color="#1a1c22" />
       </View>
     );
   }
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      start={{x: 0, y: 0}}
-      end={{x: 1, y: 1}}
-      style={{flex: 1}}>
-      {/* Header with slight glass/morph feel */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name={'chevron-back'} color={COLORS.WHITE} size={30} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add Suppliers</Text>
-      </View>
+    <View style={styles.container}>
+      <SimpleHeader title="Add Suppliers" />
 
-      <ScrollView contentContainerStyle={{padding: 20, gap: 20}}>
+      <ScrollView contentContainerStyle={{padding: 20, paddingBottom: 80, gap: 20}}>
         <Animated.View style={{gap: 18}}>
           <Text style={styles.sectionHeading}>Supplier Information</Text>
 
@@ -270,9 +252,9 @@ const UploadSuppliers = ({navigation, route}) => {
               labelField="label"
               valueField="value"
               placeholder="Select Tax Group *"
-              placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-              selectedTextStyle={{color: COLORS.WHITE}}
-              itemTextStyle={{color: COLORS.BLACK}}
+              placeholderStyle={{color: '#999'}}
+              selectedTextStyle={{color: '#333'}}
+              itemTextStyle={{color: '#000'}}
               searchPlaceholder="Search..."
               value={taxValue}
               onChange={item => {
@@ -322,9 +304,9 @@ const UploadSuppliers = ({navigation, route}) => {
               labelField="label"
               valueField="value"
               placeholder="Select Province"
-              placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-              selectedTextStyle={{color: COLORS.WHITE}}
-              itemTextStyle={{color: COLORS.BLACK}}
+              placeholderStyle={{color: '#999'}}
+              selectedTextStyle={{color: '#333'}}
+              itemTextStyle={{color: '#000'}}
               search
               searchPlaceholder="Search province..."
               value={Province}
@@ -365,90 +347,69 @@ const UploadSuppliers = ({navigation, route}) => {
             onPress={handleSubmit}
             disabled={submitting}>
             {submitting ? (
-              <ActivityIndicator color={COLORS.WHITE} />
+              <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={{color: COLORS.WHITE, fontSize: 18}}>Submit</Text>
+              <Text style={{color: '#fff', fontSize: 18, fontWeight: '600'}}>Submit</Text>
             )}
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
-    </PlatformGradient>
+    </View>
   );
 };
 
 export default UploadSuppliers;
 
 const styles = StyleSheet.create({
-  header: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    height: 84,
-    borderBottomRightRadius: 22,
-    borderBottomLeftRadius: 22,
-    alignItems: 'center',
-    flexDirection: 'row',
-    paddingHorizontal: 18,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 6},
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '700',
-    marginLeft: 12,
-    textAlign: 'center',
+  container: {
     flex: 1,
+    backgroundColor: '#F3F4F6',
   },
   sectionHeading: {
     fontSize: 18,
-    color: '#fff',
+    color: '#333',
     fontWeight: '700',
     marginBottom: 6,
   },
-
   glassInput: {
-    backgroundColor: 'rgba(255,255,255,0.03)', // same as dropdown
-    borderRadius: 14,
+    backgroundColor: '#fff',
+    borderRadius: 12,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: '#E0E0E0',
     height: 56,
     justifyContent: 'center',
   },
-
   textInput: {
     height: 56,
-    color: '#fff',
+    color: '#333',
     fontSize: 16,
   },
   dropdown: {
     height: 56,
-    borderRadius: 14,
+    borderRadius: 12,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: '#E0E0E0',
     justifyContent: 'center',
   },
   submitBtn: {
     height: 56,
     backgroundColor: '#1a1c22',
-    borderRadius: 14,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 6,
-    // neumorphic raised
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: {width: 0, height: 8},
-        shadowOpacity: 0.35,
-        shadowRadius: 14,
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 6,
+        elevation: 4,
       },
     }),
   },

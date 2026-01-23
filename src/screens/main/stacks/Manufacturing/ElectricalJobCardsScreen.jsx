@@ -6,21 +6,13 @@ import {
   FlatList,
   ActivityIndicator,
   StyleSheet,
-  Alert,
 } from 'react-native';
-import PlatformGradient from '../../../../components/PlatformGradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
 import {BASEURL} from '../../../../utils/BaseUrl';
-
-const COLORS = {
-  WHITE: '#FFFFFF',
-  BLACK: '#000000',
-  Primary: '#1a1c22',
-  Secondary: '#5a5c6a',
-};
+import SimpleHeader from '../../../../components/SimpleHeader';
 
 const ElectricalJobCardsScreen = ({navigation}) => {
   const [allData, setAllData] = useState([]);
@@ -30,13 +22,20 @@ const ElectricalJobCardsScreen = ({navigation}) => {
   const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
-  const [fromDate, setFromDate] = useState(null);
-  const [toDate, setToDate] = useState(null);
+  // Default dates: fromDate = 30 days ago, toDate = today
+  const getDefaultFromDate = () => {
+    const date = new Date();
+    date.setDate(date.getDate() - 30);
+    return date;
+  };
+
+  const [fromDate, setFromDate] = useState(getDefaultFromDate());
+  const [toDate, setToDate] = useState(new Date());
 
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showToPicker, setShowToPicker] = useState(false);
 
-  // 📌 Format date dd/mm/yy
+  // 📌 Format date dd/mm/yy for display
   const formatDate = d => {
     const date = new Date(d);
     return `${String(date.getDate()).padStart(2, '0')}/${String(
@@ -44,22 +43,40 @@ const ElectricalJobCardsScreen = ({navigation}) => {
     ).padStart(2, '0')}/${String(date.getFullYear()).slice(-2)}`;
   };
 
-  // 📌 Fetch data
-  const fetchData = async () => {
+  // 📌 Format date yyyy-mm-dd for API
+  const formatDateForAPI = d => {
+    const date = new Date(d);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
+
+  // 📌 Fetch data with POST
+  const fetchData = async (fDate = fromDate, tDate = toDate, costCenter = selectedLocation) => {
     try {
       setLoading(true);
-      const res = await axios.get(`${BASEURL}electrical_job_cards.php`);
-      if (res.data?.status === 'true') {
-        const rows = res.data.data;
-        setAllData(rows);
+      
+      const formData = new FormData();
+      formData.append('from_date', formatDateForAPI(fDate));
+      formData.append('to_date', formatDateForAPI(tDate));
+      if (costCenter) {
+        formData.append('cost_center', costCenter);
+      }
 
-        // 🔹 bas last 30 records lo
-        const last30 = rows.slice(-30);
-        setFiltered(last30);
+      const res = await axios.post(`${BASEURL}electrical_job_cards.php`, formData, {
+        headers: {'Content-Type': 'multipart/form-data'},
+      });
+
+      if (res.data?.status === 'true') {
+        const rows = res.data.data || [];
+        setAllData(rows);
+        setFiltered(rows);
+      } else {
+        setAllData([]);
+        setFiltered([]);
       }
     } catch (err) {
       console.log('Fetch Error:', err);
-      Alert.alert('Error', 'Failed to load job cards');
+      setAllData([]);
+      setFiltered([]);
     } finally {
       setLoading(false);
     }
@@ -92,24 +109,19 @@ const ElectricalJobCardsScreen = ({navigation}) => {
     fetchLocations();
   }, []);
 
-  // 📌 Apply filter button
+  // 📌 Apply filter button - calls API with filters
   const applyFilter = () => {
-    let rows = [...allData];
+    fetchData(fromDate, toDate, selectedLocation);
+  };
 
-    // location filter
-    if (selectedLocation) {
-      rows = rows.filter(r => r.location === selectedLocation);
-    }
-
-    // date filter
-    if (fromDate && toDate) {
-      rows = rows.filter(r => {
-        const d = new Date(r.bulk_entry_date);
-        return d >= fromDate && d <= toDate;
-      });
-    }
-
-    setFiltered(rows.slice(-30));
+  // 📌 Clear filter - reset to defaults
+  const clearFilter = () => {
+    const defaultFrom = getDefaultFromDate();
+    const defaultTo = new Date();
+    setFromDate(defaultFrom);
+    setToDate(defaultTo);
+    setSelectedLocation(null);
+    fetchData(defaultFrom, defaultTo, null);
   };
 
   // 📌 Render table row
@@ -171,22 +183,11 @@ const ElectricalJobCardsScreen = ({navigation}) => {
   );
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={{flex: 1}}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={26} color={COLORS.WHITE} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Electrical Job Cards</Text>
-        <TouchableOpacity onPress={fetchData}>
-          <Ionicons name="refresh" size={22} color={COLORS.WHITE} />
-        </TouchableOpacity>
-      </View>
+    <View style={styles.container}>
+      <SimpleHeader title="Electrical Job Cards" />
 
       {/* 📍 Location Dropdown */}
-      <View style={{paddingHorizontal: 16, marginBottom: 12}}>
+      <View style={{paddingHorizontal: 16, marginBottom: 12, marginTop: 12}}>
         <Dropdown
           style={styles.dropdown}
           data={locations}
@@ -196,15 +197,15 @@ const ElectricalJobCardsScreen = ({navigation}) => {
           labelField="label"
           valueField="value"
           placeholder="Select Location"
-          placeholderStyle={{color: '#aaa'}}
-          selectedTextStyle={{color: COLORS.WHITE}}
-          itemTextStyle={{color: COLORS.BLACK}}
+          placeholderStyle={{color: '#999'}}
+          selectedTextStyle={{color: '#333'}}
+          itemTextStyle={{color: '#000'}}
           value={selectedLocation}
           onChange={item => setSelectedLocation(item.value)}
         />
       </View>
 
-      {/* 📅 From Date - To Date - Apply button */}
+      {/* 📅 From Date - To Date - Filter Icons */}
       <View style={styles.filterRow}>
         <TouchableOpacity
           style={styles.dateBtn}
@@ -220,8 +221,11 @@ const ElectricalJobCardsScreen = ({navigation}) => {
             {toDate ? formatDate(toDate) : 'To Date'}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.applyBtn} onPress={applyFilter}>
-          <Text style={{color: COLORS.WHITE, fontWeight: '600'}}>Apply</Text>
+        <TouchableOpacity style={styles.iconBtn} onPress={applyFilter}>
+          <Ionicons name="search" size={20} color="#fff" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.clearBtn} onPress={clearFilter}>
+          <Ionicons name="close-circle" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
 
@@ -250,7 +254,7 @@ const ElectricalJobCardsScreen = ({navigation}) => {
       )}
 
       {/* Table Header */}
-      <View style={[styles.row, {backgroundColor: 'rgba(255,255,255,0.1)'}]}>
+      <View style={[styles.row, styles.tableHeaderRow]}>
         <Text style={[styles.headerCell, {flex: 0.9}]}>Ref</Text>
         <Text style={[styles.headerCell, {flex: 0.8}]}>Date</Text>
         <Text style={[styles.headerCell, {flex: 1}]}>Order No</Text>
@@ -260,10 +264,10 @@ const ElectricalJobCardsScreen = ({navigation}) => {
 
       {/* Table Data */}
       {loading ? (
-        <ActivityIndicator color={COLORS.WHITE} style={{marginTop: 20}} />
+        <ActivityIndicator color="#1a1c22" style={{marginTop: 20}} />
       ) : filtered.length === 0 ? (
         <View style={styles.noDataBox}>
-          <Ionicons name="alert-circle" size={40} color="#ccc" />
+          <Ionicons name="alert-circle" size={40} color="#666" />
           <Text style={styles.noDataText}>No Data Found</Text>
         </View>
       ) : (
@@ -271,67 +275,87 @@ const ElectricalJobCardsScreen = ({navigation}) => {
           data={filtered}
           renderItem={renderRow}
           keyExtractor={(item, idx) => item.id + idx}
+          contentContainerStyle={{paddingBottom: 80}}
         />
       )}
-    </PlatformGradient>
+    </View>
   );
 };
 
 export default ElectricalJobCardsScreen;
 
 const styles = StyleSheet.create({
-  header: {
-    height: 60,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
+  container: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
   },
-  headerTitle: {color: COLORS.WHITE, fontSize: 18, fontWeight: '700'},
   dropdown: {
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    height: 45,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 50,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   filterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     marginBottom: 10,
+    gap: 8,
   },
   dateBtn: {
     flex: 1,
-    marginRight: 8,
-    padding: 10,
-    borderRadius: 6,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
-  dateText: {color: COLORS.WHITE, textAlign: 'center'},
-  applyBtn: {
-    paddingHorizontal: 14,
+  dateText: {color: '#333', textAlign: 'center', fontWeight: '500'},
+  iconBtn: {
+    width: 42,
+    height: 42,
     justifyContent: 'center',
-    borderRadius: 6,
-    backgroundColor: COLORS.Primary,
+    alignItems: 'center',
+    borderRadius: 10,
+    backgroundColor: '#1a1c22',
+  },
+  clearBtn: {
+    width: 42,
+    height: 42,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    backgroundColor: '#e74c3c',
+  },
+  tableHeaderRow: {
+    backgroundColor: '#1a1c22',
+    marginHorizontal: 12,
+    borderRadius: 10,
+    marginBottom: 6,
   },
   row: {
     flexDirection: 'row',
-    padding: 10,
-    borderBottomWidth: 0.3,
-    borderColor: '#555',
+    padding: 12,
+    marginHorizontal: 12,
+    marginVertical: 4,
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   cell: {
-    color: COLORS.WHITE,
+    color: '#333',
     fontSize: 12,
     textAlign: 'center',
   },
   headerCell: {
-    color: '#ddd',
+    color: '#fff',
     fontWeight: '700',
     fontSize: 12,
     textAlign: 'center',
   },
-  // Action container for icons
   actionContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -345,7 +369,7 @@ const styles = StyleSheet.create({
     minWidth: 35,
   },
   iconLabel: {
-    color: COLORS.WHITE,
+    color: '#333',
     fontSize: 8,
     marginTop: 2,
     textAlign: 'center',
@@ -357,7 +381,7 @@ const styles = StyleSheet.create({
   },
   noDataText: {
     marginTop: 8,
-    color: '#ccc',
+    color: '#666',
     fontSize: 16,
     fontWeight: '600',
   },

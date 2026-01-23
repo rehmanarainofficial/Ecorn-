@@ -60,7 +60,7 @@ export default function ManufacturingScreen({navigation}) {
         data={buttons}
         renderItem={renderButton}
         keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={{paddingVertical: 20}}
+        contentContainerStyle={{paddingVertical: 20, paddingBottom: 80}}
       />
     </View>
   );

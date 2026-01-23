@@ -258,7 +258,7 @@ const ManufacturingView = ({ navigation, route }) => {
     <>
       <SimpleHeader title="Manufacturing Details" />
 
-      <ScrollView style={styles.container}>
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 80 }}>
         {headerData.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Icon name="factory" size={60} color="#ccc" />

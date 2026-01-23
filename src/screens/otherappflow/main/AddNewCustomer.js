@@ -111,16 +111,16 @@ const AddNewCustomer = ({navigation}) => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: APPCOLORS.BLACK}}>
+    <View style={{flex: 1, backgroundColor: '#F3F4F6'}}>
       {/* Header */}
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          paddingHorizontal: 10,
-          paddingBottom: 10,
+          paddingHorizontal: 16,
+          paddingBottom: 15,
           paddingTop: Platform.OS === 'ios' ? insets.top + 25 : insets.top + 30,
-          backgroundColor: APPCOLORS.BLACK,
+          backgroundColor: '#1a1c22',
         }}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -208,7 +208,7 @@ const AddNewCustomer = ({navigation}) => {
           {loadermore && (
             <ActivityIndicator
               size="large"
-              color="white"
+              color="#1a1c22"
               style={{position: 'absolute', top: 10}}
             />
           )}
@@ -217,20 +217,9 @@ const AddNewCustomer = ({navigation}) => {
               data={filteredOrders}
               onEndReached={loaderMoreData}
               onEndReachedThreshold={1}
+              contentContainerStyle={{paddingBottom: 80, paddingTop: 10}}
               renderItem={({item}) => (
-                <PlatformGradient
-                  colors={[
-                    APPCOLORS.Primary,
-                    APPCOLORS.Secondary,
-                    APPCOLORS.BLACK,
-                  ]}
-                  style={{
-                    borderRadius: 15,
-                    marginVertical: 8,
-                    padding: 15,
-                    width: responsiveWidth(90),
-                    alignSelf: 'center',
-                  }}>
+                <View style={styles.card}>
                   <View style={styles.row}>
                     <Text style={styles.label}>1. Business Name</Text>
                     <Text style={styles.value}>{item?.name}</Text>
@@ -259,11 +248,11 @@ const AddNewCustomer = ({navigation}) => {
                       {item?.contact_no || 'N/A'}
                     </Text>
                   </View>
-                </PlatformGradient>
+                </View>
               )}
             />
           ) : (
-            <Text style={{color: APPCOLORS.WHITE, fontSize: 20}}>
+            <Text style={{color: '#666', fontSize: 20}}>
               No Record Found
             </Text>
           )}
@@ -276,17 +265,32 @@ const AddNewCustomer = ({navigation}) => {
 export default AddNewCustomer;
 
 const styles = StyleSheet.create({
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginVertical: 6,
+    padding: 15,
+    width: responsiveWidth(92),
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 8,
   },
   label: {
-    color: APPCOLORS.WHITE,
+    color: '#333',
     fontWeight: 'bold',
   },
   value: {
-    color: APPCOLORS.WHITE,
+    color: '#666',
     maxWidth: '60%',
   },
 });

@@ -9,20 +9,12 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
-import PlatformGradient from '../../../../components/PlatformGradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Toast from 'react-native-toast-message';
 import {useSelector} from 'react-redux';
 import {BASEURL} from '../../../../utils/BaseUrl';
-
-const COLORS = {
-  WHITE: '#FFFFFF',
-  BLACK: '#000000',
-  Primary: '#1a1c22',
-  Secondary: '#5a5c6a',
-};
+import SimpleHeader from '../../../../components/SimpleHeader';
 
 export default function MechanicalProduce({navigation, route}) {
   const {sales_order} = route.params || {};
@@ -144,22 +136,13 @@ export default function MechanicalProduce({navigation, route}) {
   };
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={{flex: 1}}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" color={COLORS.WHITE} size={28} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mechanical Produce</Text>
-        <View style={{width: 28}} />
-      </View>
+    <View style={styles.container}>
+      <SimpleHeader title="Mechanical Produce" />
 
-      <ScrollView contentContainerStyle={{padding: 20, paddingBottom: 100}}>
+      <ScrollView contentContainerStyle={{padding: 20, paddingBottom: 120}}>
         {/* All Item Dropdown */}
         {loading ? (
-          <ActivityIndicator color={COLORS.WHITE} style={{marginTop: 10}} />
+          <ActivityIndicator color="#1a1c22" style={{marginTop: 10}} />
         ) : (
           <Dropdown
             style={styles.dropdown}
@@ -167,9 +150,9 @@ export default function MechanicalProduce({navigation, route}) {
             labelField="label"
             valueField="value"
             placeholder="Select Item"
-            placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-            selectedTextStyle={{color: COLORS.WHITE}}
-            itemTextStyle={{color: COLORS.BLACK}}
+            placeholderStyle={{color: '#999'}}
+            selectedTextStyle={{color: '#333'}}
+            itemTextStyle={{color: '#000'}}
             search
             searchPlaceholder="Search item..."
             value={allItem?.value}
@@ -181,7 +164,7 @@ export default function MechanicalProduce({navigation, route}) {
         <TextInput
           style={[styles.textInput, {opacity: 0.8}]}
           placeholder="Reference"
-          placeholderTextColor="rgba(255,255,255,0.6)"
+          placeholderTextColor="#999"
           value={reference}
           editable={false}
         />
@@ -190,7 +173,7 @@ export default function MechanicalProduce({navigation, route}) {
         <TouchableOpacity
           style={[styles.textInput, {justifyContent: 'center'}]}
           onPress={() => setShowDate(true)}>
-          <Text style={{color: COLORS.WHITE}}>{formatDate(date)}</Text>
+          <Text style={{color: '#333'}}>{formatDate(date)}</Text>
         </TouchableOpacity>
         {showDate && (
           <DateTimePicker
@@ -208,7 +191,7 @@ export default function MechanicalProduce({navigation, route}) {
         <TextInput
           style={styles.textInput}
           placeholder="Quantity"
-          placeholderTextColor="rgba(255,255,255,0.6)"
+          placeholderTextColor="#999"
           keyboardType="numeric"
           value={qty?.toString()}
           onChangeText={setQty}
@@ -221,7 +204,7 @@ export default function MechanicalProduce({navigation, route}) {
             {height: 100, textAlignVertical: 'top', marginTop: 10},
           ]}
           placeholder="Memo / Description"
-          placeholderTextColor="rgba(255,255,255,0.6)"
+          placeholderTextColor="#999"
           multiline
           value={memo}
           onChangeText={setMemo}
@@ -235,42 +218,31 @@ export default function MechanicalProduce({navigation, route}) {
           onPress={handleProcess}
           style={styles.submitBtn}>
           {posting ? (
-            <ActivityIndicator color={COLORS.WHITE} />
+            <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={{color: COLORS.WHITE, fontSize: 18}}>Process</Text>
+            <Text style={{color: '#fff', fontSize: 18, fontWeight: '600'}}>Process</Text>
           )}
         </TouchableOpacity>
       </View>
 
       <Toast />
-    </PlatformGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    height: 80,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-  },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '700',
+  container: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
   },
   textInput: {
     height: 52,
     borderRadius: 10,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    color: COLORS.WHITE,
+    borderColor: '#E0E0E0',
+    color: '#333',
     fontSize: 16,
     marginBottom: 10,
   },
@@ -278,9 +250,9 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 10,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: '#E0E0E0',
     marginBottom: 10,
   },
   bottomBar: {
@@ -289,11 +261,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: 16,
-    backgroundColor: COLORS.Primary,
+    paddingBottom: 30,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderColor: '#E0E0E0',
   },
   submitBtn: {
     height: 56,
-    backgroundColor: COLORS.Secondary,
+    backgroundColor: '#1a1c22',
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',

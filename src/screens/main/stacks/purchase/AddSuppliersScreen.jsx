@@ -6,6 +6,7 @@ import {
   FlatList,
   ActivityIndicator,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -16,8 +17,10 @@ import {useSelector} from 'react-redux';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {responsiveWidth} from '../../../../utils/Responsive';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const AddSuppliersScreen = ({navigation}) => {
+  const insets = useSafeAreaInsets();
   const CurrentUser = useSelector(state => state.Data.currentData);
   const [AllOrders, setAllOrders] = useState([]);
   const [Loader, setLoader] = useState(true);
@@ -43,7 +46,6 @@ const AddSuppliersScreen = ({navigation}) => {
         setAllOrders(response.data.data);
       }
     } catch (error) {
-      console.log('❌ API Error:', error);
     } finally {
       setLoader(false);
     }
@@ -55,34 +57,32 @@ const AddSuppliersScreen = ({navigation}) => {
 
   return (
     <View style={{flex: 1, backgroundColor: '#F3F4F6'}}>
-      {/* Header with Back + Search */}
+      {/* Header */}
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'center',
-          paddingVertical: 15,
+          paddingHorizontal: 16,
+          paddingBottom: 15,
+          paddingTop: Platform.OS === 'ios' ? insets.top + 25 : insets.top + 30,
           backgroundColor: APPCOLORS.BLACK,
         }}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={{
-            height: 45,
-            width: 45,
-            borderRadius: 12,
+            height: 40,
+            width: 40,
+            borderRadius: 10,
             alignItems: 'center',
             justifyContent: 'center',
-            marginRight: 12,
             backgroundColor: '#E0E5EC',
             shadowColor: '#000',
-            shadowOffset: {width: 5, height: 5},
-            shadowOpacity: 0.2,
-            shadowRadius: 5,
-            elevation: 6,
-            borderWidth: 1,
-            borderColor: '#f9f9f9',
+            shadowOffset: {width: 2, height: 2},
+            shadowOpacity: 0.1,
+            shadowRadius: 3,
+            elevation: 3,
           }}>
-          <Ionicons name="arrow-back" size={22} color="#333" />
+          <Ionicons name="arrow-back" size={20} color="#333" />
         </TouchableOpacity>
 
         <PlatformGradient
@@ -90,32 +90,52 @@ const AddSuppliersScreen = ({navigation}) => {
           start={{x: 0, y: 0}}
           end={{x: 1, y: 1}}
           style={{
+            flex: 1,
             flexDirection: 'row',
             alignItems: 'center',
-            width: '75%',
-            height: 45,
-            borderRadius: 15,
+            height: 40,
+            borderRadius: 10,
             paddingHorizontal: 12,
+            marginHorizontal: 10,
             shadowColor: '#000',
-            shadowOffset: {width: 3, height: 3},
-            shadowOpacity: 0.2,
-            shadowRadius: 6,
-            elevation: 6,
+            shadowOffset: {width: 2, height: 2},
+            shadowOpacity: 0.1,
+            shadowRadius: 3,
+            elevation: 3,
           }}>
           <Ionicons
             name="search"
-            size={20}
+            size={18}
             color="#fff"
             style={{marginRight: 8}}
           />
           <TextInput
             placeholder="Search Supplier"
             placeholderTextColor="#aaa"
-            style={{flex: 1, fontSize: 16, color: '#fff'}}
+            style={{flex: 1, fontSize: 14, color: '#fff', padding: 0}}
             onChangeText={txt => setSearch(txt)}
             value={Search}
           />
         </PlatformGradient>
+
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('UploadSuppliers', {
+              allCustomer: AllOrders,
+              onSuccess: getAllOrders,
+            })
+          }
+          style={{
+            height: 40,
+            width: 40,
+            borderRadius: 10,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: APPCOLORS.Secondary,
+            elevation: 3,
+          }}>
+          <Ionicons name="person-add" size={20} color="#fff" />
+        </TouchableOpacity>
       </View>
 
       {/* Loader */}
@@ -134,6 +154,7 @@ const AddSuppliersScreen = ({navigation}) => {
             <FlatList
               data={filteredOrders}
               keyExtractor={(item, index) => `supplier-${index}`}
+              contentContainerStyle={{paddingBottom: 80}}
               renderItem={({item}) => (
                 <PlatformGradient
                   colors={[
@@ -180,36 +201,6 @@ const AddSuppliersScreen = ({navigation}) => {
           )}
         </View>
       )}
-
-      {/* Add Supplier Button */}
-      <TouchableOpacity
-        onPress={() =>
-          navigation.navigate('UploadSuppliers', {
-            allCustomer: AllOrders,
-            onSuccess: getAllOrders,
-          })
-        }
-        style={{
-          backgroundColor: 'red',
-          height: 50,
-          width: '100%',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-        <PlatformGradient
-          colors={[APPCOLORS.BLACK, APPCOLORS.Secondary, APPCOLORS.BLACK]}
-          style={{
-            height: 50,
-            width: '100%',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: 10,
-          }}>
-          <Text style={{color: 'white', fontSize: 20, fontWeight: 'bold'}}>
-            Add new supplier
-          </Text>
-        </PlatformGradient>
-      </TouchableOpacity>
     </View>
   );
 };

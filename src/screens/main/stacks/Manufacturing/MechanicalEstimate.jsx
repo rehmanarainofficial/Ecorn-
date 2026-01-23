@@ -8,20 +8,12 @@ import {
   ActivityIndicator,
   TextInput,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import PlatformGradient from '../../../../components/PlatformGradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Dropdown} from 'react-native-element-dropdown';
 import Toast from 'react-native-toast-message';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {formatNumber, formatQuantity} from '../../../../utils/NumberUtils';
-
-const COLORS = {
-  WHITE: '#FFFFFF',
-  BLACK: '#000000',
-  Primary: '#1a1c22',
-  Secondary: '#5a5c6a',
-};
+import SimpleHeader from '../../../../components/SimpleHeader';
 
 const MechanicalEstimate = ({navigation, route}) => {
   const {job_id, project_id, requisitionid} = route.params || {};
@@ -179,23 +171,14 @@ const MechanicalEstimate = ({navigation, route}) => {
   );
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={{flex: 1}}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" color={COLORS.WHITE} size={28} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mechanical Estimate</Text>
-        <View style={{width: 28}} />
-      </View>
+    <View style={styles.container}>
+      <SimpleHeader title="Mechanical Estimate" />
 
       {/* Table */}
       <View style={[styles.tableRow, styles.tableHeader]}>
-        <Text style={[styles.cell, {flex: 7}]}>Item</Text>
-        <Text style={[styles.cell, {flex: 1, textAlign: 'center'}]}>Qty</Text>
-        <Text style={[styles.cell, {flex: 2, textAlign: 'center'}]}>
+        <Text style={[styles.headerCell, {flex: 7}]}>Item</Text>
+        <Text style={[styles.headerCell, {flex: 1, textAlign: 'center'}]}>Qty</Text>
+        <Text style={[styles.headerCell, {flex: 2, textAlign: 'center'}]}>
           Est. Price
         </Text>
       </View>
@@ -203,7 +186,7 @@ const MechanicalEstimate = ({navigation, route}) => {
       {loading ? (
         <ActivityIndicator
           size="large"
-          color={COLORS.WHITE}
+          color="#1a1c22"
           style={{marginTop: 50}}
         />
       ) : (
@@ -211,7 +194,7 @@ const MechanicalEstimate = ({navigation, route}) => {
           data={tableData}
           keyExtractor={item => item.id.toString()}
           renderItem={renderRow}
-          contentContainerStyle={{paddingBottom: 220}}
+          contentContainerStyle={{paddingBottom: 280}}
         />
       )}
 
@@ -227,9 +210,9 @@ const MechanicalEstimate = ({navigation, route}) => {
           placeholder={stockLoading ? 'Loading items...' : 'Select Item'}
           value={selectedItemCode}
           onChange={item => setSelectedItemCode(item.value)}
-          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-          selectedTextStyle={{color: COLORS.WHITE}}
-          itemTextStyle={{color: COLORS.BLACK}}
+          placeholderStyle={{color: '#999'}}
+          selectedTextStyle={{color: '#333'}}
+          itemTextStyle={{color: '#000'}}
           search
           searchPlaceholder="Search item..."
         />
@@ -237,7 +220,7 @@ const MechanicalEstimate = ({navigation, route}) => {
         <View style={styles.rowInputs}>
           <TextInput
             placeholder="Order Qty"
-            placeholderTextColor="#ccc"
+            placeholderTextColor="#999"
             value={orderQty}
             onChangeText={setOrderQty}
             keyboardType="numeric"
@@ -245,7 +228,7 @@ const MechanicalEstimate = ({navigation, route}) => {
           />
           <TextInput
             placeholder="Estimate Price"
-            placeholderTextColor="#ccc"
+            placeholderTextColor="#999"
             value={estimatePrice}
             onChangeText={setEstimatePrice}
             keyboardType="numeric"
@@ -258,7 +241,7 @@ const MechanicalEstimate = ({navigation, route}) => {
           onPress={handleSubmit}
           style={styles.submitBtn}>
           {posting ? (
-            <ActivityIndicator color={COLORS.WHITE} />
+            <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.submitText}>Submit</Text>
           )}
@@ -266,48 +249,52 @@ const MechanicalEstimate = ({navigation, route}) => {
       </View>
 
       <Toast />
-    </PlatformGradient>
+    </View>
   );
 };
 
 export default MechanicalEstimate;
 
 const styles = StyleSheet.create({
-  header: {
-    height: 60,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.WHITE,
+  container: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
   },
   tableHeader: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: '#1a1c22',
+    marginHorizontal: 12,
+    borderRadius: 10,
+    marginTop: 12,
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 12,
-    borderBottomWidth: 0.5,
-    borderColor: 'rgba(255,255,255,0.2)',
+    marginHorizontal: 12,
+    marginVertical: 4,
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
-  cell: {fontSize: 14, color: COLORS.WHITE},
+  cell: {fontSize: 14, color: '#333'},
+  headerCell: {fontSize: 14, color: '#fff', fontWeight: '600'},
   formContainer: {
     position: 'absolute',
     bottom: 0,
     width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: '#fff',
     padding: 16,
-    borderTopWidth: 0.5,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderTopWidth: 1,
+    borderColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: -2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
   },
   formTitle: {
-    color: COLORS.WHITE,
+    color: '#333',
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 10,
@@ -315,10 +302,10 @@ const styles = StyleSheet.create({
   dropdown: {
     height: 52,
     borderRadius: 10,
-    paddingHorizontal: 8,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    paddingHorizontal: 12,
+    backgroundColor: '#F8F9FA',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: '#E0E0E0',
     marginBottom: 12,
   },
   rowInputs: {flexDirection: 'row', gap: 8},
@@ -327,20 +314,20 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 10,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: '#F8F9FA',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    color: COLORS.WHITE,
+    borderColor: '#E0E0E0',
+    color: '#333',
   },
   submitBtn: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 8,
+    backgroundColor: '#1a1c22',
+    borderRadius: 10,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 12,
   },
   submitText: {
-    color: COLORS.WHITE,
+    color: '#fff',
     fontWeight: '600',
   },
 });
