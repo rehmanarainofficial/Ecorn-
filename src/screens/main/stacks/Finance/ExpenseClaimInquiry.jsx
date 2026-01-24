@@ -18,6 +18,8 @@ import { useSelector } from 'react-redux';
 import { formatNumber } from '../../../../utils/NumberUtils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
+import { generateAndDownloadPDF } from '../../../../components/PDFGenerator';
+import Toast from 'react-native-toast-message';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -47,6 +49,8 @@ export default function ExpenseClaimInquiry({ navigation }) {
   // Inquiry State
   const [inquiryData, setInquiryData] = useState([]);
   const [inquiryLoading, setInquiryLoading] = useState(false);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const { fromDate: defaultFromDate, toDate: defaultToDate } = getDefaultDateRange();
   const [filterFromDate, setFilterFromDate] = useState(defaultFromDate);
   const [filterToDate, setFilterToDate] = useState(defaultToDate);
@@ -108,16 +112,61 @@ export default function ExpenseClaimInquiry({ navigation }) {
     return `${day}/${month}/${year}`;
   };
 
-  const handleView = (item) => {
-    // Navigate to view screen or show details
-    console.log('View item:', item);
-    ToastAndroid.show('View: ' + item.reference, ToastAndroid.SHORT);
+  const handleView = async (item) => {
+    setViewLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('trans_no', item.trans_no);
+      formData.append('type', item.type);
+
+      const response = await axios.post(
+        `${BASEURL}view_gl.php`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+
+      console.log('GL View response:', response.data);
+
+      navigation.navigate('GLViewScreen', {
+        glData: response.data,
+        reference: item.reference,
+        transNo: item.trans_no,
+      });
+    } catch (error) {
+      console.log('GL View API Error:', error);
+      ToastAndroid.show('Failed to fetch GL details', ToastAndroid.SHORT);
+    } finally {
+      setViewLoading(false);
+    }
   };
 
-  const handlePDF = (item) => {
-    // Download or view PDF
-    console.log('PDF item:', item);
-    ToastAndroid.show('PDF: ' + item.reference, ToastAndroid.SHORT);
+  const handlePDF = async (item) => {
+    setPdfLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('trans_no', item.trans_no);
+      formData.append('type', item.type);
+
+      const response = await axios.post(
+        `${BASEURL}view_data.php`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+
+      console.log('PDF data response:', response.data);
+
+      const data = response.data;
+      await generateAndDownloadPDF(data, item.reference);
+    } catch (error) {
+      console.log('PDF Download Error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Download Failed',
+        text2: 'Failed to download PDF',
+      });
+    } finally {
+      setPdfLoading(false);
+    }
   };
 
   const renderInquiryItem = ({ item, index }) => {
@@ -159,15 +208,29 @@ export default function ExpenseClaimInquiry({ navigation }) {
         <View style={styles.inquiryFooter}>
           <TouchableOpacity 
             style={styles.actionBtn}
-            onPress={() => handleView(item)}>
-            <Ionicons name="eye-outline" size={18} color={COLORS.AccentBlue} />
-            <Text style={styles.actionBtnText}>View</Text>
+            onPress={() => handleView(item)}
+            disabled={viewLoading}>
+            {viewLoading ? (
+              <ActivityIndicator size="small" color={COLORS.AccentBlue} />
+            ) : (
+              <>
+                <Ionicons name="eye-outline" size={18} color={COLORS.AccentBlue} />
+                <Text style={styles.actionBtnText}>View</Text>
+              </>
+            )}
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.actionBtn, styles.actionBtnPdf]}
-            onPress={() => handlePDF(item)}>
-            <Ionicons name="document-text-outline" size={18} color="#DC2626" />
-            <Text style={[styles.actionBtnText, styles.actionBtnTextPdf]}>PDF</Text>
+            onPress={() => handlePDF(item)}
+            disabled={pdfLoading}>
+            {pdfLoading ? (
+              <ActivityIndicator size="small" color="#DC2626" />
+            ) : (
+              <>
+                <Ionicons name="document-text-outline" size={18} color="#DC2626" />
+                <Text style={[styles.actionBtnText, styles.actionBtnTextPdf]}>PDF</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </View>

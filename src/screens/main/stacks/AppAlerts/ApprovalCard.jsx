@@ -36,7 +36,7 @@ const ApprovalCard = ({
   const [approveLoading, setApproveLoading] = useState(false);
   const [unapproveLoading, setUnapproveLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
-  const [glViewLoading, setGlViewLoading] = useState(false);
+  const [glViewLoading, setGlViewLoading] = useState(false);  
 
   const isVoucherScreen = screenType === 'voucher_approval';
 
@@ -46,9 +46,7 @@ const ApprovalCard = ({
 
   // ✅ Check if this is Location Transfer screen
   const isLocationTransferScreen = screenType === 'location_transfer_app';
-  
-  // ✅ Check if this is Delivery screen
-  const isDeliveryScreen = screenType === 'delivery_approval';
+
 
   const formatAmount = amount => {
     return formatNumber(amount);
@@ -93,7 +91,6 @@ const ApprovalCard = ({
           trans_no: trans_no,
         });
       } else if (isLocationTransferScreen) {
-        // ✅ For Location Transfer - Use a specific view or same as others
         const formData = new FormData();
         formData.append('trans_no', trans_no);
         formData.append('type', type);
@@ -140,7 +137,13 @@ const ApprovalCard = ({
   const handleApprovePress = async () => {
     setApproveLoading(true);
     try {
-      await onApprove();
+      if (onApprove) {
+        await onApprove();
+      } else {
+        console.log('onApprove is undefined!');
+      }
+    } catch (error) {
+      console.log('handleApprovePress error:', error);
     } finally {
       setApproveLoading(false);
     }

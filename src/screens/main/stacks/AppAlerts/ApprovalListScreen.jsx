@@ -21,7 +21,10 @@ import { BASEURL } from '../../../../utils/BaseUrl';
 import { formatDate } from '../../../../utils/DateUtils';
 
 const ApprovalListScreen = ({ route, navigation }) => {
+  console.log('========== NEW CODE V2 LOADED ==========');
   const { listKey, title, isApproved = false } = route.params;
+  console.log("listKey", listKey);
+  
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -173,13 +176,10 @@ const ApprovalListScreen = ({ route, navigation }) => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-      });
-      console.log('res: ', res);
+      }); 
 
       const mappedKey = keyMap[listKey];
-      console.log('Mapped Key:', mappedKey);
       const newData = res.data?.[mappedKey] || [];
-      console.log('Data found:', newData.length, 'records');
 
       setData(newData);
       setFilteredData(newData);
@@ -326,19 +326,32 @@ const ApprovalListScreen = ({ route, navigation }) => {
   };
 
   const handleApprove = async item => {
+    console.log('=== NEW V2 handleApprove CALLED ===');
+    console.log('Item:', JSON.stringify(item));
+    
     try {
       const formData = new FormData();
 
-      // For Electrical & Mechanical, only send trans_no
-      if (listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards') {
-        console.log('Electrical/Mechanical - sending only trans_no:', item.trans_no);
-        formData.append('trans_no', item.trans_no);
-      } else {
-        formData.append('user_id', currentUser?.id);
-        formData.append('trans_no', item.trans_no);
-        formData.append('type', item.type);
-        formData.append('approval', 0);
-      }
+      // For Electrical & Mechanical, use fixed type 29
+      const isJobCard = listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards';
+
+      const typeValue = isJobCard ? '29' : item.type;
+      console.log("typeValue", typeValue);
+      
+
+      // Match Postman order exactly: trans_no, type, user_id, approval
+      formData.append('trans_no', item.trans_no);
+      formData.append('type', typeValue);
+      formData.append('user_id', currentUser?.id);
+      formData.append('approval', '0');
+
+      console.log('Approve Request:', {
+        trans_no: item.trans_no,
+        type: typeValue,
+        user_id: currentUser?.id,
+        approval: '0',
+        listKey: listKey,
+      });
 
       const res = await axios.post(
         `${BASEURL}dash_approval_post.php`,
@@ -350,7 +363,9 @@ const ApprovalListScreen = ({ route, navigation }) => {
         },
       );
 
-      if (res.data?.status === true) {
+      console.log('Approve Response:', res.data);
+      
+      if (res.data?.status === true || res.data?.status === 'true') {
         Toast.show({
           type: 'success',
           text1: 'Approved Successfully',
@@ -380,16 +395,23 @@ const ApprovalListScreen = ({ route, navigation }) => {
     try {
       const formData = new FormData();
 
-      // For Electrical & Mechanical, only send trans_no
-      if (listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards') {
-        formData.append('trans_no', item.trans_no);
-      } else {
-        
-        formData.append('user_id', currentUser?.id);
-        formData.append('trans_no', item.trans_no);
-        formData.append('type', item.type);
-        formData.append('approval', 1); // 1 for unapprove
-      }
+      // For Electrical & Mechanical, use fixed type 29
+      const isJobCard = listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards';
+      const typeValue = isJobCard ? '29' : item.type;
+
+      // Match Postman order exactly: trans_no, type, user_id, approval
+      formData.append('trans_no', item.trans_no);
+      formData.append('type', typeValue);
+      formData.append('user_id', currentUser?.id);
+      formData.append('approval', '1'); // 1 for unapprove
+
+      console.log('Unapprove Request:', {
+        trans_no: item.trans_no,
+        type: typeValue,
+        user_id: currentUser?.id,
+        approval: '1',
+        listKey: listKey,
+      });
 
       const res = await axios.post(
         `${BASEURL}dash_approval_post.php`,
@@ -400,8 +422,9 @@ const ApprovalListScreen = ({ route, navigation }) => {
           },
         },
       );
-      console.log(formData);
-      if (res.data?.status === true) {
+      console.log('Unapprove Response:', res.data);
+      
+      if (res.data?.status === true || res.data?.status === 'true') {
         Toast.show({
           type: 'success',
           text1: 'Unapproved Successfully',
