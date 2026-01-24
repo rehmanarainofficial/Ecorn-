@@ -137,7 +137,10 @@ const FileViewerScreen = ({route, navigation}) => {
       );
     } catch (error) {
       console.error('File loading error:', error);
-      setError('Failed to load file. Please try again.');
+      console.log('Error details:', JSON.stringify(error, null, 2));
+      console.log('API URL:', `${BASEURL}dattachment_view.php`);
+      console.log('Params - type:', type, 'trans_no:', trans_no);
+      setError(`Failed to load file: ${error.message || 'Network Error'}`);
     } finally {
       setLoading(false);
     }

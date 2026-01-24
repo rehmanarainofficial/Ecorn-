@@ -234,13 +234,13 @@ const GrnAgainst = ({navigation, route}) => {
           <TouchableOpacity
             style={styles.morphButton}
             onPress={() => setShowFromPicker(true)}>
-            <Text style={styles.dateText}>From: {formatDate(fromDate)}</Text>
+            <Text style={styles.dateText}>{formatDate(fromDate)}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.morphButton}
             onPress={() => setShowToPicker(true)}>
-            <Text style={styles.dateText}>To: {formatDate(toDate)}</Text>
+            <Text style={styles.dateText}>{formatDate(toDate)}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

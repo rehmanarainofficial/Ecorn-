@@ -14,12 +14,14 @@ const COLORS = {
 };
 
 const buttons = [
-  {name: 'Sale Order', icon: 'cart-outline', navigate: 'SaleOrder', color: '#3B82F6'},
-  {name: 'Purchase Order', icon: 'cart-arrow-down', navigate: 'PurchaseOrder', color: '#10B981'},
-  {name: 'Voucher', icon: 'file-document-outline', navigate: 'VoucherScreen', color: '#F59E0B'},
+  {name: 'Employees', icon: 'account-group', screen: 'EmployeesScreen', color: '#3B82F6'},
+  {name: 'Attendance', icon: 'calendar-check', screen: 'Attendance', color: '#10B981'},
+  {name: 'Leave Request', icon: 'calendar-remove', screen: 'LeaveRequestScreen', color: '#F59E0B'},
+  {name: 'Payroll', icon: 'cash-multiple', screen: 'PayrollScreen', color: '#8B5CF6'},
+  {name: 'Expense Claim', icon: 'file-document-edit', screen: 'ExpenseClaimInquiry', color: '#EF4444'},
 ];
 
-export default function AttachDocumentScreen({navigation}) {
+export default function HCMScreen({navigation}) {
   const renderButton = ({item, index}) => (
     <Animatable.View
       animation="fadeInUp"
@@ -28,14 +30,14 @@ export default function AttachDocumentScreen({navigation}) {
       style={styles.buttonWrapper}>
       <TouchableOpacity
         activeOpacity={0.7}
-        onPress={() => navigation.navigate(item.navigate)}
+        onPress={() => navigation.navigate(item.screen)}
         style={styles.buttonContainer}>
         <View style={[styles.iconContainer, {backgroundColor: item.color}]}>
           <Icon name={item.icon} size={24} color={COLORS.WHITE} />
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.buttonText}>{item.name}</Text>
-          <Text style={styles.buttonSubtext}>View and manage documents</Text>
+          <Text style={styles.buttonSubtext}>Manage {item.name.toLowerCase()}</Text>
         </View>
         <Icon name="chevron-right" size={24} color={COLORS.TextMuted} />
       </TouchableOpacity>
@@ -44,7 +46,7 @@ export default function AttachDocumentScreen({navigation}) {
 
   return (
     <View style={styles.container}>
-      <SimpleHeader title="Attach Document" />
+      <SimpleHeader title="HCM" />
       <FlatList
         data={buttons}
         renderItem={renderButton}

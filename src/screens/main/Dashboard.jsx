@@ -35,10 +35,13 @@ const Dashboard = ({navigation}) => {
   const [AllData, setAllData] = useState();
   const [Type, setType] = useState();
   const [firstLoad, setFirstLoad] = useState(true);
+  const [showMore, setShowMore] = useState(false);
 
   const [loader, setLoader] = useState(false);
   const dispatch = useDispatch();
-  const companyData = [
+
+  // Main cards (first 8)
+  const mainCards = [
     {
       id: 1,
       name: 'Dashboard',
@@ -64,28 +67,38 @@ const Dashboard = ({navigation}) => {
       onPress: () => navigation.navigate('PurchaseScreen'),
     },
     {
-      id: 6,
+      id: 5,
       name: 'Inventory',
       icon: 'box',
       onPress: () => navigation.navigate('InventoryScreen'),
     },
     {
-      id: 7,
-      name: 'Accounts',
-      icon: 'dollar-sign',
-      onPress: () => navigation.navigate('FinanceScreen'),
+      id: 6,
+      name: 'HCM',
+      icon: 'users',
+      onPress: () => navigation.navigate('HCMScreen'),
     },
     {
-      id: 8,
+      id: 7,
       name: 'Manufactur..',
       icon: 'settings',
       onPress: () => navigation.navigate('ManufacturingScreen'),
     },
     {
-      id: 9,
+      id: 8,
       name: 'CRM',
       icon: 'briefcase',
       onPress: () => navigation.navigate('CrmScreen'),
+    },
+  ];
+
+  // More cards (shown after clicking More)
+  const moreCards = [
+    {
+      id: 9,
+      name: 'Finance',
+      icon: 'dollar-sign',
+      onPress: () => navigation.navigate('FinanceScreen'),
     },
     {
       id: 10,
@@ -94,6 +107,23 @@ const Dashboard = ({navigation}) => {
       onPress: () => navigation.navigate('AttachDocumentScreen'),
     },
   ];
+
+  // More button card
+  const moreButton = {
+    id: 'more',
+    name: showMore ? 'Less' : 'More',
+    icon: showMore ? 'chevron-up' : 'more-horizontal',
+    onPress: () => setShowMore(!showMore),
+    isMoreButton: true,
+  };
+
+  // Combine cards based on showMore state
+  const getDisplayCards = () => {
+    if (showMore) {
+      return [...mainCards, ...moreCards, moreButton];
+    }
+    return [...mainCards, moreButton];
+  };
 
   useEffect(() => {
     if (firstLoad) {
@@ -136,6 +166,7 @@ const Dashboard = ({navigation}) => {
     const res = await GetUserAccessData(userData.id);
     dispatch(setUserAccess(res.data));
   };
+
   return (
     <View style={{flex: 1, backgroundColor: APPCOLORS.LIGHTGRAY}}>
       <AppHeader
@@ -282,12 +313,13 @@ const Dashboard = ({navigation}) => {
             justifyContent: 'center',
             marginTop: 20,
           }}>
-          {companyData.map(item => (
+          {getDisplayCards().map(item => (
             <DashboardTabs
               key={item.id}
               icon={item.icon}
               name={item.name}
               onPress={item.onPress}
+              isMoreButton={item.isMoreButton}
             />
           ))}
         </View>
@@ -318,7 +350,7 @@ const Dashboard = ({navigation}) => {
         </View>
 
         <FlatList
-          data={companyData}
+          data={mainCards}
           horizontal
           contentContainerStyle={{gap: 20, paddingLeft: 10, marginTop: 10}}
           renderItem={({item}) => {

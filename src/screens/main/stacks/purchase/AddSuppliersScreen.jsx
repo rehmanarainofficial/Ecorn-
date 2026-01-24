@@ -156,18 +156,19 @@ const AddSuppliersScreen = ({navigation}) => {
               keyExtractor={(item, index) => `supplier-${index}`}
               contentContainerStyle={{paddingBottom: 80}}
               renderItem={({item}) => (
-                <PlatformGradient
-                  colors={[
-                    APPCOLORS.Primary,
-                    APPCOLORS.Secondary,
-                    APPCOLORS.BLACK,
-                  ]}
+                <View
                   style={{
                     borderRadius: 15,
                     marginVertical: 8,
                     padding: 15,
                     width: responsiveWidth(90),
                     alignSelf: 'center',
+                    backgroundColor: '#dee2e6',
+                    shadowColor: '#000',
+                    shadowOffset: {width: 0, height: 2},
+                    shadowOpacity: 0.15,
+                    shadowRadius: 4,
+                    elevation: 4,
                   }}>
                   <View style={styles.row}>
                     <Text style={styles.label}>1. Business Name</Text>
@@ -191,11 +192,11 @@ const AddSuppliersScreen = ({navigation}) => {
                       {item?.contact_no || 'N/A'}
                     </Text>
                   </View>
-                </PlatformGradient>
+                </View>
               )}
             />
           ) : (
-            <Text style={{color: 'white', fontSize: 18}}>
+            <Text style={{color: '#333', fontSize: 18}}>
               No Supplier Found
             </Text>
           )}
@@ -214,11 +215,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   label: {
-    color: APPCOLORS.WHITE,
+    color: '#000000',
     fontWeight: 'bold',
   },
   value: {
-    color: APPCOLORS.WHITE,
+    color: '#000000',
     maxWidth: '60%',
   },
 });

@@ -27,9 +27,11 @@ const COLORS = {
 
 const ReceivableScreen = ({navigation}) => {
   const [dataState, setDataState] = useState(null);
+  const [viewAllData, setViewAllData] = useState([]);
   const [circleData, setCircleData] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  console.log("viewAllData", viewAllData);
+  
   const colors = [
     '#3B82F6',
     '#EF4444',
@@ -65,6 +67,11 @@ const ReceivableScreen = ({navigation}) => {
           };
         });
         setCircleData(circleBar);
+      }
+
+      // Store view all data separately
+      if (apiResponse?.data_view_cust_bal) {
+        setViewAllData(apiResponse.data_view_cust_bal);
       }
 
       setDataState(apiResponse);
@@ -143,11 +150,11 @@ const ReceivableScreen = ({navigation}) => {
               <Text style={styles.sectionTitle}>
                 Top {Math.min(listData.length, 10)} Receivable Balances
               </Text>
-              {listData.length > 0 && (
+              {viewAllData.length > 0 && (
                 <ViewAll
                   onPress={() => {
                     navigation.navigate('NormalViewAll', {
-                      AllData: listData,
+                      AllData: viewAllData,
                       dataname: 'Customer',
                     });
                   }}

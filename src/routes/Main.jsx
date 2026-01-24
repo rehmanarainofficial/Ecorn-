@@ -86,6 +86,7 @@ import ViewLedger from '../screens/main/stacks/Finance/ViewLedger';
 import StockMovements from '../screens/main/stacks/Inventory/StockMovements';
 import ViewDetailsScreen from '../screens/main/stacks/AppAlerts/ViewDetailsScreen ';
 import ExpenseClaim from '../screens/main/stacks/Finance/ExpenseClaim';
+import ExpenseClaimInquiry from '../screens/main/stacks/Finance/ExpenseClaimInquiry';
 import LocalPurchase from '../screens/main/stacks/Finance/LocalPurchase';
 import GLViewScreen from '../screens/main/stacks/AppAlerts/GLViewScreen';
 import ViewTransactions from '../components/ViewTransactions';
@@ -93,6 +94,7 @@ import ManufacturingView from '../components/ManufacturingView';
 import Attendance from '../screens/main/stacks/Finance/Attendance';
 import CostCenterScreen from '../screens/main/stacks/Sales/CostCenterScreen';
 import ApprovedRecordsScreen from '../screens/main/stacks/Sales/ApprovedRecordsScreen';
+import HCMScreen from '../screens/main/stacks/HCM/HCMScreen';
 
 const Stack = createNativeStackNavigator();
 const Main = () => {
@@ -216,6 +218,7 @@ const Main = () => {
       <Stack.Screen name="StockMovements" component={StockMovements} />
       <Stack.Screen name="ViewDetailsScreen" component={ViewDetailsScreen} />
       <Stack.Screen name="ExpenseClaim" component={ExpenseClaim} />
+      <Stack.Screen name="ExpenseClaimInquiry" component={ExpenseClaimInquiry} />
       <Stack.Screen name="LocalPurchase" component={LocalPurchase} />
       <Stack.Screen name="GLViewScreen" component={GLViewScreen} />
       <Stack.Screen name="ViewTransactions" component={ViewTransactions} />
@@ -223,6 +226,7 @@ const Main = () => {
       <Stack.Screen name="Attendance" component={Attendance} />
       <Stack.Screen name="CostCenterScreen" component={CostCenterScreen} />
       <Stack.Screen name="ApprovedRecordsScreen" component={ApprovedRecordsScreen} />
+      <Stack.Screen name="HCMScreen" component={HCMScreen} />
     </Stack.Navigator>
   );
 };

@@ -15,14 +15,23 @@ import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Toast from 'react-native-toast-message';
 import SimpleHeader from '../../../../components/SimpleHeader';
-import PlatformGradient from '../../../../components/PlatformGradient';
 import {useRoute, useNavigation} from '@react-navigation/native';
 
 import axios from 'axios';
 
-// ✅ Correct import for new package
 import {pick, types} from '@react-native-documents/picker';
 import {BASEURL} from '../../../../utils/BaseUrl';
+
+const COLORS = {
+  WHITE: '#FFFFFF',
+  PRIMARY: '#1a1c22',
+  Background: '#F3F4F6',
+  Border: '#E2E8F0',
+  TextDark: '#1E293B',
+  TextMuted: '#64748B',
+  Success: '#10B981',
+  SuccessLight: '#ECFDF5',
+};
 
 const UploadScreen = () => {
   const route = useRoute();
@@ -32,11 +41,11 @@ const UploadScreen = () => {
   const [transNo, setTransNo] = useState(transactionNo || '');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false); // ✅ loader state
+  const [loading, setLoading] = useState(false);
 
   const navigation = useNavigation();
 
-  // ✅ Gallery Permission
+  // Gallery Permission
   const requestGalleryPermission = async () => {
     if (Platform.OS === 'android') {
       if (Platform.Version >= 33) {
@@ -54,7 +63,7 @@ const UploadScreen = () => {
     return true;
   };
 
-  // ✅ Camera Permission
+  // Camera Permission
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
       const granted = await PermissionsAndroid.request(
@@ -65,7 +74,7 @@ const UploadScreen = () => {
     return true;
   };
 
-  // ✅ Open Camera
+  // Open Camera
   const openCamera = async () => {
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
@@ -88,7 +97,7 @@ const UploadScreen = () => {
     });
   };
 
-  // ✅ Open Gallery
+  // Open Gallery
   const openGallery = async () => {
     const hasPermission = await requestGalleryPermission();
     if (!hasPermission) {
@@ -111,7 +120,7 @@ const UploadScreen = () => {
     });
   };
 
-  // ✅ Open Documents
+  // Open Documents
   const openDocuments = async () => {
     try {
       const [res] = await pick({
@@ -188,9 +197,7 @@ const UploadScreen = () => {
   };
 
   return (
-    <PlatformGradient
-      colors={['#1a1c22', '#5a5c6a', '#000000']}
-      style={styles.container}>
+    <View style={styles.container}>
       <SimpleHeader title="Attach Document" />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Description */}
@@ -198,7 +205,7 @@ const UploadScreen = () => {
         <TextInput
           style={styles.bigInput}
           placeholder="Enter description..."
-          placeholderTextColor="#aaa"
+          placeholderTextColor={COLORS.TextMuted}
           value={description}
           onChangeText={setDescription}
           multiline
@@ -208,17 +215,23 @@ const UploadScreen = () => {
         <Text style={styles.label}>Attachment</Text>
         <View style={styles.row}>
           <TouchableOpacity style={styles.button} onPress={openCamera}>
-            <Icon name="camera" size={20} color="#fff" />
+            <View style={[styles.iconWrap, {backgroundColor: '#3B82F6'}]}>
+              <Icon name="camera" size={20} color={COLORS.WHITE} />
+            </View>
             <Text style={styles.buttonText}>Camera</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.button} onPress={openGallery}>
-            <Icon name="image-multiple" size={20} color="#fff" />
+            <View style={[styles.iconWrap, {backgroundColor: '#8B5CF6'}]}>
+              <Icon name="image-multiple" size={20} color={COLORS.WHITE} />
+            </View>
             <Text style={styles.buttonText}>Gallery</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.button} onPress={openDocuments}>
-            <Icon name="file-document" size={20} color="#fff" />
+            <View style={[styles.iconWrap, {backgroundColor: '#F59E0B'}]}>
+              <Icon name="file-document" size={20} color={COLORS.WHITE} />
+            </View>
             <Text style={styles.buttonText}>Docs</Text>
           </TouchableOpacity>
         </View>
@@ -230,108 +243,152 @@ const UploadScreen = () => {
               <Image source={{uri: file.uri}} style={styles.imagePreview} />
             ) : (
               <View style={styles.documentPreview}>
-                <Icon name="file-check" size={50} color="#00ff99" />
+                <Icon name="file-check" size={50} color={COLORS.Success} />
                 <Text style={styles.fileName}>{file.name}</Text>
               </View>
             )}
+            <TouchableOpacity
+              style={styles.removeBtn}
+              onPress={() => setFile(null)}>
+              <Icon name="close-circle" size={24} color="#EF4444" />
+            </TouchableOpacity>
           </View>
         )}
 
         {/* Submit */}
         <TouchableOpacity
-          style={styles.submitButton}
+          style={[styles.submitButton, loading && {opacity: 0.7}]}
           onPress={handleSubmit}
-          disabled={loading} // ✅ disable while loading
-        >
+          disabled={loading}>
           {loading ? (
-            <ActivityIndicator color="#00ff99" />
+            <ActivityIndicator color={COLORS.WHITE} />
           ) : (
             <>
-              <Icon name="plus-circle-outline" size={20} color="#00ff99" />
+              <Icon name="cloud-upload" size={22} color={COLORS.WHITE} />
               <Text style={styles.submitText}>Upload Attachment</Text>
             </>
           )}
         </TouchableOpacity>
       </ScrollView>
       <Toast />
-    </PlatformGradient>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {flex: 1},
-  scroll: {padding: 20, flexGrow: 1},
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.Background,
+  },
+  scroll: {
+    padding: 16,
+    flexGrow: 1,
+  },
   label: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
     marginBottom: 8,
-    marginTop: 10,
-    color: '#eee',
+    marginTop: 12,
+    color: COLORS.TextDark,
   },
   bigInput: {
-    borderRadius: 15,
-    padding: 16,
+    borderRadius: 12,
+    padding: 14,
     minHeight: 120,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    color: '#fff',
-    marginBottom: 20,
+    borderColor: COLORS.Border,
+    color: COLORS.TextDark,
+    marginBottom: 16,
     textAlignVertical: 'top',
-    fontSize: 16,
+    fontSize: 15,
   },
-  row: {flexDirection: 'row', justifyContent: 'space-between', gap: 10},
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
   button: {
     flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    padding: 12,
-    borderRadius: 15,
+    backgroundColor: COLORS.WHITE,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  buttonText: {color: '#fff', fontWeight: '600', marginLeft: 6, fontSize: 12},
+  iconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  buttonText: {
+    color: COLORS.TextDark,
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  filePreview: {
+    marginTop: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
   imagePreview: {
     width: '100%',
     height: 200,
-    borderRadius: 15,
-    marginTop: 15,
-  },
-  filePreview: {
-    marginTop: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
   },
   documentPreview: {
     width: '100%',
     height: 200,
-    borderRadius: 15,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 12,
+    backgroundColor: COLORS.WHITE,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
     justifyContent: 'center',
     alignItems: 'center',
   },
   fileName: {
-    color: '#fff',
+    color: COLORS.TextDark,
     marginTop: 10,
     fontWeight: '500',
     textAlign: 'center',
     paddingHorizontal: 10,
   },
+  removeBtn: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 12,
+  },
   submitButton: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,255,150,0.1)',
-    padding: 15,
-    borderRadius: 15,
-    marginTop: 25,
-    borderWidth: 1,
-    borderColor: 'rgba(0,255,150,0.3)',
+    backgroundColor: COLORS.Success,
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 24,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   submitText: {
-    color: '#00ff99',
+    color: COLORS.WHITE,
     fontSize: 16,
     fontWeight: '700',
     marginLeft: 8,

@@ -69,6 +69,7 @@ export const GetReceivable = async () => {
     url: `${BASEURL}dash_receivable.php`,
     headers: {},
   };
+  console.log("config", config);
 
 
  const res = await axios.request(config)

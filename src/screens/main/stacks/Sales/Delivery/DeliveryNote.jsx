@@ -12,10 +12,19 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 import SimpleHeader from '../../../../../components/SimpleHeader';
-import PlatformGradient from '../../../../../components/PlatformGradient';
 import {BASEURL} from '../../../../../utils/BaseUrl';
 import {formatQuantity} from '../../../../../utils/NumberUtils';
 import {formatDateString} from '../../../../../utils/DateUtils';
+
+const COLORS = {
+  WHITE: '#FFFFFF',
+  BLACK: '#000000',
+  Primary: '#1a1c22',
+  Background: '#F3F4F6',
+  Border: '#E2E8F0',
+  TextDark: '#1E293B',
+  TextMuted: '#64748B',
+};
 
 const DeliveryNote = ({route}) => {
   const navigation = useNavigation();
@@ -50,7 +59,6 @@ const DeliveryNote = ({route}) => {
               'Content-Type': 'multipart/form-data',
             },
             responseType: 'text',
-            
           },
         );
         console.log(res.data);
@@ -81,6 +89,7 @@ const DeliveryNote = ({route}) => {
             userDelivered: '',
             unit_price: item.unit_price,
             po_detail_item: item.po_detail_item ?? '',
+            memo: item.memo ?? '',
             error: '',
           }));
 
@@ -174,9 +183,7 @@ const DeliveryNote = ({route}) => {
   };
 
   return (
-    <PlatformGradient
-      colors={['#1a1c22', '#5a5c6a', '#000000']}
-      style={{flex: 1}}>
+    <View style={styles.mainContainer}>
       <SimpleHeader title="Delivery Note" />
       <View style={styles.container}>
         {/* Location + Location Name - Second Row */}
@@ -195,7 +202,9 @@ const DeliveryNote = ({route}) => {
             <Text style={[styles.locationLabel, {marginTop: 8}]}>
               Del Date:
             </Text>
-            <Text style={styles.locationValue}>{date ? formatDateString(date) : 'N/A'}</Text>
+            <Text style={styles.locationValue}>
+              {date ? formatDateString(date) : 'N/A'}
+            </Text>
           </View>
         </View>
 
@@ -204,14 +213,14 @@ const DeliveryNote = ({route}) => {
           <TextInput
             style={styles.input}
             placeholder="Driver Name"
-            placeholderTextColor="#aaa"
+            placeholderTextColor={COLORS.TextMuted}
             value={driverName}
             onChangeText={setDriverName}
           />
           <TextInput
             style={styles.input}
             placeholder="Vehicle No"
-            placeholderTextColor="#aaa"
+            placeholderTextColor={COLORS.TextMuted}
             value={vehicleName}
             onChangeText={setVehicleName}
           />
@@ -222,13 +231,14 @@ const DeliveryNote = ({route}) => {
         <FlatList
           data={items}
           keyExtractor={item => item.id}
+          contentContainerStyle={{paddingBottom: 80}}
           renderItem={({item}) => (
             <View style={styles.card}>
               {/* Row 1: Description (editable full width) */}
               <TextInput
                 style={styles.descInput}
                 placeholder="Enter description"
-                placeholderTextColor="#aaa"
+                placeholderTextColor={COLORS.TextMuted}
                 value={item.description}
                 onChangeText={text => updateItem(item.id, 'description', text)}
                 multiline
@@ -260,10 +270,10 @@ const DeliveryNote = ({route}) => {
                   <TextInput
                     style={[
                       styles.valueInput,
-                      {borderColor: item.error ? 'red' : '#ddd'},
+                      {borderColor: item.error ? '#EF4444' : COLORS.Border},
                     ]}
                     placeholder="0"
-                    placeholderTextColor="#aaa"
+                    placeholderTextColor={COLORS.TextMuted}
                     keyboardType="numeric"
                     value={item.userDelivered}
                     onChangeText={text =>
@@ -276,6 +286,14 @@ const DeliveryNote = ({route}) => {
               {item.error ? (
                 <Text style={styles.errorText}>{item.error}</Text>
               ) : null}
+
+              {/* Memo Section */}
+              {item.memo ? (
+                <View style={styles.memoContainer}>
+                  <Text style={styles.memoLabel}>Memo:</Text>
+                  <Text style={styles.memoText}>{item.memo}</Text>
+                </View>
+              ) : null}
             </View>
           )}
           ListFooterComponent={
@@ -284,7 +302,7 @@ const DeliveryNote = ({route}) => {
               onPress={handleSubmit}
               disabled={loading}>
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={COLORS.WHITE} />
               ) : (
                 <Text style={styles.buttonText}>Process</Text>
               )}
@@ -292,78 +310,97 @@ const DeliveryNote = ({route}) => {
           }
         />
       </View>
-    </PlatformGradient>
+    </View>
   );
 };
 
 export default DeliveryNote;
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+  },
   container: {
     flex: 1,
-    padding: 15,
+    padding: 16,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 15,
+    marginBottom: 12,
     gap: 10,
   },
   input: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    color: '#fff',
+    backgroundColor: COLORS.WHITE,
+    color: COLORS.TextDark,
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
+    fontSize: 14,
   },
   locationContainer: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   locationLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.6)',
+    color: COLORS.TextMuted,
     marginBottom: 4,
   },
   locationValue: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: '700',
+    color: COLORS.TextDark,
   },
   heading: {
-    color: '#fff',
+    color: COLORS.TextDark,
     fontSize: 18,
-    fontWeight: 'bold',
-    marginVertical: 10,
+    fontWeight: '700',
+    marginVertical: 12,
   },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
     marginBottom: 12,
-    padding: 12,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   descInput: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 8,
-    color: '#fff',
-    padding: 10,
+    borderColor: COLORS.Border,
+    borderRadius: 10,
+    color: COLORS.TextDark,
+    padding: 12,
     fontSize: 14,
-    marginBottom: 10,
+    marginBottom: 12,
+    minHeight: 50,
   },
   dataRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    padding: 12,
   },
   dataBox: {
     flex: 1,
@@ -371,46 +408,65 @@ const styles = StyleSheet.create({
   },
   label: {
     fontWeight: '600',
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.6)',
+    fontSize: 11,
+    color: COLORS.TextMuted,
+    marginBottom: 4,
   },
   value: {
     fontSize: 14,
-    color: '#fff',
-    marginTop: 4,
-    fontWeight: '600',
+    color: COLORS.TextDark,
+    fontWeight: '700',
   },
   valueInput: {
-    width: '85%',
+    width: '90%',
     borderWidth: 1,
     borderRadius: 8,
     textAlign: 'center',
-    color: '#fff',
+    color: COLORS.TextDark,
     fontSize: 14,
-    marginTop: 4,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    paddingVertical: 6,
+    backgroundColor: COLORS.WHITE,
+    paddingVertical: 8,
     fontWeight: '700',
   },
   errorText: {
-    color: '#FF5252',
+    color: '#EF4444',
     fontSize: 12,
-    marginTop: 6,
+    marginTop: 8,
     marginLeft: 5,
   },
+  memoContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.Border,
+  },
+  memoLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.TextMuted,
+    marginBottom: 4,
+  },
+  memoText: {
+    fontSize: 14,
+    color: COLORS.TextDark,
+    lineHeight: 20,
+  },
   button: {
-    backgroundColor: '#1a1c22',
+    backgroundColor: COLORS.Primary,
     padding: 16,
     borderRadius: 14,
     marginTop: 10,
     marginBottom: 20,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: COLORS.WHITE,
+    fontWeight: '700',
     fontSize: 16,
   },
 });

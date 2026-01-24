@@ -11,7 +11,6 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
 import {GetPayable} from '../../../../global/ChartApisCall';
-import PlatformGradient from '../../../../components/PlatformGradient';
 import {formatNumber} from '../../../../utils/NumberUtils';
 
 const COLORS = {
@@ -19,24 +18,30 @@ const COLORS = {
   BLACK: '#000000',
   Primary: '#1a1c22',
   Secondary: '#5a5c6a',
+  Background: '#F3F4F6',
+  Border: '#E2E8F0',
+  TextDark: '#1E293B',
+  TextMuted: '#64748B',
+  CardBg: '#FFFFFF',
 };
 
 const PayableScreen = ({navigation}) => {
   const [dataState, setDataState] = useState(null);
+  const [viewAllData, setViewAllData] = useState([]);
   const [circleData, setCircleData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const colors = [
-    '#00E0FF',
-    '#FF6B6B',
-    '#FFD93D',
-    '#6BCB77',
-    '#4D96FF',
-    '#FFB347',
-    '#9D4EDD',
-    '#38BDF8',
-    '#FF007F',
-    '#FFAA00',
+    '#3B82F6',
+    '#EF4444',
+    '#F59E0B',
+    '#10B981',
+    '#8B5CF6',
+    '#F97316',
+    '#EC4899',
+    '#06B6D4',
+    '#84CC16',
+    '#6366F1',
   ];
 
   useEffect(() => {
@@ -62,9 +67,14 @@ const PayableScreen = ({navigation}) => {
         setCircleData(circleBar);
       }
 
+      // Store view all data separately
+      if (apiResponse?.data_supp_bal_view_all) {
+        setViewAllData(apiResponse.data_supp_bal_view_all);
+      }
+
       setDataState(apiResponse);
     } catch (error) {
-      console.error('❌ [Payable DEBUG] API Error:', error);
+      console.error('API Error:', error);
     } finally {
       setLoading(false);
     }
@@ -77,14 +87,12 @@ const PayableScreen = ({navigation}) => {
   }, 0);
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={{flex: 1}}>
+    <View style={styles.mainContainer}>
       <SimpleHeader title="Payable Balance" />
 
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={COLORS.WHITE} />
+          <ActivityIndicator size="large" color={COLORS.Primary} />
           <Text style={styles.loaderText}>Loading Payable Data...</Text>
         </View>
       ) : (
@@ -93,7 +101,7 @@ const PayableScreen = ({navigation}) => {
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={true}>
           <View style={styles.container}>
-            {/* 🔹 Summary Section */}
+            {/* Summary Section */}
             <View style={styles.summaryContainer}>
               <View style={styles.summaryCard}>
                 <Text style={styles.summaryTitle}>Total Payable</Text>
@@ -105,7 +113,7 @@ const PayableScreen = ({navigation}) => {
                 </Text>
               </View>
 
-              {/* 🔹 Top Suppliers */}
+              {/* Top Suppliers */}
               {listData.length > 0 && (
                 <View style={styles.legendContainer}>
                   <Text style={styles.legendTitle}>Top Suppliers:</Text>
@@ -129,16 +137,16 @@ const PayableScreen = ({navigation}) => {
               )}
             </View>
 
-            {/* 🔹 List Header */}
+            {/* List Header */}
             <View style={styles.headerContainer}>
               <Text style={styles.sectionTitle}>
                 Top {Math.min(listData.length, 10)} Payable Balances
               </Text>
-              {listData.length > 0 && (
+              {viewAllData.length > 0 && (
                 <ViewAll
                   onPress={() =>
                     navigation.navigate('NormalViewAll', {
-                      AllData: listData,
+                      AllData: viewAllData,
                       dataname: 'Suppliers',
                     })
                   }
@@ -146,7 +154,7 @@ const PayableScreen = ({navigation}) => {
               )}
             </View>
 
-            {/* 🔹 List Section */}
+            {/* List Section */}
             {listData.length > 0 ? (
               <View style={styles.listContainer}>
                 <FlatList
@@ -208,108 +216,171 @@ const PayableScreen = ({navigation}) => {
           </View>
         </ScrollView>
       )}
-    </PlatformGradient>
+    </View>
   );
 };
 
 export default PayableScreen;
 
 const styles = StyleSheet.create({
-  scrollView: {flex: 1},
-  scrollContainer: {flexGrow: 1},
-  container: {padding: 20},
+  mainContainer: {
+    flex: 1,
+    backgroundColor: COLORS.Background,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 80,
+  },
+  container: {
+    padding: 16,
+  },
   loaderContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 10,
   },
-  loaderText: {color: COLORS.WHITE, fontSize: 16},
-  summaryContainer: {marginBottom: 20, gap: 15},
+  loaderText: {
+    color: COLORS.TextDark,
+    fontSize: 16,
+  },
+  summaryContainer: {
+    marginBottom: 16,
+    gap: 12,
+  },
   summaryCard: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     padding: 20,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   summaryTitle: {
-    color: COLORS.WHITE,
+    color: COLORS.TextDark,
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 8,
   },
   summaryAmount: {
-    color: '#00E0FF',
-    fontSize: 24,
+    color: '#3B82F6',
+    fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   summarySubtitle: {
-    color: 'rgba(255,255,255,0.7)',
+    color: COLORS.TextMuted,
     fontSize: 14,
   },
   legendContainer: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    padding: 15,
+    backgroundColor: COLORS.WHITE,
+    padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   legendTitle: {
-    color: COLORS.WHITE,
+    color: COLORS.TextDark,
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 10,
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.Border,
+    paddingBottom: 8,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
     gap: 10,
   },
-  legendColor: {width: 12, height: 12, borderRadius: 6},
+  legendColor: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
   legendText: {
-    color: 'rgba(255,255,255,0.85)',
+    color: COLORS.TextDark,
     fontSize: 14,
     flex: 1,
   },
   legendBalance: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 12,
+    color: COLORS.TextMuted,
+    fontSize: 13,
     fontWeight: '600',
   },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 20,
-    marginBottom: 10,
+    marginTop: 8,
+    marginBottom: 12,
   },
-  sectionTitle: {fontSize: 18, fontWeight: '700', color: COLORS.WHITE},
-  listContainer: {marginTop: 10},
-  listContent: {gap: 10},
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.TextDark,
+  },
+  listContainer: {
+    marginTop: 4,
+  },
+  listContent: {
+    gap: 10,
+  },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    padding: 12,
+    backgroundColor: COLORS.WHITE,
+    padding: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  emptyContainer: {alignItems: 'center', padding: 20},
-  emptyText: {color: COLORS.WHITE, fontSize: 16, opacity: 0.7},
-  noDataContainer: {alignItems: 'center', padding: 40, gap: 10},
+  emptyContainer: {
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+  },
+  emptyText: {
+    color: COLORS.TextMuted,
+    fontSize: 15,
+  },
+  noDataContainer: {
+    alignItems: 'center',
+    padding: 40,
+    gap: 10,
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+  },
   noDataText: {
-    color: COLORS.WHITE,
+    color: COLORS.TextDark,
     fontSize: 18,
     fontWeight: '600',
-    opacity: 0.8,
   },
   noDataSubtext: {
-    color: COLORS.WHITE,
+    color: COLORS.TextMuted,
     fontSize: 14,
-    opacity: 0.6,
     textAlign: 'center',
   },
 });

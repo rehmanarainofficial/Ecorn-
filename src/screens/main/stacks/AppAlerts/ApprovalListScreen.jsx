@@ -447,7 +447,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
             onPress={() => setShowDatePicker({ visible: true, type: 'from' })}>
             <Icon name="calendar" size={16} color="#000" />
             <Text style={styles.dateButtonText}>
-              From: {formatDateForDisplay(fromDate)}
+              {formatDateForDisplay(fromDate)}
             </Text>
           </TouchableOpacity>
 
@@ -456,7 +456,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
             onPress={() => setShowDatePicker({ visible: true, type: 'to' })}>
             <Icon name="calendar" size={16} color="#000" />
             <Text style={styles.dateButtonText}>
-              To: {formatDateForDisplay(toDate)}
+              {formatDateForDisplay(toDate)}
             </Text>
           </TouchableOpacity>
         </View>

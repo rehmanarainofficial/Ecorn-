@@ -376,7 +376,7 @@ const Ledger = ({navigation, route}) => {
 
       const fromDateStr = moment(fromDate).subtract(1, 'months').format('DD/MM/YYYY');
       const toDateStr = moment(EndDate).format('DD/MM/YYYY');
-      drawText(`From: ${fromDateStr}   To: ${toDateStr}`, margin, y, 10);
+      drawText(`${fromDateStr} To ${toDateStr}`, margin, y, 10);
       drawText(`Generated: ${moment().format('DD/MM/YYYY HH:mm')}`, width - 200, y, 10);
       y -= 20;
 

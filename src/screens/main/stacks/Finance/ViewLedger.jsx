@@ -375,7 +375,7 @@ const ViewLedger = ({ navigation, route }) => {
       drawText(`Company: Ercon Industries Pvt. Ltd`, width - 250, y, 11, true);
       y -= 15;
 
-      drawText(`From: ${formatDateDisplay(fromDate)}   To: ${formatDateDisplay(toDate)}`, margin, y, 10);
+      drawText(`${formatDateDisplay(fromDate)} To ${formatDateDisplay(toDate)}`, margin, y, 10);
       drawText(`Generated: ${moment().format('DD/MM/YYYY HH:mm')}`, width - 200, y, 10);
       y -= 20;
 

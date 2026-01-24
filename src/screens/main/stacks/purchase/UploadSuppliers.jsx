@@ -141,7 +141,7 @@ const UploadSuppliers = ({navigation, route}) => {
       if (res.data && res.data.status === true) {
         Toast.show({
           type: 'success',
-          text1: 'Customer added successfully',
+          text1: 'Supplier added successfully',
         });
 
         // callback call karo

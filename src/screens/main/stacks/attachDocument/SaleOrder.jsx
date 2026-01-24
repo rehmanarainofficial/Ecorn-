@@ -9,21 +9,29 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import PlatformGradient from '../../../../components/PlatformGradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import SimpleHeader from '../../../../components/SimpleHeader';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {BASEURL} from '../../../../utils/BaseUrl';
-import {downloadFile} from '../../../../components/DownloadFile'; // ✅ Import downloadFile component
+import {downloadFile} from '../../../../components/DownloadFile';
 import {formatDate, formatDateString} from '../../../../utils/DateUtils';
 import {formatNumber} from '../../../../utils/NumberUtils';
+
+const COLORS = {
+  WHITE: '#FFFFFF',
+  BLACK: '#000000',
+  Primary: '#1a1c22',
+  Background: '#F3F4F6',
+  Border: '#E2E8F0',
+  TextDark: '#1E293B',
+  TextMuted: '#64748B',
+};
 
 export default function SaleOrder({navigation}) {
   const [allData, setAllData] = useState([]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [downloading, setDownloading] = useState(false); // ✅ Added downloading state
+  const [downloading, setDownloading] = useState(false);
 
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
@@ -44,14 +52,12 @@ export default function SaleOrder({navigation}) {
     }, [route.params?.refresh]),
   );
 
-  // ✅ Optimized data fetching with caching
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(
-        `${BASEURL}dash_upload_sale.php`,
-        {timeout: 10000}, // ✅ 10 second timeout
-      );
+      const res = await axios.get(`${BASEURL}dash_upload_sale.php`, {
+        timeout: 10000,
+      });
 
       let result = res.data?.data_cust_age || [];
       setAllData(result);
@@ -62,15 +68,12 @@ export default function SaleOrder({navigation}) {
         return;
       }
 
-      // ✅ Optimized sorting - no need to parse dates for all items if we just need last 30
-      // Sort by date string directly (assuming format is YYYY-MM-DD)
       const sorted = result.sort((a, b) => {
         const dateA = a.tran_date?.split(' ')[0] || '';
         const dateB = b.tran_date?.split(' ')[0] || '';
-        return dateB.localeCompare(dateA); // Descending order
+        return dateB.localeCompare(dateA);
       });
 
-      // Take only last 30 records
       const last30 = sorted.slice(0, 30);
       setData(last30);
     } catch (error) {
@@ -79,7 +82,6 @@ export default function SaleOrder({navigation}) {
     setLoading(false);
   };
 
-  // ✅ Download handler - Same as Voucher and PurchaseOrder screens
   const handleDownload = async (trans_no, type) => {
     if (downloading) return;
 
@@ -97,7 +99,6 @@ export default function SaleOrder({navigation}) {
     return new Date(date).toISOString().split('T')[0];
   };
 
-  // ✅ Optimized filter function
   const applyFilter = () => {
     if (!fromDate && !toDate) {
       const sorted = allData.sort((a, b) => {
@@ -124,7 +125,6 @@ export default function SaleOrder({navigation}) {
       return afterFrom && beforeTo;
     });
 
-    // Sort filtered results
     const sorted = filtered.sort((a, b) => {
       const dateA = a.tran_date?.split(' ')[0] || '';
       const dateB = b.tran_date?.split(' ')[0] || '';
@@ -145,12 +145,10 @@ export default function SaleOrder({navigation}) {
     setData(sorted.slice(0, 30));
   };
 
-  // ✅ Memoized formatAmount function
   const formatAmount = React.useCallback(value => {
     return formatNumber(value);
   }, []);
 
-  // ✅ Memoized renderItem for better performance
   const renderItem = React.useCallback(
     ({item}) => (
       <View style={styles.row}>
@@ -181,7 +179,7 @@ export default function SaleOrder({navigation}) {
                 fromScreen: 'SaleOrder',
               })
             }>
-            <Icon name="paperclip" size={20} color="#00ff99" />
+            <Icon name="paperclip" size={20} color="#10B981" />
           </TouchableOpacity>
 
           {/* View PDF Icon */}
@@ -196,21 +194,21 @@ export default function SaleOrder({navigation}) {
             <Icon
               name="eye"
               size={20}
-              color={item.upload_status ? '#00aced' : 'gray'}
+              color={item.upload_status ? '#3B82F6' : '#CBD5E1'}
             />
           </TouchableOpacity>
 
-          {/* Download Icon - Using same handler as Voucher screen */}
+          {/* Download Icon */}
           <TouchableOpacity
             disabled={!item.upload_status || downloading}
             onPress={() => handleDownload(item.trans_no, item.type)}>
             {downloading ? (
-              <ActivityIndicator size="small" color="#ffcc00" />
+              <ActivityIndicator size="small" color="#F59E0B" />
             ) : (
               <Icon
                 name="download"
                 size={20}
-                color={item.upload_status ? '#ffcc00' : 'gray'}
+                color={item.upload_status ? '#F59E0B' : '#CBD5E1'}
               />
             )}
           </TouchableOpacity>
@@ -229,37 +227,32 @@ export default function SaleOrder({navigation}) {
     <View style={styles.container}>
       <SimpleHeader title="Sale Order" />
 
+      {/* Filter Section - Single Row */}
       <View style={styles.filterContainer}>
         <TouchableOpacity
-          style={[styles.filterButton, styles.primaryButton]}
+          style={styles.dateButton}
           onPress={() => setShowPicker({visible: true, type: 'from'})}>
-          <Icon name="calendar" size={18} color="#fff" />
-          <Text style={styles.buttonText}>
-            {formatDate(fromDate) || 'From Date'}
+          <Icon name="calendar" size={16} color={COLORS.TextMuted} />
+          <Text style={styles.dateButtonText}>
+            {formatDate(fromDate) || 'From'}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.filterButton, styles.primaryButton]}
+          style={styles.dateButton}
           onPress={() => setShowPicker({visible: true, type: 'to'})}>
-          <Icon name="calendar" size={18} color="#fff" />
-          <Text style={styles.buttonText}>
-            {formatDate(toDate) || 'To Date'}
+          <Icon name="calendar" size={16} color={COLORS.TextMuted} />
+          <Text style={styles.dateButtonText}>
+            {formatDate(toDate) || 'To'}
           </Text>
         </TouchableOpacity>
-      </View>
 
-      <View style={styles.actionContainer}>
-        <TouchableOpacity
-          onPress={applyFilter}
-          style={styles.iconBtn}>
-          <Icon name="magnify" size={22} color="#fff" />
+        <TouchableOpacity onPress={applyFilter} style={styles.iconBtn}>
+          <Icon name="magnify" size={20} color={COLORS.WHITE} />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={clearFilter}
-          style={styles.clearBtn}>
-          <Icon name="close-circle" size={22} color="#fff" />
+        <TouchableOpacity onPress={clearFilter} style={styles.clearBtn}>
+          <Icon name="close" size={20} color={COLORS.WHITE} />
         </TouchableOpacity>
       </View>
 
@@ -281,13 +274,14 @@ export default function SaleOrder({navigation}) {
       {loading ? (
         <ActivityIndicator
           size="large"
-          color={APPCOLORS.Secondary}
+          color={COLORS.Primary}
           style={{marginTop: 20}}
         />
       ) : data.length === 0 ? (
-        <Text style={{color: '#fff', textAlign: 'center', marginTop: 20}}>
-          No Data Found
-        </Text>
+        <View style={styles.emptyContainer}>
+          <Icon name="file-document-outline" size={48} color={COLORS.TextMuted} />
+          <Text style={styles.emptyText}>No Data Found</Text>
+        </View>
       ) : (
         <FlatList
           data={data}
@@ -299,18 +293,10 @@ export default function SaleOrder({navigation}) {
           removeClippedSubviews={true}
           ListHeaderComponent={
             <View style={[styles.row, styles.headerRow]}>
-              <Text style={[styles.cell, styles.headerText, {flex: 1}]}>
-                Ref
-              </Text>
-              <Text style={[styles.cell, styles.headerText, {flex: 1.5}]}>
-                Date
-              </Text>
-              <Text style={[styles.cell, styles.headerText, {flex: 1.5}]}>
-                Amount
-              </Text>
-              <Text style={[styles.cell, styles.headerText, {flex: 1}]}>
-                Action
-              </Text>
+              <Text style={[styles.headerCell, {flex: 1}]}>Ref</Text>
+              <Text style={[styles.headerCell, {flex: 1.5}]}>Date</Text>
+              <Text style={[styles.headerCell, {flex: 1.5}]}>Amount</Text>
+              <Text style={[styles.headerCell, {flex: 1}]}>Action</Text>
             </View>
           }
           renderItem={renderItem}
@@ -322,81 +308,80 @@ export default function SaleOrder({navigation}) {
 }
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: '#F3F4F6'},
-  filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: APPCOLORS.Secondary,
-    padding: 8,
-    marginRight: 8,
-    borderRadius: 6,
-  },
-  row: {
-    flexDirection: 'row',
-    borderBottomWidth: 0.5,
-    borderBottomColor: APPCOLORS.Secondary,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-  },
-  headerRow: {
-    backgroundColor: APPCOLORS.BLACK,
-  },
-  cell: {
-    color: '#fff',
-    fontSize: 14,
-  },
-  headerText: {
-    fontWeight: 'bold',
-    fontSize: 15,
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.Background,
   },
   filterContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginHorizontal: 12,
-    marginTop: 10,
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    gap: 8,
   },
-  primaryButton: {
-    backgroundColor: APPCOLORS.Secondary,
-  },
-  actionContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginVertical: 12,
-    marginHorizontal: 12,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 14,
-    marginLeft: 6,
-    fontWeight: '600',
-  },
-  gradientButton: {
+  dateButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    shadowOffset: {width: 1, height: 2},
+    backgroundColor: COLORS.WHITE,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+    gap: 6,
+  },
+  dateButtonText: {
+    color: COLORS.TextDark,
+    fontSize: 13,
+    fontWeight: '500',
   },
   iconBtn: {
-    width: 48,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 10,
-    backgroundColor: '#1a1c22',
+    backgroundColor: COLORS.Primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
   },
   clearBtn: {
-    width: 48,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 10,
-    backgroundColor: '#dc3545',
+    backgroundColor: '#EF4444',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.WHITE,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.Border,
+  },
+  headerRow: {
+    backgroundColor: COLORS.Primary,
+  },
+  cell: {
+    color: COLORS.TextDark,
+    fontSize: 13,
+  },
+  headerCell: {
+    color: COLORS.WHITE,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+  },
+  emptyText: {
+    color: COLORS.TextMuted,
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

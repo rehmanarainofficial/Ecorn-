@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,18 +11,19 @@ import {
   Image,
   Modal,
   Platform,
+  PermissionsAndroid,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {Dropdown} from 'react-native-element-dropdown';
+import { Dropdown } from 'react-native-element-dropdown';
 import PlatformGradient from '../../../../components/PlatformGradient';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import {launchImageLibrary} from 'react-native-image-picker';
+import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import axios from 'axios';
-import {BASEURL} from '../../../../utils/BaseUrl';
-import {useSelector} from 'react-redux';
-import {formatNumber} from '../../../../utils/NumberUtils';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import { BASEURL } from '../../../../utils/BaseUrl';
+import { useSelector } from 'react-redux';
+import { formatNumber } from '../../../../utils/NumberUtils';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { APPCOLORS } from '../../../../utils/APPCOLORS';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -37,86 +38,76 @@ const COLORS = {
   CheckboxActive: '#10B981',
 };
 
-// Purpose options for checkboxes
+// Purpose options for checkboxes with expense_type numbers
 const PURPOSE_OPTIONS = [
-  {id: 'monthly_exp', label: 'Monthly Exp'},
-  {id: 'official_travel', label: 'Official Travel'},
-  {id: 'client_meeting', label: 'Client Meeting'},
-  {id: 'office_supplies', label: 'Office Supplies'},
-  {id: 'training_seminar', label: 'Training / Seminar'},
-  {id: 'site_visit', label: 'Site Visit'},
-  {id: 'other', label: 'Other'},
+  { id: 1, label: 'Monthly Exp' },
+  { id: 2, label: 'Official Travel' },
+  { id: 3, label: 'Client Meeting' },
+  { id: 4, label: 'Office Supplies' },
+  { id: 5, label: 'Training / Seminar' },
+  { id: 6, label: 'Site Visit' },
+  { id: 7, label: 'Other' },
 ];
 
-export default function ExpenseClaim({navigation}) {
+export default function ExpenseClaim({ navigation, route }) {
   const insets = useSafeAreaInsets();
-  const {id} = useSelector(state => state.Data.currentData);
-  
+  const userData = useSelector(state => state.Data.currentData);
+  const userId = userData?.id;
+  const employeeId = userData?.employee_id;
+  const onRefresh = route?.params?.onRefresh;
+
   // Claim Details State
-  const [claimNo, setClaimNo] = useState('');
   const [submissionDate, setSubmissionDate] = useState(new Date());
-  const [periodFromDate, setPeriodFromDate] = useState(new Date());
-  const [periodToDate, setPeriodToDate] = useState(new Date());
-  const [selectedPurposes, setSelectedPurposes] = useState([]);
+  const [selectedPurpose, setSelectedPurpose] = useState(null);
   const [otherPurposeText, setOtherPurposeText] = useState('');
   const [accompaniedBy, setAccompaniedBy] = useState('');
-  
+
   // Date Picker States
   const [showSubmissionDatePicker, setShowSubmissionDatePicker] = useState(false);
-  const [showFromDatePicker, setShowFromDatePicker] = useState(false);
-  const [showToDatePicker, setShowToDatePicker] = useState(false);
   const [showItemDatePicker, setShowItemDatePicker] = useState(false);
-  
+
   // Expense Item Form State
   const [itemDate, setItemDate] = useState(new Date());
   const [expenseCategory, setExpenseCategory] = useState(null);
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  
+
   // Data State
   const [accountTitles, setAccountTitles] = useState([]);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [accountsLoading, setAccountsLoading] = useState(false);
-  
+
   // Image State
   const [selectedImage, setSelectedImage] = useState(null);
   const [showImageModal, setShowImageModal] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
-  
-  // Overall Memo
-  const [overallMemo, setOverallMemo] = useState('');
 
-  // Generate Claim No on mount
+  // Fetch account titles on mount
   useEffect(() => {
-    generateClaimNo();
     fetchAccountTitles();
   }, []);
-
-  const generateClaimNo = () => {
-    const timestamp = Date.now().toString().slice(-8);
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    setClaimNo(`EC-${timestamp}-${random}`);
-  };
 
   const fetchAccountTitles = async () => {
     setAccountsLoading(true);
     try {
-      const response = await axios.get(`${BASEURL}get_gl_account.php`);
-      if (response.data.status === 'true') {
-        const formattedAccounts = response.data.data.map(account => ({
-          label: account.account_name,
-          value: account.account_code,
-          account_code: account.account_code,
-          account_name: account.account_name,
-        }));
+      const response = await axios.get(`${BASEURL}claim_expense_account.php`);
+      if (response.data.status === 'true' || response.data.status === true) {
+        const formattedAccounts = response.data.data
+          .filter(account => account.inactive === '0' || account.inactive === 0)
+          .map(account => ({
+            label: account.account_name,
+            value: account.account_code,
+            account_code: account.account_code,
+            account_name: account.account_name,
+          }));
         setAccountTitles(formattedAccounts);
       } else {
-        ToastAndroid.show('Failed to load account titles', ToastAndroid.SHORT);
+        ToastAndroid.show('Failed to load expense types', ToastAndroid.SHORT);
       }
     } catch (error) {
-      console.log('Account titles error:', error);
-      ToastAndroid.show('Error loading account titles', ToastAndroid.SHORT);
+      console.log('Expense types error:', error);
+      ToastAndroid.show('Error loading expense types', ToastAndroid.SHORT);
     } finally {
       setAccountsLoading(false);
     }
@@ -133,16 +124,6 @@ export default function ExpenseClaim({navigation}) {
   const formatDateForApi = (date) => {
     const d = new Date(date);
     return d.toISOString().split('T')[0];
-  };
-
-  const togglePurpose = (purposeId) => {
-    setSelectedPurposes(prev => {
-      if (prev.includes(purposeId)) {
-        return prev.filter(id => id !== purposeId);
-      } else {
-        return [...prev, purposeId];
-      }
-    });
   };
 
   const handleImagePicker = () => {
@@ -163,6 +144,51 @@ export default function ExpenseClaim({navigation}) {
       } else if (response.error) {
         console.log('ImagePicker Error: ', response.error);
         ToastAndroid.show('Error selecting image', ToastAndroid.SHORT);
+      } else if (response.assets && response.assets.length > 0) {
+        const imageUri = response.assets[0].uri;
+        setSelectedImage(imageUri);
+        setShowImageModal(true);
+      }
+    });
+  };
+
+  const handleCameraCapture = async () => {
+    // Request camera permission on Android
+    if (Platform.OS === 'android') {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Camera Permission',
+          message: 'App needs camera permission to take photos.',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+        ToastAndroid.show('Camera permission denied', ToastAndroid.SHORT);
+        return;
+      }
+    }
+
+    const options = {
+      mediaType: 'photo',
+      quality: 0.8,
+      maxWidth: 800,
+      maxHeight: 800,
+      saveToPhotos: false,
+    };
+
+    setImageLoading(true);
+
+    launchCamera(options, response => {
+      setImageLoading(false);
+
+      if (response.didCancel) {
+        console.log('User cancelled camera');
+      } else if (response.error) {
+        console.log('Camera Error: ', response.error);
+        ToastAndroid.show('Error capturing image', ToastAndroid.SHORT);
       } else if (response.assets && response.assets.length > 0) {
         const imageUri = response.assets[0].uri;
         setSelectedImage(imageUri);
@@ -204,7 +230,7 @@ export default function ExpenseClaim({navigation}) {
     setItems(prev => {
       const filtered = prev.filter(item => item.id !== id);
       // Re-number the items
-      return filtered.map((item, index) => ({...item, srNo: index + 1}));
+      return filtered.map((item, index) => ({ ...item, srNo: index + 1 }));
     });
   };
 
@@ -214,8 +240,8 @@ export default function ExpenseClaim({navigation}) {
       return;
     }
 
-    if (selectedPurposes.length === 0) {
-      ToastAndroid.show('Please select at least one purpose', ToastAndroid.SHORT);
+    if (!selectedPurpose) {
+      ToastAndroid.show('Please select a purpose', ToastAndroid.SHORT);
       return;
     }
 
@@ -226,33 +252,23 @@ export default function ExpenseClaim({navigation}) {
         (sum, item) => sum + parseFloat(item.amount || 0),
         0,
       );
-      
-      const glDetail = items.map(item => ({
-        type: '41',
+
+      // Build expense_detail array
+      const expenseDetail = items.map(item => ({
         account_code: item.accountCode,
+        line_date: formatDateForApi(item.date),
         amount: parseFloat(item.amount),
-        memo_: item.description || '',
-        trans_date: formatDateForApi(item.date),
+        line_memo: item.description || '',
       }));
 
-      const purposeLabels = selectedPurposes.map(id => {
-        if (id === 'other') return `Other: ${otherPurposeText}`;
-        return PURPOSE_OPTIONS.find(p => p.id === id)?.label || '';
-      });
-
       const formData = new FormData();
-      formData.append('type', '41');
-      formData.append('claim_no', claimNo);
-      formData.append('submission_date', formatDateForApi(submissionDate));
-      formData.append('period_from', formatDateForApi(periodFromDate));
-      formData.append('period_to', formatDateForApi(periodToDate));
-      formData.append('purposes', JSON.stringify(purposeLabels));
-      formData.append('accompanied_by', accompaniedBy);
-      formData.append('comments', overallMemo || '');
       formData.append('trans_date', formatDateForApi(submissionDate));
+      formData.append('expense_type', selectedPurpose.toString());
       formData.append('amount', totalAmount.toString());
-      formData.append('gl_detail', JSON.stringify(glDetail));
-      formData.append('user_id', id);
+      formData.append('user_id', userId);
+      formData.append('expense_detail', JSON.stringify(expenseDetail));
+      formData.append('comments', accompaniedBy || '');
+      formData.append('employee_id', employeeId);
 
       if (selectedImage) {
         const imageFile = {
@@ -263,20 +279,29 @@ export default function ExpenseClaim({navigation}) {
         formData.append('filename', imageFile);
       }
 
+      console.log('Submitting expense claim:', {
+        trans_date: formatDateForApi(submissionDate),
+        expense_type: selectedPurpose,
+        amount: totalAmount,
+        user_id: userId,
+        expense_detail: expenseDetail,
+        comments: accompaniedBy,
+        employee_id: employeeId,
+      });
+
       const response = await axios.post(
-        `${BASEURL}post_service_payments.php`,
+        `${BASEURL}post_service_expense_claim.php`,
         formData,
         {
-          headers: {'Content-Type': 'multipart/form-data'},
+          headers: { 'Content-Type': 'multipart/form-data' },
         },
       );
 
       if (
-        response.data?.status === true ||
-        response.data?.status === 'true' ||
-        response.data?.status == 1
+        response.data?.status === true || response.data?.status === 'true'
       ) {
         ToastAndroid.show('Expense claim submitted successfully', ToastAndroid.LONG);
+        console.log("response", response.data);
 
         // Reset all fields
         setItems([]);
@@ -284,13 +309,16 @@ export default function ExpenseClaim({navigation}) {
         setDescription('');
         setAmount('');
         setSubmissionDate(new Date());
-        setPeriodFromDate(new Date());
-        setPeriodToDate(new Date());
-        setSelectedPurposes([]);
+        setSelectedPurpose(null);
         setOtherPurposeText('');
         setAccompaniedBy('');
         setSelectedImage(null);
-        generateClaimNo();
+
+        // Refresh inquiry list and go back
+        if (onRefresh) {
+          onRefresh();
+        }
+        navigation.goBack();
       } else {
         ToastAndroid.show(
           response.data?.message || 'Server rejected submission',
@@ -318,35 +346,27 @@ export default function ExpenseClaim({navigation}) {
       {/* Header */}
       <PlatformGradient
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-        style={[styles.header, {paddingTop}]}>
+        style={[styles.header, { paddingTop }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="chevron-back" color={COLORS.WHITE} size={28} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Expense Claim Submission</Text>
-        <View style={{width: 28}} />
+        <Text style={styles.headerTitle}>New Expense Claim</Text>
+        <View style={{ width: 28 }} />
       </PlatformGradient>
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
-        
+
         {/* Claim Details Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Claim Details</Text>
-          
-          {/* Expense Claim No */}
-          <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>Expense Claim No.:</Text>
-            <View style={styles.autoGeneratedField}>
-              <Text style={styles.autoGeneratedText}>{claimNo}</Text>
-            </View>
-          </View>
 
           {/* Claim Submission Date */}
           <View style={styles.fieldRow}>
             <Text style={styles.fieldLabel}>Claim Submission Date:</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.dateInputField}
               onPress={() => setShowSubmissionDatePicker(true)}>
               <Text style={styles.dateInputText}>{formatDate(submissionDate)}</Text>
@@ -354,50 +374,37 @@ export default function ExpenseClaim({navigation}) {
             </TouchableOpacity>
           </View>
 
-          {/* Expense Period */}
-          <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>Expense Period:</Text>
-            <View style={styles.periodContainer}>
-              <Text style={styles.periodLabel}>From</Text>
-              <TouchableOpacity 
-                style={styles.periodDateField}
-                onPress={() => setShowFromDatePicker(true)}>
-                <Text style={styles.periodDateText}>{formatDate(periodFromDate)}</Text>
-              </TouchableOpacity>
-              <Text style={styles.periodLabel}>To</Text>
-              <TouchableOpacity 
-                style={styles.periodDateField}
-                onPress={() => setShowToDatePicker(true)}>
-                <Text style={styles.periodDateText}>{formatDate(periodToDate)}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
           {/* Purpose of Expense */}
           <View style={styles.purposeSection}>
             <Text style={styles.fieldLabel}>Purpose of Expense:</Text>
-            <Text style={styles.purposeHint}>(Check Box - can select more than one)</Text>
+            <Text style={styles.purposeHint}>(Select one option)</Text>
             <View style={styles.checkboxGrid}>
-              {PURPOSE_OPTIONS.map((purpose) => (
-                <TouchableOpacity
-                  key={purpose.id}
-                  style={styles.checkboxRow}
-                  onPress={() => togglePurpose(purpose.id)}>
-                  <View style={[
-                    styles.checkbox,
-                    selectedPurposes.includes(purpose.id) && styles.checkboxChecked
-                  ]}>
-                    {selectedPurposes.includes(purpose.id) && (
-                      <Ionicons name="checkmark" size={14} color={COLORS.WHITE} />
-                    )}
-                  </View>
-                  <Text style={styles.checkboxLabel}>{purpose.label}</Text>
-                </TouchableOpacity>
-              ))}
+              {PURPOSE_OPTIONS.map((purpose) => {
+                const isSelected = selectedPurpose === purpose.id;
+
+                return (
+                  <TouchableOpacity
+                    key={purpose.id}
+                    style={styles.checkboxRow}
+                    onPress={() => setSelectedPurpose(purpose.id)}>
+                    <View style={[
+                      styles.checkbox,
+                      isSelected && styles.checkboxChecked,
+                    ]}>
+                      {isSelected && (
+                        <Ionicons name="checkmark" size={14} color={COLORS.WHITE} />
+                      )}
+                    </View>
+                    <Text style={styles.checkboxLabel}>
+                      {purpose.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-            
+
             {/* Other Specify Field */}
-            {selectedPurposes.includes('other') && (
+            {selectedPurpose === 7 && (
               <TextInput
                 style={styles.otherSpecifyInput}
                 placeholder="Please specify..."
@@ -413,13 +420,13 @@ export default function ExpenseClaim({navigation}) {
         {/* Expense Items Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Expense Items</Text>
-          
+
           {/* Add Item Form */}
           <View style={styles.addItemForm}>
             {/* Date Field */}
             <View style={styles.formRow}>
               <Text style={styles.formLabel}>Date:</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.formDateField}
                 onPress={() => setShowItemDatePicker(true)}>
                 <Text style={styles.formDateText}>{formatDate(itemDate)}</Text>
@@ -446,7 +453,7 @@ export default function ExpenseClaim({navigation}) {
                 containerStyle={styles.dropdownContainer}
                 renderLeftIcon={() =>
                   accountsLoading && (
-                    <ActivityIndicator size="small" color={COLORS.AccentBlue} style={{marginRight: 8}} />
+                    <ActivityIndicator size="small" color={COLORS.AccentBlue} style={{ marginRight: 8 }} />
                   )
                 }
               />
@@ -501,8 +508,8 @@ export default function ExpenseClaim({navigation}) {
 
                   {/* Table Rows */}
                   {items.map((item, index) => (
-                    <View 
-                      key={item.id} 
+                    <View
+                      key={item.id}
                       style={[styles.tableRow, index % 2 === 0 && styles.tableRowEven]}>
                       <Text style={[styles.tableCell, styles.colSr]}>{item.srNo}</Text>
                       <Text style={[styles.tableCell, styles.colDate]}>{formatDate(item.date)}</Text>
@@ -553,31 +560,44 @@ export default function ExpenseClaim({navigation}) {
         {/* Attach Receipt Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Attach Receipt / Document <Text style={styles.cardTitleHint}>(Take photos of your bills before submitting the form.)</Text></Text>
-          <TouchableOpacity
-            onPress={handleImagePicker}
-            style={styles.attachButton}>
-            {imageLoading ? (
+
+          {imageLoading ? (
+            <View style={styles.attachButtonsRow}>
               <ActivityIndicator size="small" color={COLORS.AccentBlue} />
-            ) : (
-              <>
-                <Ionicons
-                  name={selectedImage ? 'checkmark-circle' : 'cloud-upload-outline'}
-                  size={32}
-                  color={selectedImage ? COLORS.CheckboxActive : COLORS.AccentBlue}
-                />
-                <Text style={styles.attachButtonText}>
-                  {selectedImage ? 'Image Selected - Tap to Change' : 'Tap to Upload Image'}
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.attachButtonsRow}>
+              <TouchableOpacity
+                onPress={handleCameraCapture}
+                style={styles.attachOptionButton}>
+                <View style={[styles.attachIconWrap, { backgroundColor: '#3B82F6' }]}>
+                  <Ionicons name="camera" size={24} color={COLORS.WHITE} />
+                </View>
+                <Text style={styles.attachOptionText}>Camera</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleImagePicker}
+                style={styles.attachOptionButton}>
+                <View style={[styles.attachIconWrap, { backgroundColor: '#8B5CF6' }]}>
+                  <Ionicons name="images" size={24} color={COLORS.WHITE} />
+                </View>
+                <Text style={styles.attachOptionText}>Gallery</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {selectedImage && (
             <TouchableOpacity
               style={styles.imagePreviewContainer}
               onPress={() => setShowImageModal(true)}>
-              <Image source={{uri: selectedImage}} style={styles.imagePreview} />
+              <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
               <Text style={styles.imagePreviewText}>Tap to view full image</Text>
+              <TouchableOpacity
+                style={styles.removeImageBtn}
+                onPress={() => setSelectedImage(null)}>
+                <Ionicons name="close-circle" size={24} color="#EF4444" />
+              </TouchableOpacity>
             </TouchableOpacity>
           )}
         </View>
@@ -597,7 +617,7 @@ export default function ExpenseClaim({navigation}) {
           )}
         </TouchableOpacity>
 
-        <View style={{height: 40}} />
+        <View style={{ height: 40 }} />
       </ScrollView>
 
       {/* Date Pickers */}
@@ -609,26 +629,6 @@ export default function ExpenseClaim({navigation}) {
           setShowSubmissionDatePicker(false);
         }}
         onCancel={() => setShowSubmissionDatePicker(false)}
-      />
-
-      <DateTimePickerModal
-        isVisible={showFromDatePicker}
-        mode="date"
-        onConfirm={(date) => {
-          setPeriodFromDate(date);
-          setShowFromDatePicker(false);
-        }}
-        onCancel={() => setShowFromDatePicker(false)}
-      />
-
-      <DateTimePickerModal
-        isVisible={showToDatePicker}
-        mode="date"
-        onConfirm={(date) => {
-          setPeriodToDate(date);
-          setShowToDatePicker(false);
-        }}
-        onCancel={() => setShowToDatePicker(false)}
       />
 
       <DateTimePickerModal
@@ -656,7 +656,7 @@ export default function ExpenseClaim({navigation}) {
               </TouchableOpacity>
             </View>
             {selectedImage && (
-              <Image source={{uri: selectedImage}} style={styles.modalImage} />
+              <Image source={{ uri: selectedImage }} style={styles.modalImage} />
             )}
             <TouchableOpacity
               style={styles.modalCloseButton}
@@ -696,7 +696,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
   },
-  
+
   // Card Styles
   card: {
     backgroundColor: COLORS.WHITE,
@@ -704,7 +704,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
@@ -724,7 +724,7 @@ const styles = StyleSheet.create({
     color: COLORS.LabelColor,
     fontStyle: 'italic',
   },
-  
+
   // Field Styles
   fieldRow: {
     marginBottom: 16,
@@ -734,31 +734,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.TextDark,
     marginBottom: 8,
-  },
-  autoGeneratedField: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#F1F5F9',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: COLORS.Border,
-  },
-  autoGeneratedText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.TextDark,
-  },
-  autoGeneratedBadge: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: COLORS.AccentBlue,
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
   },
   dateInputField: {
     flexDirection: 'row',
@@ -775,34 +750,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.TextDark,
   },
-  
-  // Period Styles
-  periodContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  periodLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: COLORS.LabelColor,
-  },
-  periodDateField: {
-    backgroundColor: COLORS.WHITE,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: COLORS.Border,
-    minWidth: 110,
-  },
-  periodDateText: {
-    fontSize: 13,
-    color: COLORS.TextDark,
-    textAlign: 'center',
-  },
-  
+
   // Purpose Checkbox Styles
   purposeSection: {
     marginBottom: 16,
@@ -859,8 +807,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.TextDark,
   },
-  
-  
+
   // Add Item Form Styles
   addItemForm: {
     backgroundColor: '#F8FAFC',
@@ -870,14 +817,6 @@ const styles = StyleSheet.create({
   },
   formRow: {
     marginBottom: 14,
-  },
-  formRowSplit: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 14,
-  },
-  formHalf: {
-    flex: 1,
   },
   formLabel: {
     fontSize: 13,
@@ -954,7 +893,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
-  
+
   // Table Styles
   tableContainer: {
     borderRadius: 10,
@@ -1013,15 +952,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 8,
   },
-  
+
   // Column Widths
-  colSr: {width: 40},
-  colDate: {width: 100},
-  colCategory: {width: 150},
-  colDesc: {width: 130},
-  colAmount: {width: 100},
-  colAction: {width: 40, alignItems: 'center', justifyContent: 'center'},
-  
+  colSr: { width: 40 },
+  colDate: { width: 100 },
+  colCategory: { width: 150 },
+  colDesc: { width: 130 },
+  colAmount: { width: 100 },
+  colAction: { width: 40, alignItems: 'center', justifyContent: 'center' },
+
   // Notes Styles
   notesInput: {
     backgroundColor: '#F8FAFC',
@@ -1035,29 +974,45 @@ const styles = StyleSheet.create({
     minHeight: 100,
     textAlignVertical: 'top',
   },
-  
+
   // Attach Button Styles
-  attachButton: {
+  attachButtonsRow: {
     flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  attachOptionButton: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: COLORS.WHITE,
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  attachIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F0F9FF',
-    borderRadius: 12,
-    paddingVertical: 24,
-    borderWidth: 2,
-    borderColor: COLORS.AccentBlue,
-    borderStyle: 'dashed',
-    gap: 12,
+    marginBottom: 8,
   },
-  attachButtonText: {
-    color: COLORS.AccentBlue,
-    fontSize: 15,
+  attachOptionText: {
+    color: COLORS.TextDark,
+    fontSize: 14,
     fontWeight: '600',
   },
   imagePreviewContainer: {
     alignItems: 'center',
     marginTop: 16,
     padding: 12,
+    position: 'relative',
     backgroundColor: '#F8FAFC',
     borderRadius: 10,
     borderWidth: 1,
@@ -1073,7 +1028,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 8,
   },
-  
+  removeImageBtn: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 12,
+  },
+
   // Submit Button Styles
   submitBtn: {
     flexDirection: 'row',
@@ -1086,7 +1048,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: COLORS.BLACK,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -1100,7 +1062,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
   },
-  
+
   // Modal Styles
   modalContainer: {
     flex: 1,

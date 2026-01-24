@@ -10,9 +10,10 @@ type Props = {
   isNew?: boolean;
   onPress?: () => void;
   icon: string;
+  isMoreButton?: boolean;
 };
 
-const DashboardTabs = ({name, onPress, icon}: Props) => {
+const DashboardTabs = ({name, onPress, icon, isMoreButton}: Props) => {
   return (
     <TouchableOpacity
       onPress={onPress}

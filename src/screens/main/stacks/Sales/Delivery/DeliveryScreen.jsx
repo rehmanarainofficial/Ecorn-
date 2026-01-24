@@ -233,7 +233,7 @@ const DeliveryScreen = ({navigation}) => {
             style={styles.morphButton}
             onPress={() => setShowFromPicker(true)}>
             <Text style={styles.dateText}>
-              From: {formatDisplayDateForHeader(fromDate)}
+              {formatDisplayDateForHeader(fromDate)}
             </Text>
           </TouchableOpacity>
 
@@ -241,7 +241,7 @@ const DeliveryScreen = ({navigation}) => {
             style={styles.morphButton}
             onPress={() => setShowToPicker(true)}>
             <Text style={styles.dateText}>
-              To: {formatDisplayDateForHeader(toDate)}
+              {formatDisplayDateForHeader(toDate)}
             </Text>
           </TouchableOpacity>
 
