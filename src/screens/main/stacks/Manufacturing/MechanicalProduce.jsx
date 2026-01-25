@@ -209,21 +209,21 @@ export default function MechanicalProduce({navigation, route}) {
           value={memo}
           onChangeText={setMemo}
         />
-      </ScrollView>
 
-      {/* Bottom Button */}
-      <View style={styles.bottomBar}>
+        {/* Process Button - Moved inside ScrollView */}
         <TouchableOpacity
           disabled={posting}
           onPress={handleProcess}
-          style={styles.submitBtn}>
+          style={[styles.submitBtn, {marginTop: 5}]}>
           {posting ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={{color: '#fff', fontSize: 18, fontWeight: '600'}}>Process</Text>
+            <Text style={{color: '#fff', fontSize: 18, fontWeight: '600'}}>
+              Process
+            </Text>
           )}
         </TouchableOpacity>
-      </View>
+      </ScrollView>
 
       <Toast />
     </View>
@@ -255,22 +255,12 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
     marginBottom: 10,
   },
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
-    paddingBottom: 30,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderColor: '#E0E0E0',
-  },
   submitBtn: {
     height: 56,
     backgroundColor: '#1a1c22',
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 40,
   },
 });

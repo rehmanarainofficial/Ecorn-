@@ -120,7 +120,7 @@ const Detail = ({navigation}) => {
           },
         },
       );
-      console.log("data", data);
+      console.log('data', data);
       setslider_data(data?.slider_data);
       setAllData(data);
       setExpenseData(data?.data_exp_det || []);
@@ -224,7 +224,6 @@ const Detail = ({navigation}) => {
             }}>
             <Text style={styles.dateText}>{formatDate(startDate)}</Text>
           </TouchableOpacity>
-          <Text style={styles.toText}>to</Text>
           <TouchableOpacity
             style={styles.dateButton}
             onPress={() => {
@@ -239,7 +238,9 @@ const Detail = ({navigation}) => {
           <TouchableOpacity
             style={styles.clearBtn}
             onPress={() => {
-              setStartDate(new Date(new Date().setDate(new Date().getDate() - 30)));
+              setStartDate(
+                new Date(new Date().setDate(new Date().getDate() - 30)),
+              );
               setEndDate(new Date());
               getMoneyData();
             }}>
@@ -510,11 +511,6 @@ let styles = StyleSheet.create({
   dateText: {
     color: '#1E293B',
     fontSize: 14,
-    fontWeight: '500',
-  },
-  toText: {
-    marginHorizontal: 10,
-    color: '#64748B',
     fontWeight: '500',
   },
   applyBtn: {

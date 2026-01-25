@@ -44,6 +44,7 @@ const DeliveryNote = ({route}) => {
   const [vehicleName, setVehicleName] = useState('');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [lossMaterial, setLossMaterial] = useState('');
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -165,6 +166,7 @@ const DeliveryNote = ({route}) => {
       formData.append('total', String(grandTotal.toFixed(2)));
       formData.append('price_list', String(price_list));
       formData.append('ship_via', String(ship_via));
+      formData.append('memo', String(lossMaterial));
       formData.append('purch_order_details', JSON.stringify(purchOrderDetails));
 
       console.log('Submitting form data:', formData);
@@ -297,16 +299,35 @@ const DeliveryNote = ({route}) => {
             </View>
           )}
           ListFooterComponent={
-            <TouchableOpacity
-              style={[styles.button, loading && {opacity: 0.7}]}
-              onPress={handleSubmit}
-              disabled={loading}>
-              {loading ? (
-                <ActivityIndicator color={COLORS.WHITE} />
-              ) : (
-                <Text style={styles.buttonText}>Process</Text>
-              )}
-            </TouchableOpacity>
+            <View style={{marginTop: 10, marginBottom: 20}}>
+              <Text style={styles.heading}>Loss Material / Memo</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  {minHeight: 80, textAlignVertical: 'top'},
+                ]}
+                placeholder="Enter loss material or other information..."
+                placeholderTextColor={COLORS.TextMuted}
+                value={lossMaterial}
+                onChangeText={setLossMaterial}
+                multiline
+              />
+
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  loading && {opacity: 0.7},
+                  {marginTop: 20, marginBottom: 0},
+                ]}
+                onPress={handleSubmit}
+                disabled={loading}>
+                {loading ? (
+                  <ActivityIndicator color={COLORS.WHITE} />
+                ) : (
+                  <Text style={styles.buttonText}>Process</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           }
         />
       </View>

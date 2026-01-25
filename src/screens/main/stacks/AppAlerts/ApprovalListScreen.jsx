@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   ActivityIndicator,
@@ -8,23 +8,23 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { Dropdown } from 'react-native-element-dropdown';
+import {Dropdown} from 'react-native-element-dropdown';
 import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import ApprovalCard from './ApprovalCard';
-import { APPCOLORS } from '../../../../utils/APPCOLORS';
+import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useSelector } from 'react-redux';
+import {useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
-import { BASEURL } from '../../../../utils/BaseUrl';
-import { formatDate } from '../../../../utils/DateUtils';
+import {BASEURL} from '../../../../utils/BaseUrl';
+import {formatDate} from '../../../../utils/DateUtils';
 
-const ApprovalListScreen = ({ route, navigation }) => {
+const ApprovalListScreen = ({route, navigation}) => {
   console.log('========== NEW CODE V2 LOADED ==========');
-  const { listKey, title, isApproved = false } = route.params;
-  console.log("listKey", listKey);
-  
+  const {listKey, title, isApproved = false} = route.params;
+  console.log('listKey', listKey);
+
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -48,15 +48,24 @@ const ApprovalListScreen = ({ route, navigation }) => {
   const [selectedSupplier, setSelectedSupplier] = useState(null);
 
   const currentUser = useSelector(state => state.Data.currentData);
-  
+
   // Check if this is a sales screen (quotation, order, delivery)
-  const isSalesScreen = listKey === 'quotation_approval' || listKey === 'so_approval' || listKey === 'delivery_approval' || listKey === 'invoice_approval';
-  
+  const isSalesScreen =
+    listKey === 'quotation_approval' ||
+    listKey === 'so_approval' ||
+    listKey === 'delivery_approval' ||
+    listKey === 'invoice_approval';
+
   // Check if this is a purchase screen (po, grn)
-  const isPurchaseScreen = listKey === 'po_approval' || listKey === 'grn_approval' || listKey === 'po_invoice_approval';
-  
+  const isPurchaseScreen =
+    listKey === 'po_approval' ||
+    listKey === 'grn_approval' ||
+    listKey === 'po_invoice_approval';
+
   // Determine API endpoint based on isApproved flag
-  const apiEndpoint = isApproved ? `${BASEURL}dash_approved.php` : `${BASEURL}dash_approval.php`;
+  const apiEndpoint = isApproved
+    ? `${BASEURL}dash_approved.php`
+    : `${BASEURL}dash_approval.php`;
 
   const keyMap = {
     quotation_approval: 'data_unapprove_quote',
@@ -88,12 +97,12 @@ const ApprovalListScreen = ({ route, navigation }) => {
     if (listKey === 'voucher_approval') {
       fetchSoftwareTypes();
     }
-    
+
     // Fetch debtors for sales screens
     if (isSalesScreen) {
       fetchDebtors();
     }
-    
+
     // Fetch suppliers for purchase screens
     if (isPurchaseScreen) {
       fetchSuppliers();
@@ -148,7 +157,6 @@ const ApprovalListScreen = ({ route, navigation }) => {
     }
   };
 
-
   const formatDateForAPI = date => {
     if (!date) return '';
     const year = date.getFullYear();
@@ -176,7 +184,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-      }); 
+      });
 
       const mappedKey = keyMap[listKey];
       const newData = res.data?.[mappedKey] || [];
@@ -242,8 +250,6 @@ const ApprovalListScreen = ({ route, navigation }) => {
         formData.append('name', searchName);
       }
 
-     
-
       const res = await axios.post(apiEndpoint, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -273,7 +279,11 @@ const ApprovalListScreen = ({ route, navigation }) => {
         );
       }
 
-      if (searchLocation.trim() !== '' && listKey !== 'electrocal_job_cards' && listKey !== 'mechnical_job_cards') {
+      if (
+        searchLocation.trim() !== '' &&
+        listKey !== 'electrocal_job_cards' &&
+        listKey !== 'mechnical_job_cards'
+      ) {
         filtered = filtered.filter(
           item =>
             (item.location_name &&
@@ -328,16 +338,16 @@ const ApprovalListScreen = ({ route, navigation }) => {
   const handleApprove = async item => {
     console.log('=== NEW V2 handleApprove CALLED ===');
     console.log('Item:', JSON.stringify(item));
-    
+
     try {
       const formData = new FormData();
 
       // For Electrical & Mechanical, use fixed type 29
-      const isJobCard = listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards';
+      const isJobCard =
+        listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards';
 
       const typeValue = isJobCard ? '29' : item.type;
-      console.log("typeValue", typeValue);
-      
+      console.log('typeValue', typeValue);
 
       // Match Postman order exactly: trans_no, type, user_id, approval
       formData.append('trans_no', item.trans_no);
@@ -364,7 +374,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
       );
 
       console.log('Approve Response:', res.data);
-      
+
       if (res.data?.status === true || res.data?.status === 'true') {
         Toast.show({
           type: 'success',
@@ -396,7 +406,8 @@ const ApprovalListScreen = ({ route, navigation }) => {
       const formData = new FormData();
 
       // For Electrical & Mechanical, use fixed type 29
-      const isJobCard = listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards';
+      const isJobCard =
+        listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards';
       const typeValue = isJobCard ? '29' : item.type;
 
       // Match Postman order exactly: trans_no, type, user_id, approval
@@ -423,7 +434,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
         },
       );
       console.log('Unapprove Response:', res.data);
-      
+
       if (res.data?.status === true || res.data?.status === 'true') {
         Toast.show({
           type: 'success',
@@ -451,14 +462,14 @@ const ApprovalListScreen = ({ route, navigation }) => {
 
   if (loading && data.length === 0) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
         <ActivityIndicator size="large" color={APPCOLORS.Primary} />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F3F4F6' }}>
+    <View style={{flex: 1, backgroundColor: '#F3F4F6'}}>
       <SimpleHeader title={title || 'Approvals'} />
 
       {/* Filter Section - Black & White Theme */}
@@ -467,7 +478,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
         <View style={styles.dateRow}>
           <TouchableOpacity
             style={styles.dateButton}
-            onPress={() => setShowDatePicker({ visible: true, type: 'from' })}>
+            onPress={() => setShowDatePicker({visible: true, type: 'from'})}>
             <Icon name="calendar" size={16} color="#000" />
             <Text style={styles.dateButtonText}>
               {formatDateForDisplay(fromDate)}
@@ -476,7 +487,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
 
           <TouchableOpacity
             style={styles.dateButton}
-            onPress={() => setShowDatePicker({ visible: true, type: 'to' })}>
+            onPress={() => setShowDatePicker({visible: true, type: 'to'})}>
             <Icon name="calendar" size={16} color="#000" />
             <Text style={styles.dateButtonText}>
               {formatDateForDisplay(toDate)}
@@ -485,8 +496,8 @@ const ApprovalListScreen = ({ route, navigation }) => {
         </View>
 
         {/* Row 2: Reference Search (Full Width) */}
-        <View style={[styles.searchRow, { marginBottom: 8 }]}>
-          <View style={[styles.searchContainer, { marginRight: 0 }]}>
+        <View style={[styles.searchRow, {marginBottom: 8}]}>
+          <View style={[styles.searchContainer, {marginRight: 0}]}>
             <Icon
               name="magnify"
               size={20}
@@ -498,7 +509,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
               placeholder="Search by reference..."
               placeholderTextColor="#888"
               value={reference}
-              onChangeText={(text) => {
+              onChangeText={text => {
                 console.log('Reference Input Changed:', text);
                 setReference(text);
               }}
@@ -509,12 +520,12 @@ const ApprovalListScreen = ({ route, navigation }) => {
         {/* Row 3: Name Search / Type Dropdown / Cost Center and Buttons */}
         <View style={styles.searchRow}>
           {listKey === 'voucher_approval' ? (
-            <View style={{ flex: 1, marginRight: 8 }}>
+            <View style={{flex: 1, marginRight: 8}}>
               <Dropdown
                 style={styles.dropdown}
                 placeholderStyle={styles.placeholderStyle}
                 selectedTextStyle={styles.selectedTextStyle}
-                itemTextStyle={{ color: '#000' }}
+                itemTextStyle={{color: '#000'}}
                 data={softwareTypes}
                 maxHeight={300}
                 labelField="label"
@@ -524,7 +535,8 @@ const ApprovalListScreen = ({ route, navigation }) => {
                 onChange={item => setSelectedType(item.value)}
               />
             </View>
-          ) : listKey === 'electrocal_job_cards' || listKey === 'mechnical_job_cards' ? (
+          ) : listKey === 'electrocal_job_cards' ||
+            listKey === 'mechnical_job_cards' ? (
             <View style={styles.searchContainer}>
               <Icon
                 name="map-marker-outline"
@@ -537,19 +549,19 @@ const ApprovalListScreen = ({ route, navigation }) => {
                 placeholder="Search by cost center..."
                 placeholderTextColor="#888"
                 value={searchLocation}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   setSearchLocation(text);
                 }}
               />
             </View>
           ) : isSalesScreen ? (
-            <View style={{ flex: 1, marginRight: 8 }}>
+            <View style={{flex: 1, marginRight: 8}}>
               <Dropdown
                 style={styles.dropdown}
                 placeholderStyle={styles.placeholderStyle}
                 selectedTextStyle={styles.selectedTextStyle}
                 inputSearchStyle={styles.inputSearchStyle}
-                itemTextStyle={{ color: '#000' }}
+                itemTextStyle={{color: '#000'}}
                 data={debtorsList}
                 search
                 maxHeight={300}
@@ -562,13 +574,13 @@ const ApprovalListScreen = ({ route, navigation }) => {
               />
             </View>
           ) : isPurchaseScreen ? (
-            <View style={{ flex: 1, marginRight: 8 }}>
+            <View style={{flex: 1, marginRight: 8}}>
               <Dropdown
                 style={styles.dropdown}
                 placeholderStyle={styles.placeholderStyle}
                 selectedTextStyle={styles.selectedTextStyle}
                 inputSearchStyle={styles.inputSearchStyle}
-                itemTextStyle={{ color: '#000' }}
+                itemTextStyle={{color: '#000'}}
                 data={suppliersList}
                 search
                 maxHeight={300}
@@ -593,7 +605,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
                 placeholder="Search by name..."
                 placeholderTextColor="#888"
                 value={searchName}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   setSearchName(text);
                 }}
               />
@@ -615,34 +627,38 @@ const ApprovalListScreen = ({ route, navigation }) => {
             <TouchableOpacity
               style={[styles.actionButton, styles.clearButton]}
               onPress={handleClearFilters}>
-              <Icon name="close-circle" size={18} color="#000" />
+              <Icon name="close-circle" size={18} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Row 4: Cost Center Search (Full Width) - Not for Electrical/Mechanical and not for sales/purchase screens */}
-        {!isSalesScreen && !isPurchaseScreen && listKey !== 'voucher_approval' && listKey !== 'electrocal_job_cards' && listKey !== 'mechnical_job_cards' && (
-          <View style={[styles.searchRow, { marginTop: 8 }]}>
-            <View style={[styles.searchContainer, { marginRight: 0 }]}>
-              <Icon
-                name="map-marker-outline"
-                size={20}
-                color="#666"
-                style={styles.searchIcon}
-              />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search by cost center..."
-                placeholderTextColor="#888"
-                value={searchLocation}
-                onChangeText={(text) => {
-                  console.log('Cost Center (Row4) Input Changed:', text);
-                  setSearchLocation(text);
-                }}
-              />
+        {!isSalesScreen &&
+          !isPurchaseScreen &&
+          listKey !== 'voucher_approval' &&
+          listKey !== 'electrocal_job_cards' &&
+          listKey !== 'mechnical_job_cards' && (
+            <View style={[styles.searchRow, {marginTop: 8}]}>
+              <View style={[styles.searchContainer, {marginRight: 0}]}>
+                <Icon
+                  name="map-marker-outline"
+                  size={20}
+                  color="#666"
+                  style={styles.searchIcon}
+                />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search by cost center..."
+                  placeholderTextColor="#888"
+                  value={searchLocation}
+                  onChangeText={text => {
+                    console.log('Cost Center (Row4) Input Changed:', text);
+                    setSearchLocation(text);
+                  }}
+                />
+              </View>
             </View>
-          </View>
-        )}
+          )}
       </View>
 
       {/* Date Picker */}
@@ -656,7 +672,7 @@ const ApprovalListScreen = ({ route, navigation }) => {
           mode="date"
           display="default"
           onChange={(event, selectedDate) => {
-            setShowDatePicker({ visible: false, type: null });
+            setShowDatePicker({visible: false, type: null});
             if (selectedDate) {
               if (showDatePicker.type === 'from') {
                 setFromDate(selectedDate);
@@ -668,7 +684,8 @@ const ApprovalListScreen = ({ route, navigation }) => {
         />
       )}
 
-      <ScrollView contentContainerStyle={{ padding: 15, paddingBottom: 80, flexGrow: 1 }}>
+      <ScrollView
+        contentContainerStyle={{padding: 15, paddingBottom: 80, flexGrow: 1}}>
         {filteredData && filteredData.length > 0 ? (
           filteredData.map((item, index) => (
             <ApprovalCard
@@ -716,13 +733,13 @@ const ApprovalListScreen = ({ route, navigation }) => {
                 paddingHorizontal: 20,
               }}>
               {reference ||
-                searchName ||
-                searchLocation ||
-                selectedType ||
-                selectedDebtor ||
-                selectedSupplier ||
-                fromDate ||
-                toDate
+              searchName ||
+              searchLocation ||
+              selectedType ||
+              selectedDebtor ||
+              selectedSupplier ||
+              fromDate ||
+              toDate
                 ? 'No records found matching your filters'
                 : 'There are no records pending for approval in this module.'}
             </Text>
@@ -734,12 +751,12 @@ const ApprovalListScreen = ({ route, navigation }) => {
               selectedSupplier ||
               fromDate ||
               toDate) && (
-                <TouchableOpacity
-                  style={styles.retryButton}
-                  onPress={handleClearFilters}>
-                  <Text style={styles.retryButtonText}>Clear Filters</Text>
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={handleClearFilters}>
+                <Text style={styles.retryButtonText}>Clear Filters</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </ScrollView>
@@ -756,7 +773,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -824,7 +841,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF', // White background
   },
   clearButton: {
-    backgroundColor: '#FFFFFF', // White background
+    backgroundColor: '#FF0000', // Red background
+    borderColor: '#FF0000',
   },
   dropdown: {
     height: 40,
@@ -849,7 +867,7 @@ const styles = StyleSheet.create({
   },
   retryButton: {
     marginTop: 20,
-    backgroundColor: APPCOLORS.Primary,
+    backgroundColor: '#FF0000', // Red background
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
