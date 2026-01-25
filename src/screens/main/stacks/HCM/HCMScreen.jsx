@@ -14,11 +14,42 @@ const COLORS = {
 };
 
 const buttons = [
-  {name: 'Employees', icon: 'account-group', screen: 'EmployeesScreen', color: '#3B82F6'},
-  {name: 'Attendance', icon: 'calendar-check', screen: 'Attendance', color: '#10B981'},
-  {name: 'Leave Request', icon: 'calendar-remove', screen: 'LeaveRequestScreen', color: '#F59E0B'},
-  {name: 'Payroll', icon: 'cash-multiple', screen: 'PayrollScreen', color: '#8B5CF6'},
-  {name: 'Expense Claim', icon: 'file-document-edit', screen: 'ExpenseClaimInquiry', color: '#EF4444'},
+  {
+    name: 'Employees',
+    icon: 'account-group',
+    screen: 'EmployeesScreen',
+    color: '#3B82F6',
+  },
+  {
+    name: 'Attendance',
+    icon: 'calendar-check',
+    screen: 'Attendance',
+    color: '#10B981',
+  },
+  {
+    name: 'Leave Request',
+    icon: 'calendar-remove',
+    screen: 'LeaveRequestScreen',
+    color: '#F59E0B',
+  },
+  {
+    name: 'Payroll',
+    icon: 'cash-multiple',
+    screen: 'PayrollScreen',
+    color: '#8B5CF6',
+  },
+  {
+    name: 'Expense Claim',
+    icon: 'file-document-edit',
+    screen: 'ExpenseClaimInquiry',
+    color: '#EF4444',
+  },
+  {
+    name: 'DVR Inquiry',
+    icon: 'card-search-outline',
+    screen: 'DVRInquiry',
+    color: '#6366F1',
+  },
 ];
 
 export default function HCMScreen({navigation}) {
@@ -37,7 +68,9 @@ export default function HCMScreen({navigation}) {
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.buttonText}>{item.name}</Text>
-          <Text style={styles.buttonSubtext}>Manage {item.name.toLowerCase()}</Text>
+          <Text style={styles.buttonSubtext}>
+            Manage {item.name.toLowerCase()}
+          </Text>
         </View>
         <Icon name="chevron-right" size={24} color={COLORS.TextMuted} />
       </TouchableOpacity>

@@ -21,9 +21,7 @@ import {BASEURL} from '../../../../utils/BaseUrl';
 import {formatDate} from '../../../../utils/DateUtils';
 
 const ApprovalListScreen = ({route, navigation}) => {
-  console.log('========== NEW CODE V2 LOADED ==========');
   const {listKey, title, isApproved = false} = route.params;
-  console.log('listKey', listKey);
 
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);

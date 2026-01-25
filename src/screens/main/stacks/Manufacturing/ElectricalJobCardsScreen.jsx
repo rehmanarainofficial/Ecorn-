@@ -46,14 +46,21 @@ const ElectricalJobCardsScreen = ({navigation}) => {
   // 📌 Format date yyyy-mm-dd for API
   const formatDateForAPI = d => {
     const date = new Date(d);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      '0',
+    )}-${String(date.getDate()).padStart(2, '0')}`;
   };
 
   // 📌 Fetch data with POST
-  const fetchData = async (fDate = fromDate, tDate = toDate, costCenter = selectedLocation) => {
+  const fetchData = async (
+    fDate = fromDate,
+    tDate = toDate,
+    costCenter = selectedLocation,
+  ) => {
     try {
       setLoading(true);
-      
+
       const formData = new FormData();
       formData.append('from_date', formatDateForAPI(fDate));
       formData.append('to_date', formatDateForAPI(tDate));
@@ -61,9 +68,14 @@ const ElectricalJobCardsScreen = ({navigation}) => {
         formData.append('cost_center', costCenter);
       }
 
-      const res = await axios.post(`${BASEURL}electrical_job_cards.php`, formData, {
-        headers: {'Content-Type': 'multipart/form-data'},
-      });
+      const res = await axios.post(
+        `${BASEURL}electrical_job_cards.php`,
+        formData,
+        {
+          headers: {'Content-Type': 'multipart/form-data'},
+        },
+      );
+      console.log(res.data);
 
       if (res.data?.status === 'true') {
         const rows = res.data.data || [];
@@ -171,7 +183,7 @@ const ElectricalJobCardsScreen = ({navigation}) => {
             style={styles.actionIcon}
             onPress={() =>
               navigation.navigate('ManufacturingView', {
-                trans_no: item.sale_order, // Pass trans_no to manufacturing screen
+                trans_no: item.trans_no,
               })
             }>
             <Ionicons name="eye-outline" size={20} color="#4CAF50" />

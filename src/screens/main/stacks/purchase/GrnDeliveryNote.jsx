@@ -133,16 +133,17 @@ const GrnDeliveryNote = ({route}) => {
       formData.append('user_id', String(currentUser?.user_id ?? '1'));
       formData.append('purch_order_details', JSON.stringify(purchOrderDetails));
 
-      let res = await axios.post(`${BASEURL}post_service_purch_sale.php`, formData, {
-        headers: {'Content-Type': 'multipart/form-data'},
-      });
+      let res = await axios.post(
+        `${BASEURL}post_service_purch_sale.php`,
+        formData,
+        {
+          headers: {'Content-Type': 'multipart/form-data'},
+        },
+      );
 
       console.log(res.data);
 
-      ToastAndroid.show(
-        'Delivery Note submitted successfully!',
-        ToastAndroid.LONG,
-      );
+      ToastAndroid.show('Material Received Successfully!', ToastAndroid.LONG);
       navigation.navigate('GrnAgainst', {refresh: true});
     } catch (error) {
       console.log('Submit Error:', error);

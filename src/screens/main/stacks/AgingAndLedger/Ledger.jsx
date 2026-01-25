@@ -20,7 +20,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import DatePicker from 'react-native-date-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import PlatformGradient from '../../../../components/PlatformGradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -32,7 +32,7 @@ import FileViewer from 'react-native-file-viewer';
 
 const Ledger = ({navigation, route}) => {
   const {name, item} = route.params;
-  
+
   const insets = useSafeAreaInsets();
 
   const [aging, setAgingData] = useState([]);
@@ -47,6 +47,9 @@ const Ledger = ({navigation, route}) => {
   const [EndDate, setEndDate] = useState(new Date());
   const [openEnd, setOpenEnd] = useState(false);
 
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+
   const [Loader, setLoader] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
 
@@ -55,7 +58,7 @@ const Ledger = ({navigation, route}) => {
   // Lock to Landscape orientation when screen opens
   useEffect(() => {
     Orientation.lockToLandscape();
-    
+
     // Cleanup: Unlock orientation when leaving screen
     return () => {
       Orientation.lockToPortrait();
@@ -66,7 +69,7 @@ const Ledger = ({navigation, route}) => {
     const nav = navigation.addListener('focus', () => {
       // Re-lock to landscape when screen comes back into focus
       Orientation.lockToLandscape();
-      
+
       if (name === 'Customer') getLeger();
       else if (name === 'Suppliers') getSupplierLeger();
       else if (name === 'Items') getItemsLedger();
@@ -120,8 +123,8 @@ const Ledger = ({navigation, route}) => {
       .then(res => {
         setAgingData(res.data.data_cust_age || []);
         setOpening(res.data.opening || 0);
-        console.log("res.data.data_cust_age", res.data.opening);
-        
+        console.log('res.data.data_cust_age', res.data.opening);
+
         calculateClosingBalance(res.data.data_cust_age, res.data.opening);
       })
       .catch(error => {
@@ -199,8 +202,7 @@ const Ledger = ({navigation, route}) => {
         setAgingData(res.data.data_bank_ledger);
         setOpening(0);
         calculateClosingBalance(res.data.data_bank_ledger, 0);
-        console.log("res.data.data_bank_ledger", res.data.data_bank_ledger);
-        
+        console.log('res.data.data_bank_ledger', res.data.data_bank_ledger);
       })
       .catch(console.log)
       .finally(() => setLoader(false));
@@ -246,8 +248,8 @@ const Ledger = ({navigation, route}) => {
         if (res.data?.status === 'true') {
           // Transform GL data to match Ledger structure
           const openingBal = parseFloat(res.data.opening) || 0;
-          console.log("openingBal", openingBal);
-          
+          console.log('openingBal', openingBal);
+
           let currentBalance = openingBal;
           const transformedData = (res.data.data || []).map(tx => {
             const amount = parseFloat(tx.amount) || 0;
@@ -351,7 +353,14 @@ const Ledger = ({navigation, route}) => {
       const lineHeight = 16;
       const margin = 30;
 
-      const drawText = (text, x, yPos, size = 10, bold = false, color = rgb(0, 0, 0)) => {
+      const drawText = (
+        text,
+        x,
+        yPos,
+        size = 10,
+        bold = false,
+        color = rgb(0, 0, 0),
+      ) => {
         page.drawText(String(text || ''), {
           x,
           y: yPos,
@@ -374,16 +383,41 @@ const Ledger = ({navigation, route}) => {
       drawText(`Company: Ercon Industries Pvt. Ltd`, width - 250, y, 11, true);
       y -= 15;
 
-      const fromDateStr = moment(fromDate).subtract(1, 'months').format('DD/MM/YYYY');
+      const fromDateStr = moment(fromDate)
+        .subtract(1, 'months')
+        .format('DD/MM/YYYY');
       const toDateStr = moment(EndDate).format('DD/MM/YYYY');
       drawText(`${fromDateStr} To ${toDateStr}`, margin, y, 10);
-      drawText(`Generated: ${moment().format('DD/MM/YYYY HH:mm')}`, width - 200, y, 10);
+      drawText(
+        `Generated: ${moment().format('DD/MM/YYYY HH:mm')}`,
+        width - 200,
+        y,
+        10,
+      );
       y -= 20;
 
       // Balance Info
-      drawText(`Opening Balance: ${formatNumber(opening)}`, margin, y, 10, true);
-      drawText(`Net Difference: ${formatNumber(totalDebit - totalCredit)}`, 250, y, 10, true);
-      drawText(`Closing Balance: ${formatNumber(closingBalance)}`, 450, y, 10, true);
+      drawText(
+        `Opening Balance: ${formatNumber(opening)}`,
+        margin,
+        y,
+        10,
+        true,
+      );
+      drawText(
+        `Net Difference: ${formatNumber(totalDebit - totalCredit)}`,
+        250,
+        y,
+        10,
+        true,
+      );
+      drawText(
+        `Closing Balance: ${formatNumber(closingBalance)}`,
+        450,
+        y,
+        10,
+        true,
+      );
       y -= 25;
 
       // Table Header
@@ -392,7 +426,15 @@ const Ledger = ({navigation, route}) => {
       for (let i = 1; i < colWidths.length; i++) {
         colX.push(colX[i - 1] + colWidths[i - 1]);
       }
-      const headers = ['Reference', 'Date', 'Counter', 'Particular', 'Debit', 'Credit', 'Balance'];
+      const headers = [
+        'Reference',
+        'Date',
+        'Counter',
+        'Particular',
+        'Debit',
+        'Credit',
+        'Balance',
+      ];
 
       // Draw header background
       page.drawRectangle({
@@ -439,9 +481,16 @@ const Ledger = ({navigation, route}) => {
 
         // Draw row data
         const reference = item.reference || '';
-        const date = formatDateDisplay(item.tran_date || item.trans_date || item.date || '');
+        const date = formatDateDisplay(
+          item.tran_date || item.trans_date || item.date || '',
+        );
         const counter = item.account || item.account_name || '';
-        const particular = (item.particular || item.memo || item.person || '').substring(0, 25);
+        const particular = (
+          item.particular ||
+          item.memo ||
+          item.person ||
+          ''
+        ).substring(0, 25);
         const debit = parseFloat(item.debit) || 0;
         const credit = Math.abs(parseFloat(item.credit) || 0);
         const balance = Math.abs(parseFloat(item.balance) || 0);
@@ -474,13 +523,38 @@ const Ledger = ({navigation, route}) => {
       });
 
       drawText('TOTAL', colX[0] + 5, y, 9, true);
-      drawText(formatNumber(totalDebit), colX[4] + 5, y, 9, true, rgb(0.13, 0.13, 0.47));
-      drawText(formatNumber(Math.abs(totalCredit)), colX[5] + 5, y, 9, true, rgb(0.13, 0.13, 0.47));
-      drawText(formatNumber(Math.abs(closingBalance)), colX[6] + 5, y, 9, true, rgb(0.13, 0.13, 0.47));
+      drawText(
+        formatNumber(totalDebit),
+        colX[4] + 5,
+        y,
+        9,
+        true,
+        rgb(0.13, 0.13, 0.47),
+      );
+      drawText(
+        formatNumber(Math.abs(totalCredit)),
+        colX[5] + 5,
+        y,
+        9,
+        true,
+        rgb(0.13, 0.13, 0.47),
+      );
+      drawText(
+        formatNumber(Math.abs(closingBalance)),
+        colX[6] + 5,
+        y,
+        9,
+        true,
+        rgb(0.13, 0.13, 0.47),
+      );
 
       // Generate filename: ledgername_fromdate_todate
-      const safeLedgerName = getAccountName().replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
-      const safeFromDate = moment(fromDate).subtract(1, 'months').format('DDMMYYYY');
+      const safeLedgerName = getAccountName()
+        .replace(/[^a-zA-Z0-9]/g, '_')
+        .substring(0, 30);
+      const safeFromDate = moment(fromDate)
+        .subtract(1, 'months')
+        .format('DDMMYYYY');
       const safeToDate = moment(EndDate).format('DDMMYYYY');
       const fileName = `${safeLedgerName}_${safeFromDate}_${safeToDate}.pdf`;
 
@@ -511,25 +585,27 @@ const Ledger = ({navigation, route}) => {
           showNotification: true,
         });
 
-        ToastAndroid.show('PDF saved! Tap notification to open.', ToastAndroid.LONG);
+        ToastAndroid.show(
+          'PDF saved! Tap notification to open.',
+          ToastAndroid.LONG,
+        );
 
         // Auto open PDF
         setTimeout(() => {
-          FileViewer.open(filePath, {showOpenWithDialog: true})
-            .catch(err => console.log('Error opening file:', err));
+          FileViewer.open(filePath, {showOpenWithDialog: true}).catch(err =>
+            console.log('Error opening file:', err),
+          );
         }, 500);
       } else {
         // iOS
         const dirs = RNBlobUtil.fs.dirs;
         filePath = `${dirs.DocumentDir}/${fileName}`;
         await RNBlobUtil.fs.writeFile(filePath, base64Data, 'base64');
-        
-        FileViewer.open(filePath, {showOpenWithDialog: true})
-          .catch(err => {
-            Alert.alert('Success', 'PDF saved successfully!');
-          });
-      }
 
+        FileViewer.open(filePath, {showOpenWithDialog: true}).catch(err => {
+          Alert.alert('Success', 'PDF saved successfully!');
+        });
+      }
     } catch (error) {
       console.error('PDF generation error:', error);
       if (Platform.OS === 'android') {
@@ -581,15 +657,31 @@ const Ledger = ({navigation, route}) => {
     if (name === 'Items') {
       return ['Reference', 'Date', 'Counter', 'Particular', 'Location', 'QOH'];
     } else if (name === 'Audit') {
-      return ['Reference', 'Date', 'Counter', 'Particular', 'Debit', 'Credit', 'Balance'];
+      return [
+        'Reference',
+        'Date',
+        'Counter',
+        'Particular',
+        'Debit',
+        'Credit',
+        'Balance',
+      ];
     } else {
       // Customer, Suppliers, Banks, ShortTermLoan - all use same columns
-      return ['Reference', 'Date', 'Counter', 'Particular', 'Debit', 'Credit', 'Balance'];
+      return [
+        'Reference',
+        'Date',
+        'Counter',
+        'Particular',
+        'Debit',
+        'Credit',
+        'Balance',
+      ];
     }
   };
 
   // Format date to dd/mm/yyyy
-  const formatDateDisplay = (dateStr) => {
+  const formatDateDisplay = dateStr => {
     if (!dateStr) return '';
     try {
       // Handle various date formats
@@ -605,25 +697,35 @@ const Ledger = ({navigation, route}) => {
   };
 
   // Table Cell Component with dotted border
-  const TableCell = ({value, isAmount = false, isLast = false, isCredit = false, isBalance = false, isDate = false}) => {
+  const TableCell = ({
+    value,
+    isAmount = false,
+    isLast = false,
+    isCredit = false,
+    isBalance = false,
+    isDate = false,
+  }) => {
     let displayValue = '';
-    
+
     if (isAmount) {
       const numValue = parseFloat(value) || 0;
       // Make credit and balance always positive
-      const absValue = (isCredit || isBalance) ? Math.abs(numValue) : numValue;
+      const absValue = isCredit || isBalance ? Math.abs(numValue) : numValue;
       displayValue = absValue !== 0 ? formatNumber(absValue) : '';
     } else if (isDate) {
       // Format date as dd/mm/yyyy
       displayValue = formatDateDisplay(value);
     } else {
       // For non-amount values, show empty if no value
-      displayValue = value && value !== '0' && value !== 0 ? value.toString() : '';
+      displayValue =
+        value && value !== '0' && value !== 0 ? value.toString() : '';
     }
-    
+
     return (
       <View style={[styles.tableCell, isLast && styles.lastCell]}>
-        <Text style={[styles.cellText, isAmount && styles.amountText]} numberOfLines={2}>
+        <Text
+          style={[styles.cellText, isAmount && styles.amountText]}
+          numberOfLines={2}>
           {displayValue}
         </Text>
       </View>
@@ -636,11 +738,11 @@ const Ledger = ({navigation, route}) => {
     return (
       <View style={styles.tableHeader}>
         {headers.map((header, index) => (
-          <View 
-            key={index} 
+          <View
+            key={index}
             style={[
-              styles.headerCell, 
-              index === headers.length - 1 && styles.lastHeaderCell
+              styles.headerCell,
+              index === headers.length - 1 && styles.lastHeaderCell,
             ]}>
             <Text style={styles.headerText}>{header}</Text>
           </View>
@@ -652,10 +754,15 @@ const Ledger = ({navigation, route}) => {
   // Render Item based on type - Table Row Format
   const renderItem = ({item, index}) => {
     const isEven = index % 2 === 0;
-    
+
     if (name === 'Items') {
       return (
-        <Animated.View style={[styles.tableRow, isEven && styles.evenRow, {opacity: fadeAnim}]}>
+        <Animated.View
+          style={[
+            styles.tableRow,
+            isEven && styles.evenRow,
+            {opacity: fadeAnim},
+          ]}>
           <TableCell value={item.reference} />
           <TableCell value={item.date || item.tran_date} isDate />
           <TableCell value={item.account || item.account_name} />
@@ -666,7 +773,12 @@ const Ledger = ({navigation, route}) => {
       );
     } else if (name === 'Banks') {
       return (
-        <Animated.View style={[styles.tableRow, isEven && styles.evenRow, {opacity: fadeAnim}]}>
+        <Animated.View
+          style={[
+            styles.tableRow,
+            isEven && styles.evenRow,
+            {opacity: fadeAnim},
+          ]}>
           <TableCell value={item.reference} />
           <TableCell value={item.trans_date || item.tran_date} isDate />
           <TableCell value={item.account || item.account_name} />
@@ -678,7 +790,12 @@ const Ledger = ({navigation, route}) => {
       );
     } else if (name === 'Audit') {
       return (
-        <Animated.View style={[styles.tableRow, isEven && styles.evenRow, {opacity: fadeAnim}]}>
+        <Animated.View
+          style={[
+            styles.tableRow,
+            isEven && styles.evenRow,
+            {opacity: fadeAnim},
+          ]}>
           <TableCell value={item.reference} />
           <TableCell value={item.date || item.trans_date} isDate />
           <TableCell value={item.user_id || item.account} />
@@ -691,7 +808,12 @@ const Ledger = ({navigation, route}) => {
     } else {
       // Customer, Suppliers, ShortTermLoan
       return (
-        <Animated.View style={[styles.tableRow, isEven && styles.evenRow, {opacity: fadeAnim}]}>
+        <Animated.View
+          style={[
+            styles.tableRow,
+            isEven && styles.evenRow,
+            {opacity: fadeAnim},
+          ]}>
           <TableCell value={item.reference} />
           <TableCell value={item.tran_date || item.trans_date} isDate />
           <TableCell value={item.account || item.account_name} />
@@ -754,40 +876,39 @@ const Ledger = ({navigation, route}) => {
       </PlatformGradient>
 
       {/* Date Pickers */}
-      <DatePicker
-        modal
-        open={openFrom}
-        date={fromDate}
-        mode="date"
-        onConfirm={date => {
-          setOpenFrom(false);
-          setFromDate(date);
-        }}
-        onCancel={() => setOpenFrom(false)}
-      />
+      {showFromPicker && (
+        <DateTimePicker
+          value={fromDate}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+          onChange={(event, date) => {
+            setShowFromPicker(false);
+            if (date) setFromDate(date);
+          }}
+        />
+      )}
 
-      <DatePicker
-        modal
-        open={openEnd}
-        date={EndDate}
-        mode="date"
-        onConfirm={date => {
-          setOpenEnd(false);
-          setEndDate(date);
-        }}
-        onCancel={() => setOpenEnd(false)}
-      />
+      {showEndPicker && (
+        <DateTimePicker
+          value={EndDate}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+          onChange={(event, date) => {
+            setShowEndPicker(false);
+            if (date) setEndDate(date);
+          }}
+        />
+      )}
 
       {/* Main Content - Scrollable in Landscape */}
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={true}
         contentContainerStyle={{flexGrow: 1}}>
-        <ScrollView 
+        <ScrollView
           showsVerticalScrollIndicator={true}
           nestedScrollEnabled={true}
           contentContainerStyle={{flexGrow: 1, paddingBottom: 20}}>
-          
           {/* Filter Section */}
           <View style={styles.filterContainer}>
             <View style={styles.filterRow}>
@@ -795,9 +916,11 @@ const Ledger = ({navigation, route}) => {
               <View style={styles.dateContainer}>
                 <TouchableOpacity
                   style={styles.dateInput}
-                  onPress={() => setOpenFrom(true)}>
+                  onPress={() => setShowFromPicker(true)}>
                   <Text style={styles.dateText}>
-                    {moment(fromDate).subtract(1, 'months').format('DD/MM/YYYY')}
+                    {moment(fromDate)
+                      .subtract(1, 'months')
+                      .format('DD/MM/YYYY')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -806,7 +929,7 @@ const Ledger = ({navigation, route}) => {
               <View style={styles.dateContainer}>
                 <TouchableOpacity
                   style={styles.dateInput}
-                  onPress={() => setOpenEnd(true)}>
+                  onPress={() => setShowEndPicker(true)}>
                   <Text style={styles.dateText}>
                     {moment(EndDate).format('DD/MM/YYYY')}
                   </Text>
@@ -842,8 +965,8 @@ const Ledger = ({navigation, route}) => {
               </View>
             </View>
 
-            {/* Balance Information */}
-            {(opening !== 0 || closingBalance !== 0 || aging.length > 0) && (
+            {/* Balance Information Hidden Per User Request */}
+            {/* {(opening !== 0 || closingBalance !== 0 || aging.length > 0) && (
               <View style={styles.balanceContainer}>
                 <View style={styles.balanceInfo}>
                   <Text style={styles.balanceLabel}>Opening Balance</Text>
@@ -866,7 +989,7 @@ const Ledger = ({navigation, route}) => {
                   </View>
                 )}
               </View>
-            )}
+            )} */}
           </View>
 
           {/* Transactions List - Table Format */}
@@ -875,14 +998,14 @@ const Ledger = ({navigation, route}) => {
               <View style={styles.tableContainer}>
                 {/* Table Header */}
                 {renderTableHeader()}
-                
+
                 {/* Table Body - Render rows directly */}
                 {aging.map((item, index) => (
                   <View key={index.toString()}>
                     {renderItem({item, index})}
                   </View>
                 ))}
-                
+
                 {/* Totals Row */}
                 {name !== 'Items' && (
                   <View style={styles.totalsRow}>
@@ -899,13 +1022,17 @@ const Ledger = ({navigation, route}) => {
                       <Text style={styles.totalsText}></Text>
                     </View>
                     <View style={styles.tableCell}>
-                      <Text style={styles.totalsAmountText}>{formatNumber(totalDebit)}</Text>
+                      <Text style={styles.totalsAmountText}>
+                        {formatNumber(totalDebit)}
+                      </Text>
                     </View>
                     <View style={styles.tableCell}>
-                      <Text style={styles.totalsAmountText}>{formatNumber(Math.abs(totalCredit))}</Text>
+                      <Text style={styles.totalsAmountText}>
+                        {formatNumber(Math.abs(totalCredit))}
+                      </Text>
                     </View>
                     <View style={[styles.tableCell, styles.lastCell]}>
-                      <Text style={styles.totalsAmountText}>{formatNumber(Math.abs(closingBalance))}</Text>
+                      <Text style={styles.totalsAmountText}></Text>
                     </View>
                   </View>
                 )}

@@ -46,14 +46,21 @@ const MechanicalJobCardsScreen = ({navigation}) => {
   // 📌 Format date yyyy-mm-dd for API
   const formatDateForAPI = d => {
     const date = new Date(d);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      '0',
+    )}-${String(date.getDate()).padStart(2, '0')}`;
   };
 
   // 📌 Fetch data with POST
-  const fetchData = async (fDate = fromDate, tDate = toDate, costCenter = selectedLocation) => {
+  const fetchData = async (
+    fDate = fromDate,
+    tDate = toDate,
+    costCenter = selectedLocation,
+  ) => {
     try {
       setLoading(true);
-      
+
       const formData = new FormData();
       formData.append('from_date', formatDateForAPI(fDate));
       formData.append('to_date', formatDateForAPI(tDate));
@@ -61,9 +68,13 @@ const MechanicalJobCardsScreen = ({navigation}) => {
         formData.append('cost_center', costCenter);
       }
 
-      const res = await axios.post(`${BASEURL}mechanical_job_cards.php`, formData, {
-        headers: {'Content-Type': 'multipart/form-data'},
-      });
+      const res = await axios.post(
+        `${BASEURL}mechanical_job_cards.php`,
+        formData,
+        {
+          headers: {'Content-Type': 'multipart/form-data'},
+        },
+      );
 
       if (res.data?.status === 'true') {
         const rows = res.data.data || [];
@@ -171,7 +182,7 @@ const MechanicalJobCardsScreen = ({navigation}) => {
             style={styles.actionIcon}
             onPress={() =>
               navigation.navigate('ManufacturingView', {
-                trans_no: item.sale_order,
+                trans_no: item.trans_no,
               })
             }>
             <Ionicons name="eye-outline" size={20} color="#4CAF50" />

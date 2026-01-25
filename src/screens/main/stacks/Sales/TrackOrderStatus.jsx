@@ -159,15 +159,20 @@ const TrackOrderStatus = ({navigation}) => {
       });
     }
 
-    // Checkbox filters (Show if 'No' - Pending)
+    // State-based mutually exclusive filters
     if (checks.mfg) {
       data = data.filter(o => o.manufacturing_status === 'No');
-    }
-    if (checks.delivery) {
-      data = data.filter(o => o.del_status === 'No');
-    }
-    if (checks.invoice) {
-      data = data.filter(o => o.inv_status === 'No');
+    } else if (checks.delivery) {
+      data = data.filter(
+        o => o.manufacturing_status === 'Yes' && o.del_status === 'No',
+      );
+    } else if (checks.invoice) {
+      data = data.filter(
+        o =>
+          o.manufacturing_status === 'Yes' &&
+          o.del_status === 'Yes' &&
+          o.inv_status === 'No',
+      );
     }
 
     setFilteredOrders(data);
@@ -185,7 +190,12 @@ const TrackOrderStatus = ({navigation}) => {
   }, [checks]);
 
   const toggleCheck = key => {
-    setChecks(prev => ({...prev, [key]: !prev[key]}));
+    setChecks(prev => {
+      const newState = {mfg: false, delivery: false, invoice: false};
+      // Toggle the target key, others remain false
+      newState[key] = !prev[key];
+      return newState;
+    });
   };
 
   const formatDateDisplay = dateStr => {
@@ -228,8 +238,14 @@ const TrackOrderStatus = ({navigation}) => {
             onChangeText={setSearch}
           />
           {search.length > 0 && (
-            <TouchableOpacity onPress={() => setSearch('')} style={{paddingRight: 12}}>
-              <Ionicons name="close-circle" size={20} color={COLORS.TextMuted} />
+            <TouchableOpacity
+              onPress={() => setSearch('')}
+              style={{paddingRight: 12}}>
+              <Ionicons
+                name="close-circle"
+                size={20}
+                color={COLORS.TextMuted}
+              />
             </TouchableOpacity>
           )}
         </View>
@@ -256,7 +272,11 @@ const TrackOrderStatus = ({navigation}) => {
           <TouchableOpacity
             style={styles.dateBtn}
             onPress={() => setShowPicker({show: true, type: 'from'})}>
-            <Ionicons name="calendar-outline" size={18} color={COLORS.TextMuted} />
+            <Ionicons
+              name="calendar-outline"
+              size={18}
+              color={COLORS.TextMuted}
+            />
             <Text style={styles.dateBtnText}>
               {formatDate(fromDate) || 'From Date'}
             </Text>
@@ -265,13 +285,19 @@ const TrackOrderStatus = ({navigation}) => {
           <TouchableOpacity
             style={styles.dateBtn}
             onPress={() => setShowPicker({show: true, type: 'to'})}>
-            <Ionicons name="calendar-outline" size={18} color={COLORS.TextMuted} />
+            <Ionicons
+              name="calendar-outline"
+              size={18}
+              color={COLORS.TextMuted}
+            />
             <Text style={styles.dateBtnText}>
               {formatDate(toDate) || 'To Date'}
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.applyBtn} onPress={() => applyFilter()}>
+          <TouchableOpacity
+            style={styles.applyBtn}
+            onPress={() => applyFilter()}>
             <Ionicons name="search" size={18} color={COLORS.WHITE} />
           </TouchableOpacity>
 
@@ -290,20 +316,31 @@ const TrackOrderStatus = ({navigation}) => {
               size={20}
               color={checks.mfg ? COLORS.WHITE : COLORS.TextDark}
             />
-            <Text style={[styles.checkLabel, checks.mfg && styles.checkLabelActive]}>
+            <Text
+              style={[
+                styles.checkLabel,
+                checks.mfg && styles.checkLabelActive,
+              ]}>
               Mfg
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.checkItem, checks.delivery && styles.checkItemActive]}
+            style={[
+              styles.checkItem,
+              checks.delivery && styles.checkItemActive,
+            ]}
             onPress={() => toggleCheck('delivery')}>
             <Ionicons
               name={checks.delivery ? 'checkbox' : 'checkbox-outline'}
               size={20}
               color={checks.delivery ? COLORS.WHITE : COLORS.TextDark}
             />
-            <Text style={[styles.checkLabel, checks.delivery && styles.checkLabelActive]}>
+            <Text
+              style={[
+                styles.checkLabel,
+                checks.delivery && styles.checkLabelActive,
+              ]}>
               Delivery
             </Text>
           </TouchableOpacity>
@@ -316,7 +353,11 @@ const TrackOrderStatus = ({navigation}) => {
               size={20}
               color={checks.invoice ? COLORS.WHITE : COLORS.TextDark}
             />
-            <Text style={[styles.checkLabel, checks.invoice && styles.checkLabelActive]}>
+            <Text
+              style={[
+                styles.checkLabel,
+                checks.invoice && styles.checkLabelActive,
+              ]}>
               Invoice
             </Text>
           </TouchableOpacity>
@@ -383,40 +424,58 @@ const TrackOrderStatus = ({navigation}) => {
                 <View style={styles.statusRow}>
                   <View style={styles.statusItem}>
                     <Text style={styles.statusLabel}>Order</Text>
-                    <Text style={[
-                      styles.statusValue,
-                      {color: item.order_status === 'Yes' ? '#10B981' : '#EF4444'}
-                    ]}>
+                    <Text
+                      style={[
+                        styles.statusValue,
+                        {
+                          color:
+                            item.order_status === 'Yes' ? '#10B981' : '#EF4444',
+                        },
+                      ]}>
                       {item.order_status}
                     </Text>
                   </View>
                   <View style={styles.statusItem}>
-                    <Text style={styles.statusLabel}>Delivery</Text>
-                    <Text style={[
-                      styles.statusValue,
-                      {color: item.del_status === 'Yes' ? '#10B981' : '#EF4444'}
-                    ]}>
-                      {item.del_status}
+                    <Text style={styles.statusLabel}>Manufacturing</Text>
+                    <Text
+                      style={[
+                        styles.statusValue,
+                        {
+                          color:
+                            item.manufacturing_status === 'Yes'
+                              ? '#10B981'
+                              : '#EF4444',
+                        },
+                      ]}>
+                      {item.manufacturing_status}
                     </Text>
                   </View>
                 </View>
                 <View style={styles.statusRow}>
                   <View style={styles.statusItem}>
-                    <Text style={styles.statusLabel}>Invoice</Text>
-                    <Text style={[
-                      styles.statusValue,
-                      {color: item.inv_status === 'Yes' ? '#10B981' : '#EF4444'}
-                    ]}>
-                      {item.inv_status}
+                    <Text style={styles.statusLabel}>Delivery</Text>
+                    <Text
+                      style={[
+                        styles.statusValue,
+                        {
+                          color:
+                            item.del_status === 'Yes' ? '#10B981' : '#EF4444',
+                        },
+                      ]}>
+                      {item.del_status}
                     </Text>
                   </View>
                   <View style={styles.statusItem}>
-                    <Text style={styles.statusLabel}>Mfg</Text>
-                    <Text style={[
-                      styles.statusValue,
-                      {color: item.manufacturing_status === 'Yes' ? '#10B981' : '#EF4444'}
-                    ]}>
-                      {item.manufacturing_status}
+                    <Text style={styles.statusLabel}>Invoice</Text>
+                    <Text
+                      style={[
+                        styles.statusValue,
+                        {
+                          color:
+                            item.inv_status === 'Yes' ? '#10B981' : '#EF4444',
+                        },
+                      ]}>
+                      {item.inv_status}
                     </Text>
                   </View>
                 </View>
@@ -429,7 +488,11 @@ const TrackOrderStatus = ({navigation}) => {
           removeClippedSubviews={true}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="document-text-outline" size={48} color={COLORS.TextMuted} />
+              <Ionicons
+                name="document-text-outline"
+                size={48}
+                color={COLORS.TextMuted}
+              />
               <Text style={styles.emptyText}>No orders found</Text>
             </View>
           }

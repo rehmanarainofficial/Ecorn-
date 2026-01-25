@@ -18,6 +18,7 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 
 export default function MechanicalProduce({navigation, route}) {
   const {sales_order} = route.params || {};
+  console.log(sales_order);
 
   const [allItem, setAllItem] = useState(null);
   const [allItemList, setAllItemList] = useState([]);

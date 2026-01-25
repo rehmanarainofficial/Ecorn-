@@ -15,6 +15,7 @@ import SimpleHeader from '../../../../../components/SimpleHeader';
 import {BASEURL} from '../../../../../utils/BaseUrl';
 import {formatQuantity} from '../../../../../utils/NumberUtils';
 import {formatDateString} from '../../../../../utils/DateUtils';
+import {useSelector} from 'react-redux';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -39,6 +40,7 @@ const DeliveryNote = ({route}) => {
     reference,
     date,
   } = route.params || {};
+  const currentUser = useSelector(state => state.Data.currentData);
 
   const [driverName, setDriverName] = useState('');
   const [vehicleName, setVehicleName] = useState('');
@@ -62,7 +64,7 @@ const DeliveryNote = ({route}) => {
             responseType: 'text',
           },
         );
-        console.log(res.data);
+        console.log('res.data', res.data);
 
         let raw = res.data.trim();
         let jsonStr = raw.substring(raw.indexOf('{'));
@@ -168,8 +170,7 @@ const DeliveryNote = ({route}) => {
       formData.append('ship_via', String(ship_via));
       formData.append('memo', String(lossMaterial));
       formData.append('purch_order_details', JSON.stringify(purchOrderDetails));
-
-      console.log('Submitting form data:', formData);
+      formData.append('user_id', String(currentUser.id));
       await axios.post(`${BASEURL}post_service_purch_sale.php`, formData, {
         headers: {'Content-Type': 'multipart/form-data'},
       });

@@ -16,12 +16,15 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {formatDateString} from '../../../../utils/DateUtils';
+import SimpleHeader from '../../../../components/SimpleHeader';
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
   Primary: '#1a1c22',
   Secondary: '#5a5c6a',
-  Glass: 'rgba(255,255,255,0.08)',
+  Background: '#f3f5f6',
+  Border: '#E0E0E0',
+  TextMuted: '#999',
 };
 
 // --- Static Dropdown Options ---
@@ -158,8 +161,8 @@ const AddLeadScreen = ({navigation, route}) => {
   const generateReferenceNo = (jobTypeId, revisionNo) => {
     let prefix = 'PK';
     if (jobTypeId == '1') prefix = 'PK';
-    if (jobTypeId == '9') prefix = 'PKm';
-    if (jobTypeId == '3') prefix = 'SO';
+    if (jobTypeId == '9') prefix = 'P.Km';
+    if (jobTypeId == '3') prefix = 'SPK';
 
     const date = new Date();
 
@@ -265,19 +268,8 @@ const AddLeadScreen = ({navigation, route}) => {
   );
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={{flex: 1}}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={26} color={COLORS.WHITE} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {form.id > 0 ? 'Update Lead' : 'Add Lead'}
-        </Text>
-        <View style={{width: 26}} />
-      </View>
+    <View style={styles.mainContainer}>
+      <SimpleHeader title={form.id > 0 ? 'Update Lead' : 'Add Lead'} />
 
       <ScrollView contentContainerStyle={{padding: 16}}>
         {/* Project Receiving Date */}
@@ -292,46 +284,42 @@ const AddLeadScreen = ({navigation, route}) => {
           labelField="label"
           valueField="value"
           placeholder="Job Type"
-          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}} // Placeholder white-ish
-          selectedTextStyle={{color: COLORS.WHITE}} // Selected value white
-          itemTextStyle={{color: COLORS.BLACK}} // Dropdown list black
+          placeholderStyle={{color: COLORS.TextMuted}}
+          selectedTextStyle={{color: COLORS.Primary}}
+          itemTextStyle={{color: COLORS.BLACK}}
           value={form.job_type_id}
           onChange={item => updateField('job_type_id', item.value)}
         />
 
-        {/* Revision No */}
         <TextInput
           style={styles.input}
           placeholder="Revision No"
-          placeholderTextColor="rgba(255,255,255,0.6)"
+          placeholderTextColor={COLORS.TextMuted}
           keyboardType="numeric"
           value={form.revision_no?.toString()}
           onChangeText={t => updateField('revision_no', t)}
         />
 
-        {/* Reference No */}
         <TextInput
-          style={styles.input}
+          style={[styles.input, {opacity: 0.7}]}
           placeholder="Reference No"
-          placeholderTextColor="rgba(255,255,255,0.6)"
+          placeholderTextColor={COLORS.TextMuted}
           value={form.reference_no}
           editable={false}
         />
 
-        {/* Project Name */}
         <TextInput
           style={styles.input}
           placeholder="Project Name"
-          placeholderTextColor="rgba(255,255,255,0.6)"
+          placeholderTextColor={COLORS.TextMuted}
           value={form.project_name}
           onChangeText={t => updateField('project_name', t)}
         />
 
-        {/* Company Name */}
         <TextInput
           style={styles.input}
           placeholder="Company Name"
-          placeholderTextColor="rgba(255,255,255,0.6)"
+          placeholderTextColor={COLORS.TextMuted}
           value={form.company_name}
           onChangeText={t => updateField('company_name', t)}
         />
@@ -346,9 +334,9 @@ const AddLeadScreen = ({navigation, route}) => {
           labelField="label"
           valueField="value"
           placeholder="Components"
-          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}} // Placeholder white-ish
-          selectedTextStyle={{color: COLORS.WHITE}} // Selected value white
-          itemTextStyle={{color: COLORS.BLACK}} // Dropdown list black
+          placeholderStyle={{color: COLORS.TextMuted}}
+          selectedTextStyle={{color: COLORS.Primary}}
+          itemTextStyle={{color: COLORS.BLACK}}
           value={form.component_id}
           onChange={item => updateField('component_id', item.value)}
         />
@@ -363,9 +351,9 @@ const AddLeadScreen = ({navigation, route}) => {
           labelField="label"
           valueField="value"
           placeholder="Enclosure"
-          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}} // Placeholder white-ish
-          selectedTextStyle={{color: COLORS.WHITE}} // Selected value white
-          itemTextStyle={{color: COLORS.BLACK}} // Dropdown list black
+          placeholderStyle={{color: COLORS.TextMuted}}
+          selectedTextStyle={{color: COLORS.Primary}}
+          itemTextStyle={{color: COLORS.BLACK}}
           value={form.enclosure_id}
           onChange={item => updateField('enclosure_id', item.value)}
         />
@@ -380,9 +368,9 @@ const AddLeadScreen = ({navigation, route}) => {
           labelField="label"
           valueField="value"
           placeholder="Sales Person"
-          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}} // Placeholder white-ish
-          selectedTextStyle={{color: COLORS.WHITE}} // Selected value white
-          itemTextStyle={{color: COLORS.BLACK}} // Dropdown list black
+          placeholderStyle={{color: COLORS.TextMuted}}
+          selectedTextStyle={{color: COLORS.Primary}}
+          itemTextStyle={{color: COLORS.BLACK}}
           value={form.sales_person_id}
           onChange={item => updateField('sales_person_id', item.value)}
         />
@@ -394,9 +382,9 @@ const AddLeadScreen = ({navigation, route}) => {
           labelField="label"
           valueField="value"
           placeholder="Project Type"
-          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}} // Placeholder white-ish
-          selectedTextStyle={{color: COLORS.WHITE}} // Selected value white
-          itemTextStyle={{color: COLORS.BLACK}} // Dropdown list black
+          placeholderStyle={{color: COLORS.TextMuted}}
+          selectedTextStyle={{color: COLORS.Primary}}
+          itemTextStyle={{color: COLORS.BLACK}}
           value={form.project_type}
           onChange={item => updateField('project_type', item.value)}
         />
@@ -415,14 +403,14 @@ const AddLeadScreen = ({navigation, route}) => {
             const mapped = items.map(i => ({estimator_id: i}));
             updateField('purch_order_details', mapped);
           }}
-          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-          selectedTextStyle={{color: COLORS.WHITE}}
-          itemTextStyle={{color: COLORS.BLACK}} // Dropdown list black
+          placeholderStyle={{color: COLORS.TextMuted}}
+          selectedTextStyle={{color: COLORS.Primary}}
+          itemTextStyle={{color: COLORS.BLACK}}
           renderSelectedItem={(item, unSelect) => (
             <View style={styles.selectedStyle}>
               <Text style={styles.textSelectedStyle}>{item.label}</Text>
               <TouchableOpacity onPress={() => unSelect(item)}>
-                <Ionicons name="close" size={18} color="white" />
+                <Ionicons name="close" size={16} color={COLORS.Primary} />
               </TouchableOpacity>
             </View>
           )}
@@ -435,11 +423,10 @@ const AddLeadScreen = ({navigation, route}) => {
         {/* Revision Date */}
         {renderDateField('Revision Date', 'revision_date')}
 
-        {/* Latest Revision Price */}
         <TextInput
           style={styles.input}
           placeholder="Latest Revision Price"
-          placeholderTextColor="rgba(255,255,255,0.6)"
+          placeholderTextColor={COLORS.TextMuted}
           keyboardType="numeric"
           value={form.latest_revision_price?.toString()}
           onChangeText={t => updateField('latest_revision_price', t)}
@@ -452,18 +439,17 @@ const AddLeadScreen = ({navigation, route}) => {
           labelField="label"
           valueField="value"
           placeholder="PO Status"
-          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}} // Placeholder white-ish
-          selectedTextStyle={{color: COLORS.WHITE}} // Selected value white
-          itemTextStyle={{color: COLORS.BLACK}} // Dropdown list black
+          placeholderStyle={{color: COLORS.TextMuted}}
+          selectedTextStyle={{color: COLORS.Primary}}
+          itemTextStyle={{color: COLORS.BLACK}}
           value={form.po_status}
           onChange={item => updateField('po_status', item.value)}
         />
 
-        {/* Number of Days */}
         <TextInput
           style={styles.input}
           placeholder="Number of Days"
-          placeholderTextColor="rgba(255,255,255,0.6)"
+          placeholderTextColor={COLORS.TextMuted}
           keyboardType="numeric"
           value={form.number_of_days?.toString()}
           onChangeText={t => updateField('number_of_days', t)}
@@ -475,9 +461,7 @@ const AddLeadScreen = ({navigation, route}) => {
           style={styles.submitBtn}
           onPress={handleSubmit}
           disabled={loading}>
-          <PlatformGradient
-            colors={[COLORS.Secondary, '#7a7c8a', COLORS.Primary]}
-            style={styles.submitGradient}>
+          <View style={styles.submitInner}>
             {loading ? (
               <ActivityIndicator color={COLORS.WHITE} />
             ) : (
@@ -485,7 +469,7 @@ const AddLeadScreen = ({navigation, route}) => {
                 {form.id > 0 ? 'Update Lead' : 'Submit Lead'}
               </Text>
             )}
-          </PlatformGradient>
+          </View>
         </TouchableOpacity>
       </ScrollView>
 
@@ -503,57 +487,54 @@ const AddLeadScreen = ({navigation, route}) => {
           }}
         />
       )}
-    </PlatformGradient>
+    </View>
   );
 };
 
 export default AddLeadScreen;
 
 const styles = StyleSheet.create({
-  header: {
-    height: 70,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.WHITE,
+  mainContainer: {
+    flex: 1,
+    backgroundColor: COLORS.Background,
   },
   input: {
-    height: 50,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 12,
     paddingHorizontal: 14,
-    color: COLORS.WHITE,
-    backgroundColor: COLORS.Glass,
+    color: COLORS.Primary,
+    backgroundColor: COLORS.WHITE,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
     marginBottom: 12,
     justifyContent: 'center',
   },
   dropdown: {
-    height: 50,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 12,
     paddingHorizontal: 12,
-    backgroundColor: COLORS.Glass,
+    backgroundColor: COLORS.WHITE,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
     marginBottom: 12,
   },
   dateText: {
-    color: 'rgba(255,255,255,0.85)',
+    color: COLORS.Primary,
     fontSize: 15,
   },
   submitBtn: {
     marginTop: 20,
-    borderRadius: 14,
+    borderRadius: 12,
     overflow: 'hidden',
+    backgroundColor: COLORS.Primary,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  submitGradient: {
-    height: 52,
-    borderRadius: 14,
+  submitInner: {
+    height: 54,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -565,20 +546,21 @@ const styles = StyleSheet.create({
   selectedStyle: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.Secondary,
-    borderRadius: 12,
+    backgroundColor: '#e2e8f0',
+    borderRadius: 8,
     marginRight: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   textSelectedStyle: {
-    color: COLORS.WHITE,
+    color: COLORS.Primary,
     marginRight: 4,
+    fontSize: 13,
   },
   selectedContainer: {
     marginTop: 8,
   },
   dropdownText: {
-    color: COLORS.WHITE,
+    color: COLORS.Primary,
   },
 });

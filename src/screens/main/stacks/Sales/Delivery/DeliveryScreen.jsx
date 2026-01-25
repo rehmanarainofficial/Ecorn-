@@ -30,6 +30,7 @@ const DeliveryScreen = ({navigation}) => {
 
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
+  console.log('transactions', transactions);
 
   useEffect(() => {
     const today = new Date();

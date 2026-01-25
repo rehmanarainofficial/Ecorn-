@@ -95,6 +95,7 @@ import Attendance from '../screens/main/stacks/Finance/Attendance';
 import CostCenterScreen from '../screens/main/stacks/Sales/CostCenterScreen';
 import ApprovedRecordsScreen from '../screens/main/stacks/Sales/ApprovedRecordsScreen';
 import HCMScreen from '../screens/main/stacks/HCM/HCMScreen';
+import DVRInquiry from '../screens/main/stacks/HCM/DVRInquiry';
 
 const Stack = createNativeStackNavigator();
 const Main = () => {
@@ -218,15 +219,22 @@ const Main = () => {
       <Stack.Screen name="StockMovements" component={StockMovements} />
       <Stack.Screen name="ViewDetailsScreen" component={ViewDetailsScreen} />
       <Stack.Screen name="ExpenseClaim" component={ExpenseClaim} />
-      <Stack.Screen name="ExpenseClaimInquiry" component={ExpenseClaimInquiry} />
+      <Stack.Screen
+        name="ExpenseClaimInquiry"
+        component={ExpenseClaimInquiry}
+      />
       <Stack.Screen name="LocalPurchase" component={LocalPurchase} />
       <Stack.Screen name="GLViewScreen" component={GLViewScreen} />
       <Stack.Screen name="ViewTransactions" component={ViewTransactions} />
       <Stack.Screen name="ManufacturingView" component={ManufacturingView} />
       <Stack.Screen name="Attendance" component={Attendance} />
       <Stack.Screen name="CostCenterScreen" component={CostCenterScreen} />
-      <Stack.Screen name="ApprovedRecordsScreen" component={ApprovedRecordsScreen} />
+      <Stack.Screen
+        name="ApprovedRecordsScreen"
+        component={ApprovedRecordsScreen}
+      />
       <Stack.Screen name="HCMScreen" component={HCMScreen} />
+      <Stack.Screen name="DVRInquiry" component={DVRInquiry} />
     </Stack.Navigator>
   );
 };

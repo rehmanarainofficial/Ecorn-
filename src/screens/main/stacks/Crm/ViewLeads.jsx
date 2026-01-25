@@ -9,13 +9,18 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlatformGradient from '../../../../components/PlatformGradient';
-import { BASEURL } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
+import SimpleHeader from '../../../../components/SimpleHeader';
 
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
   Primary: '#1a1c22',
   Secondary: '#5a5c6a',
+  Background: '#f3f5f6',
+  Border: '#E2E8F0',
+  TextDark: '#1E293B',
+  TextMuted: '#64748B',
 };
 
 const FILTERS = [
@@ -44,9 +49,7 @@ const ViewLeads = ({navigation}) => {
   useEffect(() => {
     const fetchLeads = async () => {
       try {
-        const res = await fetch(
-          `${BASEURL}leads.php`,
-        );
+        const res = await fetch(`${BASEURL}leads.php`);
         const json = await res.json();
         if (json.status === 'true') {
           setLeads(json.data);
@@ -129,28 +132,8 @@ const ViewLeads = ({navigation}) => {
   );
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={{flex: 1}}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" color={COLORS.WHITE} size={28} />
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>View Leads</Text>
-
-        <TouchableOpacity
-          onPress={
-            () => (selectedFilter === 'All' ? null : setSelectedFilter('All')) // 👈 reset filter
-          }>
-          <Ionicons
-            name={selectedFilter === 'All' ? 'filter' : 'close-circle'}
-            color={COLORS.WHITE}
-            size={24}
-          />
-        </TouchableOpacity>
-      </View>
+    <View style={styles.mainContainer}>
+      <SimpleHeader title="View Leads" />
 
       {/* Filters */}
       <View style={styles.filterGrid}>
@@ -165,7 +148,7 @@ const ViewLeads = ({navigation}) => {
             <Ionicons
               name={f.icon}
               size={18}
-              color={selectedFilter === f.key ? COLORS.WHITE : '#ccc'}
+              color={selectedFilter === f.key ? COLORS.WHITE : COLORS.Secondary}
               style={{marginRight: 6}}
             />
             <Text
@@ -183,7 +166,7 @@ const ViewLeads = ({navigation}) => {
       {loading ? (
         <ActivityIndicator
           size="large"
-          color={COLORS.WHITE}
+          color={COLORS.Primary}
           style={{marginTop: 30}}
         />
       ) : (
@@ -194,95 +177,100 @@ const ViewLeads = ({navigation}) => {
           contentContainerStyle={{padding: 16}}
         />
       )}
-    </PlatformGradient>
+    </View>
   );
 };
 
 export default ViewLeads;
 
 const styles = StyleSheet.create({
-  header: {
-    height: 70,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.WHITE,
+  mainContainer: {
+    flex: 1,
+    backgroundColor: COLORS.Background,
   },
   filterGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    marginTop: 12,
+    marginTop: 16,
   },
   filterBtn: {
     width: '48%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    paddingVertical: 14,
+    backgroundColor: COLORS.WHITE,
+    paddingVertical: 12,
     borderRadius: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   filterBtnActive: {
-    backgroundColor: COLORS.Secondary,
-    borderColor: COLORS.WHITE,
+    backgroundColor: COLORS.Primary,
+    borderColor: COLORS.Primary,
   },
   filterText: {
-    color: '#ccc',
-    fontSize: 14,
+    color: COLORS.TextMuted,
+    fontSize: 13,
     fontWeight: '600',
   },
   card: {
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.Border,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
   },
   kvRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
   kvKey: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: COLORS.WHITE,
+    color: COLORS.TextMuted,
   },
   kvValue: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.85)',
+    fontSize: 13,
+    color: COLORS.TextDark,
     textAlign: 'right',
     flex: 1,
-    marginLeft: 8,
+    marginLeft: 12,
+    fontWeight: '500',
   },
   editBtn: {
     marginTop: 12,
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-end',
-    backgroundColor: COLORS.Secondary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    backgroundColor: COLORS.Primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
+    elevation: 2,
   },
   editText: {
     marginLeft: 6,
     color: COLORS.WHITE,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
