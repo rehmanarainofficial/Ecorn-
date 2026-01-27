@@ -31,8 +31,6 @@ const {width} = Dimensions.get('window');
 
 const Attendance = () => {
   const userData = useSelector(state => state.Data.currentData);
-  console.log(userData);
-
   // Modals Visibility
   const [isDVRModalVisible, setDVRModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);

@@ -175,7 +175,11 @@ export default function VoucherScreen({navigation}) {
         />
       ) : data.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Icon name="file-document-outline" size={48} color={COLORS.TextMuted} />
+          <Icon
+            name="file-document-outline"
+            size={48}
+            color={COLORS.TextMuted}
+          />
           <Text style={styles.emptyText}>No Data Found</Text>
         </View>
       ) : (
