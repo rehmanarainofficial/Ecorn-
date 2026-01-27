@@ -69,14 +69,6 @@ const ApprovedRecordsScreen = ({navigation, route}) => {
             color: '#e67e22',
             listKey: 'delivery_approval',
           },
-          {
-            key: 'invoice_approval',
-            label: 'Sales Invoices',
-            count: approvalCounts.invoice_approval || '0',
-            icon: 'receipt',
-            color: '#9b59b6',
-            listKey: 'invoice_approval',
-          },
         ];
       case 'purchase':
         return [
@@ -170,7 +162,7 @@ const ApprovedRecordsScreen = ({navigation, route}) => {
     const fromDate = new Date();
     fromDate.setDate(fromDate.getDate() - 30); // 30 days ago
     const toDate = new Date();
-    
+
     dispatch(
       fetchApprovedData({
         fromDate: formatDateForAPI(fromDate),
@@ -209,7 +201,8 @@ const ApprovedRecordsScreen = ({navigation, route}) => {
         style={styles.card}
         onPress={() => handleCardPress(item)}
         activeOpacity={0.8}>
-        <View style={[styles.iconContainer, {backgroundColor: item.color + '20'}]}>
+        <View
+          style={[styles.iconContainer, {backgroundColor: item.color + '20'}]}>
           <Icon name={item.icon} size={28} color={item.color} />
         </View>
         <View style={styles.cardContent}>
@@ -247,7 +240,9 @@ const ApprovedRecordsScreen = ({navigation, route}) => {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Icon name="file-document-outline" size={60} color="#ccc" />
-              <Text style={styles.emptyText}>No transaction data available</Text>
+              <Text style={styles.emptyText}>
+                No transaction data available
+              </Text>
             </View>
           }
         />

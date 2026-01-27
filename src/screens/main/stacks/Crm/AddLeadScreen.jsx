@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import PlatformGradient from '../../../../components/PlatformGradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Dropdown, MultiSelect} from 'react-native-element-dropdown';
 import Ionicons from 'react-native-vector-icons/Ionicons';

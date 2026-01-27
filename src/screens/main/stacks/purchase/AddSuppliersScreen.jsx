@@ -4,7 +4,6 @@ import {
   TouchableOpacity,
   TextInput,
   FlatList,
-  ActivityIndicator,
   StyleSheet,
   Platform,
 } from 'react-native';
@@ -196,9 +195,7 @@ const AddSuppliersScreen = ({navigation}) => {
               )}
             />
           ) : (
-            <Text style={{color: '#333', fontSize: 18}}>
-              No Supplier Found
-            </Text>
+            <Text style={{color: '#333', fontSize: 18}}>No Supplier Found</Text>
           )}
         </View>
       )}

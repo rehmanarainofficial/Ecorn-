@@ -3,12 +3,11 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
-  ActivityIndicator,
   StyleSheet,
   ScrollView,
   Animated,
-  Alert,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import {Dropdown} from 'react-native-element-dropdown';
@@ -250,7 +249,8 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
     <View style={styles.container}>
       <SimpleHeader title="Add Customer" />
 
-      <ScrollView contentContainerStyle={{padding: 20, paddingBottom: 120, gap: 20}}>
+      <ScrollView
+        contentContainerStyle={{padding: 20, paddingBottom: 120, gap: 20}}>
         <Animated.View style={{gap: 18}}>
           <Text style={styles.sectionHeading}>Customer Information</Text>
 
@@ -375,7 +375,9 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
             {submitting ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={{color: '#fff', fontSize: 18, fontWeight: '600'}}>Submit</Text>
+              <Text style={{color: '#fff', fontSize: 18, fontWeight: '600'}}>
+                Submit
+              </Text>
             )}
           </TouchableOpacity>
         </Animated.View>

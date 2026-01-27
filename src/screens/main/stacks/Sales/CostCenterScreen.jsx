@@ -28,7 +28,7 @@ const CostCenterScreen = ({navigation}) => {
       Toast.show({
         type: 'error',
         text1: 'Validation Error',
-        text2: 'Please enter Location Code',
+        text2: 'Please enter Cost Center Code',
       });
       return;
     }
@@ -37,7 +37,7 @@ const CostCenterScreen = ({navigation}) => {
       Toast.show({
         type: 'error',
         text1: 'Validation Error',
-        text2: 'Please enter Location Name',
+        text2: 'Please enter Cost Center Name',
       });
       return;
     }
@@ -121,7 +121,7 @@ const CostCenterScreen = ({navigation}) => {
 
             {/* Location Code Input */}
             <Animatable.View animation="fadeInLeft" delay={200}>
-              <Text style={styles.label}>Location Code</Text>
+              <Text style={styles.label}>Cost Center Code</Text>
               <View style={styles.inputContainer}>
                 <Icon
                   name="barcode"
@@ -142,7 +142,7 @@ const CostCenterScreen = ({navigation}) => {
 
             {/* Location Name Input */}
             <Animatable.View animation="fadeInRight" delay={300}>
-              <Text style={styles.label}>Location Name</Text>
+              <Text style={styles.label}>Cost Center Name</Text>
               <View style={styles.inputContainer}>
                 <Icon
                   name="office-building-marker"
@@ -163,7 +163,10 @@ const CostCenterScreen = ({navigation}) => {
             {/* Submit Button */}
             <Animatable.View animation="fadeInUp" delay={400}>
               <TouchableOpacity
-                style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+                style={[
+                  styles.submitButton,
+                  loading && styles.submitButtonDisabled,
+                ]}
                 onPress={handleSubmit}
                 disabled={loading}
                 activeOpacity={0.8}>

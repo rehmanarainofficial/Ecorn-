@@ -277,11 +277,7 @@ const ApprovalListScreen = ({route, navigation}) => {
         );
       }
 
-      if (
-        searchLocation.trim() !== '' &&
-        listKey !== 'electrocal_job_cards' &&
-        listKey !== 'mechnical_job_cards'
-      ) {
+      if (searchLocation.trim() !== '') {
         filtered = filtered.filter(
           item =>
             (item.location_name &&
@@ -630,10 +626,9 @@ const ApprovalListScreen = ({route, navigation}) => {
           </View>
         </View>
 
-        {/* Row 4: Cost Center Search (Full Width) - Not for Electrical/Mechanical and not for sales/purchase screens */}
-        {!isSalesScreen &&
-          !isPurchaseScreen &&
-          listKey !== 'voucher_approval' &&
+        {/* Row 4: Cost Center Search (Full Width) - Not for Quotation and Voucher Approval */}
+        {listKey !== 'voucher_approval' &&
+          listKey !== 'quotation_approval' &&
           listKey !== 'electrocal_job_cards' &&
           listKey !== 'mechnical_job_cards' && (
             <View style={[styles.searchRow, {marginTop: 8}]}>
@@ -865,7 +860,7 @@ const styles = StyleSheet.create({
   },
   retryButton: {
     marginTop: 20,
-    backgroundColor: '#FF0000', // Red background
+    backgroundColor: '#000', // Red background
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,

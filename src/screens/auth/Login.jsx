@@ -44,7 +44,7 @@ const Login = ({navigation}) => {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={{flex: 1, backgroundColor: '#F3F4F6'}}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
@@ -97,49 +97,59 @@ const Login = ({navigation}) => {
             borderWidth: 1,
             borderColor: '#E0E0E0',
           }}>
-            {/* Username Input */}
+          {/* Username Input */}
+          <TextInput
+            placeholder="Email or Username"
+            placeholderTextColor="#999"
+            style={styles.input}
+            onChangeText={txt => setUsername(txt)}
+            value={username}
+          />
+
+          {/* Password Input */}
+          <View style={styles.passwordContainer}>
             <TextInput
-              placeholder="Email or Username"
+              placeholder="Password"
               placeholderTextColor="#999"
-              style={styles.input}
-              onChangeText={txt => setUsername(txt)}
-              value={username}
+              secureTextEntry={!showPassword}
+              style={styles.passwordInput}
+              onChangeText={txt => setPassword(txt)}
+              value={password}
             />
-
-            {/* Password Input */}
-            <View style={styles.passwordContainer}>
-              <TextInput
-                placeholder="Password"
-                placeholderTextColor="#999"
-                secureTextEntry={!showPassword}
-                style={styles.passwordInput}
-                onChangeText={txt => setPassword(txt)}
-                value={password}
-              />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeIcon}>
-                <Ionicons
-                  name={showPassword ? 'eye-off' : 'eye'}
-                  size={22}
-                  color="#666"
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Button with Loader */}
             <TouchableOpacity
-              style={styles.button}
-              onPress={loginUser}
-              disabled={Loading}>
-              {Loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.text}>Sign In</Text>
-              )}
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeIcon}>
+              <Ionicons
+                name={showPassword ? 'eye-off' : 'eye'}
+                size={22}
+                color="#666"
+              />
             </TouchableOpacity>
           </View>
-        </ScrollView>
+
+          {/* Button with Loader */}
+          <TouchableOpacity
+            style={styles.button}
+            onPress={loginUser}
+            disabled={Loading}>
+            {Loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.text}>Sign in</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Sign Up Link */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Registration')}
+          style={{marginTop: 25, alignItems: 'center'}}>
+          <Text style={{color: '#666', fontSize: 15}}>
+            Don't have an account?{' '}
+            <Text style={{color: '#1a1c22', fontWeight: 'bold'}}>Sign Up</Text>
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };

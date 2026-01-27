@@ -13,6 +13,7 @@ import {Dropdown} from 'react-native-element-dropdown';
 import Toast from 'react-native-toast-message';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {formatNumber, formatQuantity} from '../../../../utils/NumberUtils';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SimpleHeader from '../../../../components/SimpleHeader';
 
 const MechanicalEstimate = ({navigation, route}) => {
@@ -177,7 +178,9 @@ const MechanicalEstimate = ({navigation, route}) => {
       {/* Table */}
       <View style={[styles.tableRow, styles.tableHeader]}>
         <Text style={[styles.headerCell, {flex: 7}]}>Item</Text>
-        <Text style={[styles.headerCell, {flex: 1, textAlign: 'center'}]}>Qty</Text>
+        <Text style={[styles.headerCell, {flex: 1, textAlign: 'center'}]}>
+          Qty
+        </Text>
         <Text style={[styles.headerCell, {flex: 2, textAlign: 'center'}]}>
           Est. Price
         </Text>
@@ -194,59 +197,66 @@ const MechanicalEstimate = ({navigation, route}) => {
           data={tableData}
           keyExtractor={item => item.id.toString()}
           renderItem={renderRow}
-          contentContainerStyle={{paddingBottom: 280}}
+          contentContainerStyle={{paddingBottom: 40}}
+          ListFooterComponent={
+            <View style={styles.formContainer}>
+              <Text style={styles.formTitle}>Add New Estimation</Text>
+
+              <Dropdown
+                style={styles.dropdown}
+                data={stockOptions}
+                labelField="label"
+                valueField="value"
+                placeholder={stockLoading ? 'Loading items...' : 'Select Item'}
+                value={selectedItemCode}
+                onChange={item => setSelectedItemCode(item.value)}
+                placeholderStyle={{color: '#999'}}
+                selectedTextStyle={{color: '#333'}}
+                itemTextStyle={{color: '#000'}}
+                search
+                searchPlaceholder="Search item..."
+                renderRightIcon={() =>
+                  stockLoading ? (
+                    <ActivityIndicator size="small" color="#1a1c22" />
+                  ) : (
+                    <Icon name="chevron-down" size={20} color="#666" />
+                  )
+                }
+              />
+
+              <View style={styles.rowInputs}>
+                <TextInput
+                  placeholder="Order Qty"
+                  placeholderTextColor="#999"
+                  value={orderQty}
+                  onChangeText={setOrderQty}
+                  keyboardType="numeric"
+                  style={[styles.input, {flex: 1, marginRight: 8}]}
+                />
+                <TextInput
+                  placeholder="Estimate Price"
+                  placeholderTextColor="#999"
+                  value={estimatePrice}
+                  onChangeText={setEstimatePrice}
+                  keyboardType="numeric"
+                  style={[styles.input, {flex: 1}]}
+                />
+              </View>
+
+              <TouchableOpacity
+                disabled={posting}
+                onPress={handleSubmit}
+                style={styles.submitBtn}>
+                {posting ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.submitText}>Submit</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          }
         />
       )}
-
-      {/* Fixed Form */}
-      <View style={styles.formContainer}>
-        <Text style={styles.formTitle}>Add New Estimation</Text>
-
-        <Dropdown
-          style={styles.dropdown}
-          data={stockOptions}
-          labelField="label"
-          valueField="value"
-          placeholder={stockLoading ? 'Loading items...' : 'Select Item'}
-          value={selectedItemCode}
-          onChange={item => setSelectedItemCode(item.value)}
-          placeholderStyle={{color: '#999'}}
-          selectedTextStyle={{color: '#333'}}
-          itemTextStyle={{color: '#000'}}
-          search
-          searchPlaceholder="Search item..."
-        />
-
-        <View style={styles.rowInputs}>
-          <TextInput
-            placeholder="Order Qty"
-            placeholderTextColor="#999"
-            value={orderQty}
-            onChangeText={setOrderQty}
-            keyboardType="numeric"
-            style={[styles.input, {flex: 1, marginRight: 8}]}
-          />
-          <TextInput
-            placeholder="Estimate Price"
-            placeholderTextColor="#999"
-            value={estimatePrice}
-            onChangeText={setEstimatePrice}
-            keyboardType="numeric"
-            style={[styles.input, {flex: 1}]}
-          />
-        </View>
-
-        <TouchableOpacity
-          disabled={posting}
-          onPress={handleSubmit}
-          style={styles.submitBtn}>
-          {posting ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.submitText}>Submit</Text>
-          )}
-        </TouchableOpacity>
-      </View>
 
       <Toast />
     </View>
@@ -280,18 +290,19 @@ const styles = StyleSheet.create({
   cell: {fontSize: 14, color: '#333'},
   headerCell: {fontSize: 14, color: '#fff', fontWeight: '600'},
   formContainer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
     backgroundColor: '#fff',
     padding: 16,
-    borderTopWidth: 1,
+    marginHorizontal: 12,
+    marginTop: 20,
+    marginBottom: 40,
+    borderRadius: 12,
+    borderWidth: 1,
     borderColor: '#E0E0E0',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: -2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
   },
   formTitle: {
     color: '#333',

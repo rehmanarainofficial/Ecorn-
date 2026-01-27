@@ -252,9 +252,7 @@ const AddNewCustomer = ({navigation}) => {
               )}
             />
           ) : (
-            <Text style={{color: '#666', fontSize: 20}}>
-              No Record Found
-            </Text>
+            <Text style={{color: '#666', fontSize: 20}}>No Record Found</Text>
           )}
         </View>
       )}
@@ -266,7 +264,7 @@ export default AddNewCustomer;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#dee2e6',
     borderRadius: 12,
     marginVertical: 6,
     padding: 15,
