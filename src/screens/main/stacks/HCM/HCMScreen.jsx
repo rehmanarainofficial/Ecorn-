@@ -15,28 +15,10 @@ const COLORS = {
 
 const buttons = [
   {
-    name: 'Employees',
-    icon: 'account-group',
-    screen: 'EmployeesScreen',
-    color: '#3B82F6',
-  },
-  {
     name: 'Attendance',
     icon: 'calendar-check',
     screen: 'Attendance',
     color: '#10B981',
-  },
-  {
-    name: 'Leave Request',
-    icon: 'calendar-remove',
-    screen: 'LeaveRequestScreen',
-    color: '#F59E0B',
-  },
-  {
-    name: 'Payroll',
-    icon: 'cash-multiple',
-    screen: 'PayrollScreen',
-    color: '#8B5CF6',
   },
   {
     name: 'Expense Claim',

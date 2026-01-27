@@ -23,33 +23,22 @@ import {useSelector} from 'react-redux';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {formatToYYYYMMDD} from '../../../../utils/DateUtils';
 
-// Material/Stores Category options
+// Material Category options (labels provided by user)
 const CATEGORY_OPTIONS = [
-  {label: 'Raw Material', value: 'raw_material'},
-  {label: 'Packaging Material', value: 'packaging_material'},
-  {label: 'Consumables', value: 'consumables'},
-  {label: 'Chemicals', value: 'chemicals'},
-  {label: 'Electrical', value: 'electrical'},
-  {label: 'Mechanical', value: 'mechanical'},
-  {label: 'Hardware', value: 'hardware'},
-  {label: 'Stationery', value: 'stationery'},
-  {label: 'Safety Equipment', value: 'safety_equipment'},
-  {label: 'Other', value: 'other'},
+  {label: 'Electrical Raw Material', value: '1'},
+  {label: 'Mechanical Raw Material', value: '2'},
+  {label: 'Powder Coating Paint', value: '3'},
+  {label: 'Liquid Paint', value: '4'},
+  {label: 'Cable', value: '5'},
+  {label: 'Hardware', value: '6'},
+  {label: 'Accessories - Mechanical', value: '7'},
+  {label: 'Accessories - Electrical', value: '8'},
+  {label: 'Plastic Raw Material - Mould', value: '9'},
+  {label: 'Metal Raw Material - Mould', value: '10'},
+  {label: 'Copper Raw Material Mould', value: '11'},
 ];
 
-// Product Type options
-const PRODUCT_TYPE_OPTIONS = [
-  {label: 'Spare Parts', value: 'spare_parts'},
-  {label: 'Tools', value: 'tools'},
-  {label: 'Equipment', value: 'equipment'},
-  {label: 'Accessories', value: 'accessories'},
-  {label: 'Components', value: 'components'},
-  {label: 'Supplies', value: 'supplies'},
-  {label: 'Lubricants', value: 'lubricants'},
-  {label: 'Fasteners', value: 'fasteners'},
-  {label: 'Bearings', value: 'bearings'},
-  {label: 'Other', value: 'other'},
-];
+// Product types will be populated from locations.php (fetched at runtime)
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -102,23 +91,25 @@ export default function LocalPurchase({navigation}) {
   const [factoryType, setFactoryType] = useState('');
   const [factoryDescription, setFactoryDescription] = useState('');
   const [factoryAmount, setFactoryAmount] = useState('');
-  const [factoryItemImage, setFactoryItemImage] = useState(null);
+  
 
   // Material Purchase State
   const [materialItems, setMaterialItems] = useState([]);
   const [materialCategory, setMaterialCategory] = useState('');
   const [materialProductType, setMaterialProductType] = useState('');
+  const [materialProductTypeLabel, setMaterialProductTypeLabel] = useState('');
   const [materialDescription, setMaterialDescription] = useState('');
   const [materialAmount, setMaterialAmount] = useState('');
-  const [materialItemImage, setMaterialItemImage] = useState(null);
+  const [materialCurrentImages, setMaterialCurrentImages] = useState([]);
 
-  // Stores, Spares and Tools State
-  const [storesItems, setStoresItems] = useState([]);
-  const [storesCategory, setStoresCategory] = useState('');
-  const [storesProductType, setStoresProductType] = useState('');
-  const [storesDescription, setStoresDescription] = useState('');
-  const [storesAmount, setStoresAmount] = useState('');
-  const [storesItemImage, setStoresItemImage] = useState(null);
+  // Locations for Product Type (fetched from locations.php)
+  const [locations, setLocations] = useState([]);
+  const [locationsLoading, setLocationsLoading] = useState(false);
+  // Multi-file attachments for material and factory
+  const [materialFiles, setMaterialFiles] = useState([]);
+  const [factoryFiles, setFactoryFiles] = useState([]);
+
+  // (Removed Stores/Spares/Tools state as per request)
 
   // Image Modal State
   const [showImageModal, setShowImageModal] = useState(false);
@@ -127,7 +118,26 @@ export default function LocalPurchase({navigation}) {
   useEffect(() => {
     fetchAccounts();
     fetchExpenseAccounts();
+    fetchLocations();
   }, []);
+
+  const fetchLocations = async () => {
+    setLocationsLoading(true);
+    try {
+      const response = await axios.get(`${BASEURL}locations.php`);
+      if (response.data?.status === 'true' && response.data?.data) {
+        const mapped = response.data.data.map(loc => ({
+          label: loc.location_name,
+          value: loc.loc_code,
+        }));
+        setLocations(mapped);
+      }
+    } catch (error) {
+      console.log('Fetch Locations Error:', error);
+    } finally {
+      setLocationsLoading(false);
+    }
+  };
 
   const fetchAccounts = async () => {
     setAccountsLoading(true);
@@ -219,6 +229,29 @@ export default function LocalPurchase({navigation}) {
     });
   };
 
+  const pickMultipleImages = (currentArraySetter, append = false) => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.8,
+      maxWidth: 1200,
+      maxHeight: 1200,
+      selectionLimit: 0, // allow multiple
+    };
+
+    setImageLoading(true);
+    launchImageLibrary(options, response => {
+      setImageLoading(false);
+      if (response.assets && response.assets.length > 0) {
+        const uris = response.assets.map(a => a.uri);
+        if (append) {
+          currentArraySetter(prev => [...prev, ...uris]);
+        } else {
+          currentArraySetter(uris);
+        }
+      }
+    });
+  };
+
   const captureImage = async setImageFn => {
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
@@ -255,7 +288,7 @@ export default function LocalPurchase({navigation}) {
       return;
     }
     const typeLabel =
-      FACTORY_TYPE_OPTIONS.find(o => o.value === factoryType)?.label ||
+      expenseAccounts.find(o => o.value === factoryType)?.label ||
       factoryType;
     setFactoryItems([
       ...factoryItems,
@@ -265,13 +298,11 @@ export default function LocalPurchase({navigation}) {
         typeValue: factoryType,
         description: factoryDescription,
         amount: factoryAmount,
-        image: factoryItemImage,
       },
     ]);
     setFactoryType(null);
     setFactoryDescription('');
     setFactoryAmount('');
-    setFactoryItemImage(null);
   };
 
   // Add item to Material Purchase
@@ -284,7 +315,7 @@ export default function LocalPurchase({navigation}) {
       CATEGORY_OPTIONS.find(o => o.value === materialCategory)?.label ||
       materialCategory;
     const productTypeLabel =
-      PRODUCT_TYPE_OPTIONS.find(o => o.value === materialProductType)?.label ||
+      locations.find(o => o.value === materialProductType)?.label ||
       materialProductType;
     setMaterialItems([
       ...materialItems,
@@ -294,49 +325,20 @@ export default function LocalPurchase({navigation}) {
         categoryValue: materialCategory,
         productType: productTypeLabel,
         productTypeValue: materialProductType,
+        productTypeLabel: materialProductTypeLabel,
         description: materialDescription,
         amount: materialAmount,
-        image: materialItemImage,
+        images: [...materialCurrentImages],
       },
     ]);
     setMaterialCategory(null);
     setMaterialProductType(null);
+    setMaterialProductTypeLabel('');
     setMaterialDescription('');
     setMaterialAmount('');
-    setMaterialItemImage(null);
+    setMaterialCurrentImages([]);
   };
 
-  // Add item to Stores
-  const addStoresItem = () => {
-    if (!storesCategory || !storesAmount.trim()) {
-      ToastAndroid.show('Please fill Category and Amount', ToastAndroid.SHORT);
-      return;
-    }
-    const categoryLabel =
-      CATEGORY_OPTIONS.find(o => o.value === storesCategory)?.label ||
-      storesCategory;
-    const productTypeLabel =
-      PRODUCT_TYPE_OPTIONS.find(o => o.value === storesProductType)?.label ||
-      storesProductType;
-    setStoresItems([
-      ...storesItems,
-      {
-        id: Date.now(),
-        category: categoryLabel,
-        categoryValue: storesCategory,
-        productType: productTypeLabel,
-        productTypeValue: storesProductType,
-        description: storesDescription,
-        amount: storesAmount,
-        image: storesItemImage,
-      },
-    ]);
-    setStoresCategory(null);
-    setStoresProductType(null);
-    setStoresDescription('');
-    setStoresAmount('');
-    setStoresItemImage(null);
-  };
 
   const removeFactoryItem = itemId => {
     setFactoryItems(factoryItems.filter(item => item.id !== itemId));
@@ -344,10 +346,6 @@ export default function LocalPurchase({navigation}) {
 
   const removeMaterialItem = itemId => {
     setMaterialItems(materialItems.filter(item => item.id !== itemId));
-  };
-
-  const removeStoresItem = itemId => {
-    setStoresItems(storesItems.filter(item => item.id !== itemId));
   };
 
   const calculateTotal = items => {
@@ -419,7 +417,6 @@ export default function LocalPurchase({navigation}) {
           `${BASEURL}post_local_purchase_receipt.php`,
           body,
           {
-            timeout: 30000,
             headers: {
               'Content-Type': 'multipart/form-data',
             },
@@ -452,46 +449,58 @@ export default function LocalPurchase({navigation}) {
         let items = [];
         if (paymentCategory === 'factory_expenses') {
           if (factoryItems.length === 0) {
-            ToastAndroid.show(
-              'Please add at least one item',
-              ToastAndroid.SHORT,
-            );
+            ToastAndroid.show('Please add at least one item', ToastAndroid.SHORT);
             setLoading(false);
             return;
           }
           items = factoryItems;
         } else if (paymentCategory === 'material_purchase') {
           if (materialItems.length === 0) {
-            ToastAndroid.show(
-              'Please add at least one item',
-              ToastAndroid.SHORT,
-            );
+            ToastAndroid.show('Please add at least one item', ToastAndroid.SHORT);
             setLoading(false);
             return;
           }
           items = materialItems;
         } else {
-          if (storesItems.length === 0) {
-            ToastAndroid.show(
-              'Please add at least one item',
-              ToastAndroid.SHORT,
-            );
-            setLoading(false);
-            return;
-          }
-          items = storesItems;
+          ToastAndroid.show('Invalid payment category', ToastAndroid.SHORT);
+          setLoading(false);
+          return;
         }
 
         const totalAmount = calculateTotal(items);
 
-        // Map items to expense_detail
-        // Note: account_code is mapped from typeValue/categoryValue
-        // We ensure line_memo and amount are correctly set
-        const expenseDetail = items.map(item => ({
-          account_code: item.typeValue || item.categoryValue || '',
-          amount: parseFloat(item.amount),
-          line_memo: item.description || '',
-        }));
+        const expenseDetail = items.map(item => {
+          if (paymentCategory === 'material_purchase') {
+            // Material Purchase: loc_code, category_id, amount, line_memo
+            const locCode = item.productTypeValue || '';
+            const categoryId = item.categoryValue || '';
+            const categoryName = item.category || '';
+            const costCenterName = item.productTypeLabel || item.productType || '';
+            const description = item.description || '';
+            
+            const lineMemo = `${categoryName}; ${costCenterName}; ${description}`;
+            
+            return {
+              loc_code: locCode,
+              category_id: categoryId,
+              amount: parseFloat(item.amount),
+              line_memo: lineMemo,
+            };
+          } else {
+            // Factory Purchase: account_code, amount, line_memo
+            const accountCode = item.typeValue || '';
+            const description = item.description || '';
+            
+            // line_memo: just the description
+            const lineMemo = description;
+            
+            return {
+              account_code: accountCode,
+              amount: parseFloat(item.amount),
+              line_memo: lineMemo,
+            };
+          }
+        });
 
         const formData = new FormData();
         formData.append('trans_date', formatToYYYYMMDD(date));
@@ -499,6 +508,7 @@ export default function LocalPurchase({navigation}) {
         formData.append('user_id', id);
         formData.append('expense_detail', JSON.stringify(expenseDetail));
 
+        // Append bills image (single) if present
         if (billsImage) {
           const imageFile = {
             uri: billsImage,
@@ -508,16 +518,62 @@ export default function LocalPurchase({navigation}) {
           formData.append('filename', imageFile);
         }
 
+        // Append images from items (both factory and material)
+        // Each item can have multiple images attached
+        if (paymentCategory === 'material_purchase') {
+          items.forEach((item, itemIdx) => {
+            if (item.images && item.images.length > 0) {
+              item.images.forEach((uri, imgIdx) => {
+                formData.append('filename[]', {
+                  uri,
+                  type: 'image/jpeg',
+                  name: `material_item_${itemIdx + 1}_${imgIdx + 1}_${Date.now()}.jpg`,
+                });
+              });
+            }
+          });
+        }
+
+        if (paymentCategory === 'factory_expenses') {
+          if (factoryFiles.length > 0) {
+            factoryFiles.forEach((uri, idx) => {
+              formData.append('filename[]', {
+                uri,
+                type: 'image/jpeg',
+                name: `factory_${Date.now()}_${idx}.jpg`,
+              });
+            });
+          }
+          // Also include images from factory items
+          items.forEach((item, itemIdx) => {
+            if (item.images && item.images.length > 0) {
+              item.images.forEach((uri, imgIdx) => {
+                formData.append('filename[]', {
+                  uri,
+                  type: 'image/jpeg',
+                  name: `factory_item_${itemIdx + 1}_${imgIdx + 1}_${Date.now()}.jpg`,
+                });
+              });
+            }
+          });
+        }
+
+        const apiEndpoint = paymentCategory === 'material_purchase' 
+          ? 'post_local_purchase_material.php'
+          : 'post_local_purchase_payment.php';
+
         console.log('Payment Submission Data:', {
+          endpoint: apiEndpoint,
           trans_date: formatToYYYYMMDD(date),
           amount: totalAmount,
           user_id: id,
           expense_detail: expenseDetail,
-          has_filename: !!billsImage,
+          has_bills_image: !!billsImage,
+          total_item_images: items.reduce((sum, item) => sum + (item.images?.length || 0), 0),
         });
 
         const response = await axios.post(
-          `${BASEURL}post_local_purchase_payment.php`,
+          `${BASEURL}${apiEndpoint}`,
           formData,
           {
             timeout: 30000,
@@ -527,7 +583,7 @@ export default function LocalPurchase({navigation}) {
           },
         );
 
-        console.log('Payment API Response:', response.data);
+        console.log('API Response:', response.data);
 
         if (
           response.data?.status === true ||
@@ -559,7 +615,9 @@ export default function LocalPurchase({navigation}) {
     setBillsImage(null);
     setFactoryItems([]);
     setMaterialItems([]);
-    setStoresItems([]);
+    setFactoryFiles([]);
+    setMaterialFiles([]);
+    setMaterialCurrentImages([]);
     setDate(new Date());
   };
 
@@ -569,16 +627,26 @@ export default function LocalPurchase({navigation}) {
       <Text style={styles.fieldLabel}>{label}</Text>
       <View style={styles.imageButtonsRow}>
         <TouchableOpacity
-          style={styles.imageButton}
-          onPress={() => pickImage(setImage)}>
-          <Ionicons name="images-outline" size={20} color={COLORS.AccentBlue} />
-          <Text style={styles.imageButtonText}>Gallery</Text>
+          style={[styles.imageButton, imageLoading && styles.imageButtonDisabled]}
+          onPress={() => pickImage(setImage)}
+          disabled={imageLoading}>
+          {imageLoading ? (
+            <ActivityIndicator size="small" color={COLORS.AccentBlue} />
+          ) : (
+            <Ionicons name="images-outline" size={20} color={COLORS.AccentBlue} />
+          )}
+          <Text style={[styles.imageButtonText, imageLoading && styles.imageButtonTextDisabled]}>Gallery</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.imageButton}
-          onPress={() => captureImage(setImage)}>
-          <Ionicons name="camera-outline" size={20} color={COLORS.AccentBlue} />
-          <Text style={styles.imageButtonText}>Camera</Text>
+          style={[styles.imageButton, imageLoading && styles.imageButtonDisabled]}
+          onPress={() => captureImage(setImage)}
+          disabled={imageLoading}>
+          {imageLoading ? (
+            <ActivityIndicator size="small" color={COLORS.AccentBlue} />
+          ) : (
+            <Ionicons name="camera-outline" size={20} color={COLORS.AccentBlue} />
+          )}
+          <Text style={[styles.imageButtonText, imageLoading && styles.imageButtonTextDisabled]}>Camera</Text>
         </TouchableOpacity>
       </View>
       {image && (
@@ -711,38 +779,26 @@ export default function LocalPurchase({navigation}) {
       {factoryItems.length > 0 && (
         <View style={styles.tableContainer}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderCell, {flex: 0.5}]}>#</Text>
+            <Text style={[styles.tableHeaderCell, {flex: 0.6}]}>#</Text>
             <Text style={[styles.tableHeaderCell, {flex: 1}]}>Type</Text>
-            <Text style={[styles.tableHeaderCell, {flex: 1.5}]}>
+            <Text style={[styles.tableHeaderCell, {flex: 1.6}]}>
               Description
             </Text>
             <Text style={[styles.tableHeaderCell, {flex: 1}]}>Amount</Text>
-            <Text style={[styles.tableHeaderCell, {flex: 0.5}]}>Att.</Text>
             <Text style={[styles.tableHeaderCell, {flex: 0.5}]}></Text>
           </View>
           {factoryItems.map((item, index) => (
             <View key={item.id} style={styles.tableRow}>
-              <Text style={[styles.tableCell, {flex: 0.5}]}>{index + 1}</Text>
+              <Text style={[styles.tableCell, {flex: 0.6}]}>{index + 1}</Text>
               <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>
                 {item.type}
               </Text>
-              <Text style={[styles.tableCell, {flex: 1.5}]} numberOfLines={1}>
+              <Text style={[styles.tableCell, {flex: 1.6}]} numberOfLines={1}>
                 {item.description || '-'}
               </Text>
-              <Text style={[styles.tableCell, {flex: 1}]}>
+              <Text style={[styles.tableCell, {flex: 1}]}> 
                 {formatNumber(item.amount)}
               </Text>
-              <View style={[styles.tableCell, {flex: 0.5}]}>
-                {item.image && (
-                  <TouchableOpacity onPress={() => viewImage(item.image)}>
-                    <Ionicons
-                      name="image"
-                      size={18}
-                      color={COLORS.AccentBlue}
-                    />
-                  </TouchableOpacity>
-                )}
-              </View>
               <TouchableOpacity
                 style={[styles.tableCell, {flex: 0.5}]}
                 onPress={() => removeFactoryItem(item.id)}>
@@ -782,17 +838,22 @@ export default function LocalPurchase({navigation}) {
         </View>
 
         <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Product Type</Text>
+          <Text style={styles.fieldLabel}>Cost Center</Text>
           <Dropdown
             style={styles.dropdown}
             placeholderStyle={styles.dropdownPlaceholder}
             selectedTextStyle={styles.dropdownSelectedText}
-            data={PRODUCT_TYPE_OPTIONS}
+            data={locations}
             labelField="label"
             valueField="value"
-            placeholder="Select Product Type"
+            placeholder={locationsLoading ? 'Loading...' : 'Select Cost Center'}
             value={materialProductType}
-            onChange={item => setMaterialProductType(item.value)}
+            onChange={item => {
+              setMaterialProductType(item.value);
+              setMaterialProductTypeLabel(item.label);
+            }}
+            search
+            searchPlaceholder="Search location..."
           />
         </View>
 
@@ -819,12 +880,6 @@ export default function LocalPurchase({navigation}) {
           />
         </View>
 
-        {renderImagePicker(
-          materialItemImage,
-          setMaterialItemImage,
-          'Attachment',
-        )}
-
         <TouchableOpacity style={styles.addItemBtn} onPress={addMaterialItem}>
           <Ionicons name="add-circle" size={20} color={COLORS.WHITE} />
           <Text style={styles.addItemBtnText}>Add Item</Text>
@@ -836,40 +891,32 @@ export default function LocalPurchase({navigation}) {
         <>
           <View style={styles.tableContainer}>
             <View style={styles.tableHeader}>
-              <Text style={[styles.tableHeaderCell, {flex: 0.4}]}>#</Text>
-              <Text style={[styles.tableHeaderCell, {flex: 1}]}>Category</Text>
-              <Text style={[styles.tableHeaderCell, {flex: 1}]}>Product</Text>
-              <Text style={[styles.tableHeaderCell, {flex: 1}]}>Desc</Text>
-              <Text style={[styles.tableHeaderCell, {flex: 0.8}]}>Amount</Text>
-              <Text style={[styles.tableHeaderCell, {flex: 0.4}]}>Att.</Text>
+              <Text style={[styles.tableHeaderCell, {flex: 0.3}]}>#</Text>
+              <Text style={[styles.tableHeaderCell, {flex: 0.8}]}>Category</Text>
+              <Text style={[styles.tableHeaderCell, {flex: 0.8}]}>Cost Ctr</Text>
+              <Text style={[styles.tableHeaderCell, {flex: 0.8}]}>Desc</Text>
+              <Text style={[styles.tableHeaderCell, {flex: 0.6}]}>Amt</Text>
+              <Text style={[styles.tableHeaderCell, {flex: 0.5}]}>Imgs</Text>
               <Text style={[styles.tableHeaderCell, {flex: 0.4}]}></Text>
             </View>
             {materialItems.map((item, index) => (
               <View key={item.id} style={styles.tableRow}>
-                <Text style={[styles.tableCell, {flex: 0.4}]}>{index + 1}</Text>
-                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>
+                <Text style={[styles.tableCell, {flex: 0.3}]}>{index + 1}</Text>
+                <Text style={[styles.tableCell, {flex: 0.8}]} numberOfLines={1}>
                   {item.category}
                 </Text>
-                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>
+                <Text style={[styles.tableCell, {flex: 0.8}]} numberOfLines={1}>
                   {item.productType || '-'}
                 </Text>
-                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>
+                <Text style={[styles.tableCell, {flex: 0.8}]} numberOfLines={1}>
                   {item.description || '-'}
                 </Text>
-                <Text style={[styles.tableCell, {flex: 0.8}]}>
+                <Text style={[styles.tableCell, {flex: 0.6}]}> 
                   {formatNumber(item.amount)}
                 </Text>
-                <View style={[styles.tableCell, {flex: 0.4}]}>
-                  {item.image && (
-                    <TouchableOpacity onPress={() => viewImage(item.image)}>
-                      <Ionicons
-                        name="image"
-                        size={18}
-                        color={COLORS.AccentBlue}
-                      />
-                    </TouchableOpacity>
-                  )}
-                </View>
+                <Text style={[styles.tableCell, {flex: 0.5, color: item.images?.length > 0 ? COLORS.Success : COLORS.LabelColor}]}>
+                  {item.images?.length || 0}
+                </Text>
                 <TouchableOpacity
                   style={[styles.tableCell, {flex: 0.4}]}
                   onPress={() => removeMaterialItem(item.id)}>
@@ -886,136 +933,6 @@ export default function LocalPurchase({navigation}) {
             <Text style={styles.totalLabel}>Total Amount:</Text>
             <Text style={styles.totalValue}>
               {formatNumber(calculateTotal(materialItems))}
-            </Text>
-          </View>
-        </>
-      )}
-    </View>
-  );
-
-  // Render Stores, Spares and Tools Form
-  const renderStoresForm = () => (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>Stores, Spares and Tools</Text>
-
-      {/* Add Item Form */}
-      <View style={styles.addItemForm}>
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Category</Text>
-          <Dropdown
-            style={styles.dropdown}
-            placeholderStyle={styles.dropdownPlaceholder}
-            selectedTextStyle={styles.dropdownSelectedText}
-            data={CATEGORY_OPTIONS}
-            labelField="label"
-            valueField="value"
-            placeholder="Select Category"
-            value={storesCategory}
-            onChange={item => setStoresCategory(item.value)}
-          />
-        </View>
-
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Product Type</Text>
-          <Dropdown
-            style={styles.dropdown}
-            placeholderStyle={styles.dropdownPlaceholder}
-            selectedTextStyle={styles.dropdownSelectedText}
-            data={PRODUCT_TYPE_OPTIONS}
-            labelField="label"
-            valueField="value"
-            placeholder="Select Product Type"
-            value={storesProductType}
-            onChange={item => setStoresProductType(item.value)}
-          />
-        </View>
-
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Description</Text>
-          <TextInput
-            style={styles.inputField}
-            placeholder="Enter description..."
-            placeholderTextColor={COLORS.LabelColor}
-            value={storesDescription}
-            onChangeText={setStoresDescription}
-          />
-        </View>
-
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Amount</Text>
-          <TextInput
-            style={styles.inputField}
-            placeholder="0.00"
-            placeholderTextColor={COLORS.LabelColor}
-            keyboardType="numeric"
-            value={storesAmount}
-            onChangeText={setStoresAmount}
-          />
-        </View>
-
-        {renderImagePicker(storesItemImage, setStoresItemImage, 'Attachment')}
-
-        <TouchableOpacity style={styles.addItemBtn} onPress={addStoresItem}>
-          <Ionicons name="add-circle" size={20} color={COLORS.WHITE} />
-          <Text style={styles.addItemBtnText}>Add Item</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Items Table */}
-      {storesItems.length > 0 && (
-        <>
-          <View style={styles.tableContainer}>
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableHeaderCell, {flex: 0.4}]}>#</Text>
-              <Text style={[styles.tableHeaderCell, {flex: 1}]}>Category</Text>
-              <Text style={[styles.tableHeaderCell, {flex: 1}]}>Product</Text>
-              <Text style={[styles.tableHeaderCell, {flex: 1}]}>Desc</Text>
-              <Text style={[styles.tableHeaderCell, {flex: 0.8}]}>Amount</Text>
-              <Text style={[styles.tableHeaderCell, {flex: 0.4}]}>Att.</Text>
-              <Text style={[styles.tableHeaderCell, {flex: 0.4}]}></Text>
-            </View>
-            {storesItems.map((item, index) => (
-              <View key={item.id} style={styles.tableRow}>
-                <Text style={[styles.tableCell, {flex: 0.4}]}>{index + 1}</Text>
-                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>
-                  {item.category}
-                </Text>
-                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>
-                  {item.productType || '-'}
-                </Text>
-                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>
-                  {item.description || '-'}
-                </Text>
-                <Text style={[styles.tableCell, {flex: 0.8}]}>
-                  {formatNumber(item.amount)}
-                </Text>
-                <View style={[styles.tableCell, {flex: 0.4}]}>
-                  {item.image && (
-                    <TouchableOpacity onPress={() => viewImage(item.image)}>
-                      <Ionicons
-                        name="image"
-                        size={18}
-                        color={COLORS.AccentBlue}
-                      />
-                    </TouchableOpacity>
-                  )}
-                </View>
-                <TouchableOpacity
-                  style={[styles.tableCell, {flex: 0.4}]}
-                  onPress={() => removeStoresItem(item.id)}>
-                  <Ionicons
-                    name="trash-outline"
-                    size={18}
-                    color={COLORS.Danger}
-                  />
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total Amount:</Text>
-            <Text style={styles.totalValue}>
-              {formatNumber(calculateTotal(storesItems))}
             </Text>
           </View>
         </>
@@ -1111,22 +1028,6 @@ export default function LocalPurchase({navigation}) {
                   Material Purchase
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.categoryBtn,
-                  paymentCategory === 'stores_spares' &&
-                    styles.categoryBtnActive,
-                ]}
-                onPress={() => setPaymentCategory('stores_spares')}>
-                <Text
-                  style={[
-                    styles.categoryBtnText,
-                    paymentCategory === 'stores_spares' &&
-                      styles.categoryBtnTextActive,
-                  ]}>
-                  Stores, Spares & Tools
-                </Text>
-              </TouchableOpacity>
             </View>
 
             {/* Serial No & Date for Payment */}
@@ -1150,7 +1051,6 @@ export default function LocalPurchase({navigation}) {
               renderFactoryExpensesForm()}
             {paymentCategory === 'material_purchase' &&
               renderMaterialPurchaseForm()}
-            {paymentCategory === 'stores_spares' && renderStoresForm()}
 
             <View style={styles.card}>
               {renderImagePicker(billsImage, setBillsImage, 'Bills Attachment')}
@@ -1190,6 +1090,20 @@ export default function LocalPurchase({navigation}) {
         }}
         onCancel={() => setShowDatePicker(false)}
       />
+
+      {/* Image Loading Indicator Modal */}
+      <Modal
+        visible={imageLoading}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {}}>
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.AccentBlue} />
+            <Text style={styles.loadingText}>Loading images...</Text>
+          </View>
+        </View>
+      </Modal>
 
       {/* Image Preview Modal */}
       <Modal
@@ -1507,10 +1421,18 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     gap: 6,
   },
+  imageButtonDisabled: {
+    backgroundColor: '#E5E7EB',
+    borderColor: '#D1D5DB',
+    opacity: 0.6,
+  },
   imageButtonText: {
     color: COLORS.AccentBlue,
     fontSize: 13,
     fontWeight: '600',
+  },
+  imageButtonTextDisabled: {
+    color: '#6B7280',
   },
   imagePreviewSmall: {
     marginTop: 10,
@@ -1595,5 +1517,32 @@ const styles = StyleSheet.create({
     color: COLORS.WHITE,
     fontSize: 16,
     fontWeight: '600',
+  },
+
+  // Loading Overlay Styles
+  loadingOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContainer: {
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 16,
+    paddingVertical: 40,
+    paddingHorizontal: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.TextDark,
   },
 });

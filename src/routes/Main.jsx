@@ -51,7 +51,6 @@ import PurchaseScreen from '../screens/main/stacks/purchase/PurchaseScreen';
 import InventoryScreen from '../screens/main/stacks/Inventory/InventoryScreen';
 import FinanceScreen from '../screens/main/stacks/Finance/FinanceScreen';
 import ManufacturingScreen from '../screens/main/stacks/Manufacturing/ManufacturingScreen';
-import PayrollScreen from '../screens/main/stacks/Payroll/PayrollScreen';
 import CrmScreen from '../screens/main/stacks/Crm/CrmScreen';
 import ReceivableScreen from '../screens/main/stacks/Sales/ReceivableScreen';
 import UploadScreen from '../screens/main/stacks/Sales/UploadScreen';
@@ -91,7 +90,7 @@ import LocalPurchase from '../screens/main/stacks/Finance/LocalPurchase';
 import GLViewScreen from '../screens/main/stacks/AppAlerts/GLViewScreen';
 import ViewTransactions from '../components/ViewTransactions';
 import ManufacturingView from '../components/ManufacturingView';
-import Attendance from '../screens/main/stacks/Finance/Attendance';
+import Attendance from '../screens/main/stacks/HCM/Attendance';
 import CostCenterScreen from '../screens/main/stacks/Sales/CostCenterScreen';
 import ApprovedRecordsScreen from '../screens/main/stacks/Sales/ApprovedRecordsScreen';
 import HCMScreen from '../screens/main/stacks/HCM/HCMScreen';
@@ -154,7 +153,6 @@ const Main = () => {
         component={ManufacturingScreen}
       />
       <Stack.Screen name="FinanceScreen" component={FinanceScreen} />
-      <Stack.Screen name="PayrollScreen" component={PayrollScreen} />
       <Stack.Screen name="CrmScreen" component={CrmScreen} />
       <Stack.Screen name="AddNewCustomer" component={AddNewCustomer} />
       <Stack.Screen

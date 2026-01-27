@@ -17,7 +17,6 @@ import AppButton from '../../../../components/AppButton';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {
   responsiveHeight,
-  responsiveWidth,
   responsiveFontSize,
 } from '../../../../utils/Responsive';
 import {BASEURL} from '../../../../utils/BaseUrl';
@@ -41,7 +40,7 @@ const Attendance = () => {
   // Unified Feedback State
   const [feedback, setFeedback] = useState({
     visible: false,
-    type: 'success', // 'success' or 'error'
+    type: 'success', 
     title: '',
     message: '',
   });
@@ -220,20 +219,21 @@ const Attendance = () => {
   ) => {
     const formData = new FormData();
     const currentDateStr = new Date().toISOString().split('T')[0];
+    const currentTimeStr = new Date().toLocaleTimeString('en-GB', {
+      hour12: false,
+    });
 
     // Note: Both In and Out now hit user_attendance_post.php
     if (isOut) {
       // Out Payload as requested
       formData.append('code', userData?.emp_code || '10001');
       formData.append('ActivityDate', currentDateStr);
+      formData.append('ActivityTime', currentTimeStr);
       formData.append('status', '1');
       formData.append('in_out', '1');
       formData.append('id', String(checkOutId || '0'));
     } else {
       // In/DVR Payload as requested
-      const currentTimeStr = new Date().toLocaleTimeString('en-GB', {
-        hour12: false,
-      });
       const lat = coords?.latitude || 0;
       const lon = coords?.longitude || 0;
       const addressName = await getAddressFromCoords(lat, lon);

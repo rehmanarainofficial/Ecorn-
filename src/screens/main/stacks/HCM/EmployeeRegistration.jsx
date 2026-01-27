@@ -275,11 +275,21 @@ const EmployeeRegistration = ({navigation}) => {
     ];
 
     for (let rule of validationRules) {
-      if (!formData[rule.field]) {
+      // Special handling for fields that can have value 0 (like maritalStatus)
+      const fieldValue = formData[rule.field];
+      const isEmpty = rule.field === 'maritalStatus' 
+        ? fieldValue === null || fieldValue === undefined || fieldValue === ''
+        : !fieldValue;
+      
+      if (isEmpty) {
         // Collect all errors for the current section to highlight them
         const sectionErrors = {};
         validationRules.forEach(r => {
-          if (!formData[r.field]) sectionErrors[r.field] = true;
+          const val = formData[r.field];
+          const empty = r.field === 'maritalStatus'
+            ? val === null || val === undefined || val === ''
+            : !val;
+          if (empty) sectionErrors[r.field] = true;
         });
         setErrors(sectionErrors);
 
@@ -341,7 +351,6 @@ const EmployeeRegistration = ({navigation}) => {
         });
       }
 
-      console.log('Submitting Form Data:', body);
 
       const response = await axios.post(
         `${BASEURL}employee_setup_post.php`,

@@ -146,7 +146,7 @@ const ElectricalJobCardsScreen = ({navigation}) => {
 
       {/* 🔹 Order No column = Location name */}
       <Text style={[styles.cell, {flex: 1}]}>
-        {locationMap[item.location] || item.ref}
+        {locationMap[item.location] || item.location}
       </Text>
 
       <Text style={[styles.cell, {flex: 0.8}]}>{item.entry_by}</Text>
@@ -269,7 +269,7 @@ const ElectricalJobCardsScreen = ({navigation}) => {
       <View style={[styles.row, styles.tableHeaderRow]}>
         <Text style={[styles.headerCell, {flex: 0.9}]}>Ref</Text>
         <Text style={[styles.headerCell, {flex: 0.8}]}>Date</Text>
-        <Text style={[styles.headerCell, {flex: 1}]}>Order No</Text>
+        <Text style={[styles.headerCell, {flex: 1}]}>Cost Center</Text>
         <Text style={[styles.headerCell, {flex: 0.8}]}>User</Text>
         <Text style={[styles.headerCell, {flex: 1.3}]}>Action</Text>
       </View>
