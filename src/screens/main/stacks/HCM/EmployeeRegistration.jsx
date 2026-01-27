@@ -16,8 +16,10 @@ import {Dropdown} from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {pick, types} from '@react-native-documents/picker';
-import {Modal, SafeAreaView} from 'react-native';
-import {formatDate} from '../../../../utils/DateUtils';
+import {Modal, SafeAreaView, ActivityIndicator} from 'react-native';
+import axios from 'axios';
+import Toast from 'react-native-toast-message';
+import {formatDateString, formatToYYYYMMDD} from '../../../../utils/DateUtils';
 import {BASEURL} from '../../../../utils/BaseUrl';
 
 const {width} = Dimensions.get('window');
@@ -63,13 +65,17 @@ const InputField = ({
   handleInputChange,
   keyboardType = 'default',
   isMandatory = true,
+  error = false,
 }) => (
   <View style={styles.inputWrapper}>
     <Text style={styles.label}>
       {label} {isMandatory && <Text style={{color: COLORS.ERROR}}>*</Text>}
     </Text>
     <TextInput
-      style={styles.input}
+      style={[
+        styles.input,
+        error && {borderColor: COLORS.ERROR, borderWidth: 1.5},
+      ]}
       placeholder={placeholder}
       placeholderTextColor={COLORS.TEXT_LIGHT}
       value={formData[field]}
@@ -108,11 +114,13 @@ const SectionHeader = ({section, activeSection, setActiveSection}) => {
 const EmployeeRegistration = ({navigation}) => {
   const [activeSection, setActiveSection] = useState('Information');
   const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateField, setDateField] = useState(null);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [bankOptions, setBankOptions] = useState([]);
   const [bankLoading, setBankLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const sections = [
     {id: 'Information', title: 'Information', icon: 'account-details'},
@@ -120,7 +128,6 @@ const EmployeeRegistration = ({navigation}) => {
     {id: 'Bank', title: 'Bank Details', icon: 'bank'},
     {id: 'Qualification', title: 'Qualification', icon: 'school'},
     {id: 'Work', title: 'Work History', icon: 'briefcase'},
-    {id: 'Attachments', title: 'Attachments', icon: 'paperclip'},
   ];
 
   useEffect(() => {
@@ -164,12 +171,20 @@ const EmployeeRegistration = ({navigation}) => {
     }
 
     setFormData(prev => ({...prev, [field]: finalValue}));
+    // Clear error when user interacts
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = {...prev};
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
   };
 
   const onDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
     if (selectedDate && dateField) {
-      handleInputChange(dateField, formatDate(selectedDate));
+      handleInputChange(dateField, formatToYYYYMMDD(selectedDate));
       setDateField(null);
     }
   };
@@ -214,6 +229,158 @@ const EmployeeRegistration = ({navigation}) => {
     }
   };
 
+  const handleSubmit = async () => {
+    // Intelligent Validation Rules
+    const validationRules = [
+      // Information Section
+      {field: 'fullName', label: 'Full Name', section: 'Information'},
+      {field: 'fatherName', label: "Father's Name", section: 'Information'},
+      {field: 'gender', label: 'Gender', section: 'Information'},
+      {field: 'dob', label: 'Date of Birth', section: 'Information'},
+      {field: 'mobile', label: 'Mobile Number', section: 'Information'},
+      {field: 'bloodGroup', label: 'Blood Group', section: 'Information'},
+      {field: 'maritalStatus', label: 'Marital Status', section: 'Information'},
+      {field: 'nic', label: 'NIC', section: 'Information'},
+      {field: 'nicIssue', label: 'NIC Issue Date', section: 'Information'},
+      {field: 'nicExpiry', label: 'NIC Expiry Date', section: 'Information'},
+      {field: 'address', label: 'Address', section: 'Information'},
+      {field: 'profileImage', label: 'Employee Image', section: 'Information'},
+
+      // Emergency Section
+      {
+        field: 'emergencyName',
+        label: 'Emergency Contact Name',
+        section: 'Emergency',
+      },
+      {
+        field: 'emergencyPhone',
+        label: 'Emergency Contact Phone',
+        section: 'Emergency',
+      },
+      {
+        field: 'emergencyRelation',
+        label: 'Emergency Relation',
+        section: 'Emergency',
+      },
+
+      // Bank Section
+      {field: 'bankName', label: 'Bank Name', section: 'Bank'},
+      {field: 'iban', label: 'IBAN/Account No', section: 'Bank'},
+      {field: 'bankBranch', label: 'Bank Branch', section: 'Bank'},
+      {field: 'accountTitle', label: 'Account Title', section: 'Bank'},
+
+      // Qualification
+      {field: 'degree', label: 'Degree', section: 'Qualification'},
+      {field: 'university', label: 'University', section: 'Qualification'},
+    ];
+
+    for (let rule of validationRules) {
+      if (!formData[rule.field]) {
+        // Collect all errors for the current section to highlight them
+        const sectionErrors = {};
+        validationRules.forEach(r => {
+          if (!formData[r.field]) sectionErrors[r.field] = true;
+        });
+        setErrors(sectionErrors);
+
+        setActiveSection(rule.section);
+        Toast.show({
+          type: 'error',
+          text1: 'Required Field',
+          text2: `Please provide ${rule.label} in ${rule.section} section.`,
+        });
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
+    try {
+      const body = new FormData();
+      // Mapping internal state to API keys
+      body.append('emp_name', formData.fullName || '');
+      body.append('emp_father', formData.fatherName || '');
+      body.append('emp_gen', formData.gender || '');
+      body.append('DOB', formData.dob || '');
+      body.append('emp_mother', formData.motherName || '');
+      body.append('emp_mobile', formData.mobile || '');
+      body.append('emp_email', formData.email || '');
+      body.append('blood_group', formData.bloodGroup || '');
+      body.append('status1', formData.maritalStatus);
+      body.append('emp_cnic', formData.nic || '');
+      body.append('cnic_issue_date', formData.nicIssue || '');
+      body.append('cnic_expiry_date', formData.nicExpiry || '');
+      body.append('emp_address', formData.address || '');
+
+      body.append('emp_bank', formData.iban || '');
+      body.append('bank_name', formData.bankName || '');
+      body.append('bank_branch', formData.bankBranch || '');
+      body.append('bank_title', formData.accountTitle || '');
+
+      body.append('q_degree', formData.degree || '');
+      body.append('q_year', formData.passingYear || '');
+      body.append('q_institute', formData.university || '');
+      body.append('q_passing', formData.cgpa || '');
+      body.append('q_remarks', formData.q_remarks || '');
+
+      body.append('emerg_contact_name', formData.emergencyName || '');
+      body.append('emerg_contact_no', formData.emergencyPhone || '');
+      body.append('emerg_contact_relation', formData.emergencyRelation || '');
+
+      body.append('company_name', formData.prevEmployer || '');
+      body.append('date_from', formData.workFrom || '');
+      body.append('date_to', formData.workTo || '');
+      body.append('designation', formData.prevDesignation || '');
+      body.append('remarks', formData.workRemarks || '');
+
+      // Image Attachment
+      if (formData.profileImage) {
+        body.append('filename', {
+          uri: formData.profileImage.uri,
+          type: 'image/jpeg',
+          name: formData.profileImage.fileName || 'profile.jpg',
+        });
+      }
+
+      console.log('Submitting Form Data:', body);
+
+      const response = await axios.post(
+        `${BASEURL}employee_setup_post.php`,
+        body,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+
+      console.log('Registration Response:', response.data);
+
+      if (response.data.status === 'true' || response.data.status === true) {
+        Toast.show({
+          type: 'success',
+          text1: 'Registration Successful',
+          text2: response.data.message || 'Employee registered successfully!',
+        });
+        setTimeout(() => navigation.goBack(), 2000);
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Registration Failed',
+          text2: response.data.message || 'Unable to register employee.',
+        });
+      }
+    } catch (err) {
+      console.error('Registration Error:', err);
+      Toast.show({
+        type: 'error',
+        text1: 'Registration Error',
+        text2: 'A network error occurred. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const renderInformationSection = () => (
     <Animatable.View
       animation="fadeIn"
@@ -225,6 +392,7 @@ const EmployeeRegistration = ({navigation}) => {
         placeholder="Enter Full Name"
         formData={formData}
         handleInputChange={handleInputChange}
+        error={errors.fullName}
       />
       <InputField
         label="Employee's Father Name"
@@ -232,6 +400,7 @@ const EmployeeRegistration = ({navigation}) => {
         placeholder="Enter Father's Name"
         formData={formData}
         handleInputChange={handleInputChange}
+        error={errors.fatherName}
       />
       <View style={styles.row}>
         <View style={{flex: 1, marginRight: 8}}>
@@ -240,7 +409,10 @@ const EmployeeRegistration = ({navigation}) => {
               Gender <Text style={{color: COLORS.ERROR}}>*</Text>
             </Text>
             <Dropdown
-              style={styles.dropdown}
+              style={[
+                styles.dropdown,
+                errors.gender && {borderColor: COLORS.ERROR, borderWidth: 1.5},
+              ]}
               placeholderStyle={styles.placeholderStyle}
               selectedTextStyle={styles.selectedTextStyle}
               itemTextStyle={{color: '#000'}}
@@ -261,13 +433,16 @@ const EmployeeRegistration = ({navigation}) => {
             </Text>
             <TouchableOpacity
               onPress={() => openDatePicker('dob')}
-              style={styles.dateSelector}>
+              style={[
+                styles.dateSelector,
+                errors.dob && {borderColor: COLORS.ERROR, borderWidth: 1.5},
+              ]}>
               <Text
                 style={[
                   styles.dateText,
                   !formData.dob && {color: COLORS.TEXT_LIGHT},
                 ]}>
-                {formData.dob || 'DD-MM-YYYY'}
+                {formatDateString(formData.dob) || 'DD-MM-YYYY'}
               </Text>
               <Icon name="calendar" size={20} color={COLORS.PRIMARY} />
             </TouchableOpacity>
@@ -280,6 +455,7 @@ const EmployeeRegistration = ({navigation}) => {
         placeholder="Enter Mother's Name"
         formData={formData}
         handleInputChange={handleInputChange}
+        isMandatory={false}
       />
       <InputField
         label="Mobile (registered on your NIC)"
@@ -288,6 +464,7 @@ const EmployeeRegistration = ({navigation}) => {
         keyboardType="phone-pad"
         formData={formData}
         handleInputChange={handleInputChange}
+        error={errors.mobile}
       />
       <InputField
         label="Email"
@@ -296,6 +473,7 @@ const EmployeeRegistration = ({navigation}) => {
         keyboardType="email-address"
         formData={formData}
         handleInputChange={handleInputChange}
+        isMandatory={false}
       />
       <View style={styles.row}>
         <View style={{flex: 1, marginRight: 8}}>
@@ -304,7 +482,13 @@ const EmployeeRegistration = ({navigation}) => {
               Blood Group <Text style={{color: COLORS.ERROR}}>*</Text>
             </Text>
             <Dropdown
-              style={styles.dropdown}
+              style={[
+                styles.dropdown,
+                errors.bloodGroup && {
+                  borderColor: COLORS.ERROR,
+                  borderWidth: 1.5,
+                },
+              ]}
               placeholderStyle={styles.placeholderStyle}
               selectedTextStyle={styles.selectedTextStyle}
               itemTextStyle={{color: '#000'}}
@@ -324,7 +508,13 @@ const EmployeeRegistration = ({navigation}) => {
               Marital Status <Text style={{color: COLORS.ERROR}}>*</Text>
             </Text>
             <Dropdown
-              style={styles.dropdown}
+              style={[
+                styles.dropdown,
+                errors.maritalStatus && {
+                  borderColor: COLORS.ERROR,
+                  borderWidth: 1.5,
+                },
+              ]}
               placeholderStyle={styles.placeholderStyle}
               selectedTextStyle={styles.selectedTextStyle}
               itemTextStyle={{color: '#000'}}
@@ -346,6 +536,7 @@ const EmployeeRegistration = ({navigation}) => {
         keyboardType="numeric"
         formData={formData}
         handleInputChange={handleInputChange}
+        error={errors.nic}
       />
       <View style={styles.row}>
         <View style={{flex: 1, marginRight: 8}}>
@@ -355,13 +546,19 @@ const EmployeeRegistration = ({navigation}) => {
             </Text>
             <TouchableOpacity
               onPress={() => openDatePicker('nicIssue')}
-              style={styles.dateSelector}>
+              style={[
+                styles.dateSelector,
+                errors.nicIssue && {
+                  borderColor: COLORS.ERROR,
+                  borderWidth: 1.5,
+                },
+              ]}>
               <Text
                 style={[
                   styles.dateText,
                   !formData.nicIssue && {color: COLORS.TEXT_LIGHT},
                 ]}>
-                {formData.nicIssue || 'DD-MM-YYYY'}
+                {formatDateString(formData.nicIssue) || 'DD-MM-YYYY'}
               </Text>
               <Icon name="calendar" size={20} color={COLORS.PRIMARY} />
             </TouchableOpacity>
@@ -374,13 +571,19 @@ const EmployeeRegistration = ({navigation}) => {
             </Text>
             <TouchableOpacity
               onPress={() => openDatePicker('nicExpiry')}
-              style={styles.dateSelector}>
+              style={[
+                styles.dateSelector,
+                errors.nicExpiry && {
+                  borderColor: COLORS.ERROR,
+                  borderWidth: 1.5,
+                },
+              ]}>
               <Text
                 style={[
                   styles.dateText,
                   !formData.nicExpiry && {color: COLORS.TEXT_LIGHT},
                 ]}>
-                {formData.nicExpiry || 'DD-MM-YYYY'}
+                {formatDateString(formData.nicExpiry) || 'DD-MM-YYYY'}
               </Text>
               <Icon name="calendar" size={20} color={COLORS.PRIMARY} />
             </TouchableOpacity>
@@ -393,6 +596,7 @@ const EmployeeRegistration = ({navigation}) => {
         placeholder="Enter full address"
         formData={formData}
         handleInputChange={handleInputChange}
+        error={errors.address}
       />
 
       <View style={styles.imageUploadContainer}>
@@ -419,7 +623,13 @@ const EmployeeRegistration = ({navigation}) => {
         ) : (
           <TouchableOpacity
             onPress={handleImageSelect}
-            style={styles.imagePicker}>
+            style={[
+              styles.imagePicker,
+              errors.profileImage && {
+                borderColor: COLORS.ERROR,
+                borderWidth: 1.5,
+              },
+            ]}>
             <Icon name="camera-plus" size={32} color={COLORS.PRIMARY} />
             <Text style={styles.uploadText}>Select Image</Text>
           </TouchableOpacity>
@@ -439,6 +649,7 @@ const EmployeeRegistration = ({navigation}) => {
         placeholder="Enter Contact Name"
         formData={formData}
         handleInputChange={handleInputChange}
+        error={errors.emergencyName}
       />
       <View style={styles.row}>
         <View style={{flex: 1, marginRight: 8}}>
@@ -448,6 +659,7 @@ const EmployeeRegistration = ({navigation}) => {
             placeholder="e.g. Brother"
             formData={formData}
             handleInputChange={handleInputChange}
+            error={errors.emergencyRelation}
           />
         </View>
         <View style={{flex: 1, marginLeft: 8}}>
@@ -458,6 +670,7 @@ const EmployeeRegistration = ({navigation}) => {
             keyboardType="phone-pad"
             formData={formData}
             handleInputChange={handleInputChange}
+            error={errors.emergencyPhone}
           />
         </View>
       </View>
@@ -475,13 +688,17 @@ const EmployeeRegistration = ({navigation}) => {
         placeholder="PKxx XXXX xxxx xxxx xxxx xxxx"
         formData={formData}
         handleInputChange={handleInputChange}
+        error={errors.iban}
       />
       <View style={styles.inputWrapper}>
         <Text style={styles.label}>
           Employee Bank <Text style={{color: COLORS.ERROR}}>*</Text>
         </Text>
         <Dropdown
-          style={styles.dropdown}
+          style={[
+            styles.dropdown,
+            errors.bankName && {borderColor: COLORS.ERROR, borderWidth: 1.5},
+          ]}
           placeholderStyle={styles.placeholderStyle}
           selectedTextStyle={styles.selectedTextStyle}
           itemTextStyle={{color: '#000'}}
@@ -502,6 +719,7 @@ const EmployeeRegistration = ({navigation}) => {
         placeholder="Enter Branch Name/Code"
         formData={formData}
         handleInputChange={handleInputChange}
+        error={errors.bankBranch}
       />
       <InputField
         label="TITLE OF BANK ACCOUNT"
@@ -509,6 +727,7 @@ const EmployeeRegistration = ({navigation}) => {
         placeholder="Enter Account Title"
         formData={formData}
         handleInputChange={handleInputChange}
+        error={errors.accountTitle}
       />
     </Animatable.View>
   );
@@ -519,18 +738,12 @@ const EmployeeRegistration = ({navigation}) => {
       duration={400}
       style={styles.sectionContent}>
       <InputField
-        label="Last qualification"
-        field="lastQualification"
-        placeholder="e.g. Masters"
-        formData={formData}
-        handleInputChange={handleInputChange}
-      />
-      <InputField
         label="Qualification Degree"
         field="degree"
         placeholder="e.g. MCS"
         formData={formData}
         handleInputChange={handleInputChange}
+        error={errors.degree}
       />
       <InputField
         label="Passing Year"
@@ -539,6 +752,7 @@ const EmployeeRegistration = ({navigation}) => {
         keyboardType="numeric"
         formData={formData}
         handleInputChange={handleInputChange}
+        isMandatory={false}
       />
       <InputField
         label="University / Institute"
@@ -546,11 +760,19 @@ const EmployeeRegistration = ({navigation}) => {
         placeholder="Enter University Name"
         formData={formData}
         handleInputChange={handleInputChange}
+        error={errors.university}
       />
       <InputField
         label="CGPA/ Passing%"
         field="cgpa"
         placeholder="e.g. 3.5 or 80%"
+        formData={formData}
+        handleInputChange={handleInputChange}
+      />
+      <InputField
+        label="Qualification Remarks"
+        field="q_remarks"
+        placeholder="Enter any remarks"
         formData={formData}
         handleInputChange={handleInputChange}
       />
@@ -582,7 +804,7 @@ const EmployeeRegistration = ({navigation}) => {
                   styles.dateText,
                   !formData.workFrom && {color: COLORS.TEXT_LIGHT},
                 ]}>
-                {formData.workFrom || 'DD-MM-YYYY'}
+                {formatDateString(formData.workFrom) || 'DD-MM-YYYY'}
               </Text>
               <Icon name="calendar" size={20} color={COLORS.PRIMARY} />
             </TouchableOpacity>
@@ -599,7 +821,7 @@ const EmployeeRegistration = ({navigation}) => {
                   styles.dateText,
                   !formData.workTo && {color: COLORS.TEXT_LIGHT},
                 ]}>
-                {formData.workTo || 'DD-MM-YYYY'}
+                {formatDateString(formData.workTo) || 'DD-MM-YYYY'}
               </Text>
               <Icon name="calendar" size={20} color={COLORS.PRIMARY} />
             </TouchableOpacity>
@@ -613,137 +835,13 @@ const EmployeeRegistration = ({navigation}) => {
         formData={formData}
         handleInputChange={handleInputChange}
       />
-    </Animatable.View>
-  );
-
-  const renderAttachmentSection = () => (
-    <Animatable.View
-      animation="fadeIn"
-      duration={400}
-      style={styles.sectionContent}>
-      <TouchableOpacity
-        onPress={() => handleDocumentSelect('cnicDoc')}
-        activeOpacity={0.7}
-        style={styles.attachmentItem}>
-        <View style={styles.attachmentTextInfo}>
-          <Text style={styles.attachmentTitle}>
-            CNIC <Text style={{color: COLORS.ERROR}}>*</Text>
-          </Text>
-          <Text
-            style={[
-              styles.attachmentSub,
-              formData.cnicDoc && {color: COLORS.SUCCESS, fontWeight: '600'},
-            ]}>
-            {formData.cnicDoc ? formData.cnicDoc.name : 'Front & Back Scan'}
-          </Text>
-        </View>
-        <View style={styles.uploadBtnWrapper}>
-          <Icon
-            name={formData.cnicDoc ? 'check-circle' : 'upload'}
-            size={24}
-            color={formData.cnicDoc ? COLORS.SUCCESS : COLORS.PRIMARY}
-          />
-        </View>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={() => handleDocumentSelect('cvDoc')}
-        activeOpacity={0.7}
-        style={styles.attachmentItem}>
-        <View style={styles.attachmentTextInfo}>
-          <Text style={styles.attachmentTitle}>
-            Update CV <Text style={{color: COLORS.ERROR}}>*</Text>
-          </Text>
-          <Text
-            style={[
-              styles.attachmentSub,
-              formData.cvDoc && {color: COLORS.SUCCESS, fontWeight: '600'},
-            ]}>
-            {formData.cvDoc ? formData.cvDoc.name : 'Latest Professional CV'}
-          </Text>
-        </View>
-        <View style={styles.uploadBtnWrapper}>
-          <Icon
-            name={formData.cvDoc ? 'check-circle' : 'upload'}
-            size={24}
-            color={formData.cvDoc ? COLORS.SUCCESS : COLORS.PRIMARY}
-          />
-        </View>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={() => handleDocumentSelect('qualDoc')}
-        activeOpacity={0.7}
-        style={styles.attachmentItem}>
-        <View style={styles.attachmentTextInfo}>
-          <Text style={styles.attachmentTitle}>
-            Last qualification documents{' '}
-            <Text style={{color: COLORS.ERROR}}>*</Text>
-          </Text>
-          <Text
-            style={[
-              styles.attachmentSub,
-              formData.qualDoc && {color: COLORS.SUCCESS, fontWeight: '600'},
-            ]}>
-            {formData.qualDoc ? formData.qualDoc.name : 'Degree/Transcript'}
-          </Text>
-        </View>
-        <View style={styles.uploadBtnWrapper}>
-          <Icon
-            name={formData.qualDoc ? 'check-circle' : 'upload'}
-            size={24}
-            color={formData.qualDoc ? COLORS.SUCCESS : COLORS.PRIMARY}
-          />
-        </View>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={() => handleDocumentSelect('policeDoc')}
-        activeOpacity={0.7}
-        style={styles.attachmentItem}>
-        <View style={styles.attachmentTextInfo}>
-          <Text style={styles.attachmentTitle}>
-            Police character certificate
-          </Text>
-          <Text
-            style={[
-              styles.attachmentSub,
-              formData.policeDoc && {color: COLORS.SUCCESS, fontWeight: '600'},
-            ]}>
-            {formData.policeDoc ? formData.policeDoc.name : '(Not mandatory)'}
-          </Text>
-        </View>
-        <View style={styles.uploadBtnWrapper}>
-          <Icon
-            name={formData.policeDoc ? 'check-circle' : 'upload'}
-            size={24}
-            color={formData.policeDoc ? COLORS.SUCCESS : COLORS.TEXT_LIGHT}
-          />
-        </View>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={() => handleDocumentSelect('otherDoc')}
-        activeOpacity={0.7}
-        style={styles.attachmentItem}>
-        <View style={styles.attachmentTextInfo}>
-          <Text style={styles.attachmentTitle}>Other documents</Text>
-          <Text
-            style={[
-              styles.attachmentSub,
-              formData.otherDoc && {color: COLORS.SUCCESS, fontWeight: '600'},
-            ]}>
-            {formData.otherDoc ? formData.otherDoc.name : '(Not mandatory)'}
-          </Text>
-        </View>
-        <View style={styles.uploadBtnWrapper}>
-          <Icon
-            name={formData.otherDoc ? 'check-circle' : 'upload'}
-            size={24}
-            color={formData.otherDoc ? COLORS.SUCCESS : COLORS.TEXT_LIGHT}
-          />
-        </View>
-      </TouchableOpacity>
+      <InputField
+        label="History Remarks"
+        field="workRemarks"
+        placeholder="Enter any remarks"
+        formData={formData}
+        handleInputChange={handleInputChange}
+      />
     </Animatable.View>
   );
 
@@ -786,15 +884,22 @@ const EmployeeRegistration = ({navigation}) => {
                   {section.id === 'Qualification' &&
                     renderQualificationSection()}
                   {section.id === 'Work' && renderWorkSection()}
-                  {section.id === 'Attachments' && renderAttachmentSection()}
                 </View>
               )}
             </View>
           ))}
         </View>
 
-        <TouchableOpacity style={styles.submitButton} activeOpacity={0.8}>
-          <Text style={styles.submitButtonText}>Submit Registration</Text>
+        <TouchableOpacity
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+          style={[styles.submitButton, isSubmitting && {opacity: 0.7}]}
+          activeOpacity={0.8}>
+          {isSubmitting ? (
+            <ActivityIndicator color={COLORS.WHITE} />
+          ) : (
+            <Text style={styles.submitButtonText}>Submit Registration</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
 
@@ -828,6 +933,7 @@ const EmployeeRegistration = ({navigation}) => {
           )}
         </SafeAreaView>
       </Modal>
+      <Toast />
     </View>
   );
 };

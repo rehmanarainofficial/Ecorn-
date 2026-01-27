@@ -21,47 +21,7 @@ import axios from 'axios';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {useSelector} from 'react-redux';
 import SimpleHeader from '../../../../components/SimpleHeader';
-
-// Receipt From options
-const RECEIPT_FROM_OPTIONS = [
-  {label: 'Adv. Dir. Irfan', value: 'adv_dir_irfan'},
-  {label: 'Customer Cash', value: 'customer_cash'},
-  {label: 'Accounts', value: 'accounts'},
-];
-
-// Receipt Into options
-const RECEIPT_INTO_OPTIONS = [
-  {label: 'Bank Account No', value: 'bank_account'},
-  {label: 'Cash in Hand', value: 'cash_in_hand'},
-];
-
-// Paid From options
-const PAID_FROM_OPTIONS = [
-  {label: 'Adv. Dir. Irfan', value: 'adv_dir_irfan'},
-  {label: 'Accounts', value: 'accounts'},
-  {label: 'Direct to Vendor', value: 'direct_to_vendor'},
-];
-
-// Payment Mode options
-const PAYMENT_MODE_OPTIONS = [
-  {label: 'Bank', value: 'bank'},
-  {label: 'Cash', value: 'cash'},
-];
-
-// Factory Expenses Type options
-const FACTORY_TYPE_OPTIONS = [
-  {label: 'Electricity', value: 'electricity'},
-  {label: 'Gas', value: 'gas'},
-  {label: 'Water', value: 'water'},
-  {label: 'Maintenance', value: 'maintenance'},
-  {label: 'Repair', value: 'repair'},
-  {label: 'Cleaning', value: 'cleaning'},
-  {label: 'Security', value: 'security'},
-  {label: 'Transportation', value: 'transportation'},
-  {label: 'Fuel', value: 'fuel'},
-  {label: 'Labour', value: 'labour'},
-  {label: 'Other', value: 'other'},
-];
+import {formatToYYYYMMDD} from '../../../../utils/DateUtils';
 
 // Material/Stores Category options
 const CATEGORY_OPTIONS = [
@@ -110,28 +70,31 @@ export default function LocalPurchase({navigation}) {
 
   // Main Tab State
   const [mainTab, setMainTab] = useState('receipt'); // 'receipt' or 'payment'
-  
+
+  // Accounts State
+  const [accounts, setAccounts] = useState([]);
+  const [accountsLoading, setAccountsLoading] = useState(false);
+
+  // Expense Accounts State
+  const [expenseAccounts, setExpenseAccounts] = useState([]);
+  const [expenseAccountsLoading, setExpenseAccountsLoading] = useState(false);
+
   // Payment Category State
   const [paymentCategory, setPaymentCategory] = useState('factory_expenses');
 
   // Common State
-  const [serialNo, setSerialNo] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [serialLoading, setSerialLoading] = useState(true);
 
   // Receipt Form State
   const [receiptFrom, setReceiptFrom] = useState(null);
-  const [customerName, setCustomerName] = useState('');
-  const [receiptInto, setReceiptInto] = useState(null);
   const [receiptAmount, setReceiptAmount] = useState('');
   const [receiptImage, setReceiptImage] = useState(null);
 
+  const [imageLoading, setImageLoading] = useState(false);
+
   // Payment Common State
-  const [paidFrom, setPaidFrom] = useState(null);
-  const [supplierName, setSupplierName] = useState('');
-  const [paymentMode, setPaymentMode] = useState(null);
   const [billsImage, setBillsImage] = useState(null);
 
   // Factory Expenses State
@@ -160,27 +123,27 @@ export default function LocalPurchase({navigation}) {
   // Image Modal State
   const [showImageModal, setShowImageModal] = useState(false);
   const [modalImage, setModalImage] = useState(null);
-  const [imageLoading, setImageLoading] = useState(false);
 
   useEffect(() => {
-    generateSerialNo();
+    fetchAccounts();
+    fetchExpenseAccounts();
   }, []);
 
-  const generateSerialNo = async () => {
-    setSerialLoading(true);
+  const fetchAccounts = async () => {
+    setAccountsLoading(true);
     try {
-      const response = await axios.get(`${BASEURL}local_purchase_serial.php`);
-      if (response.data?.status === 'true' && response.data?.last_serial) {
-        const lastSerial = parseInt(response.data.last_serial, 10);
-        setSerialNo(String(lastSerial + 1).padStart(6, '0'));
-      } else {
-        setSerialNo('000001');
+      const response = await axios.get(`${BASEURL}local_purchase_account.php`);
+      if (response.data?.status === 'true' && response.data?.data) {
+        const mappedAccounts = response.data.data.map(acc => ({
+          label: acc.account_name.replace(/label: acc.account_name,amp;/g, '&'),
+          value: acc.account_code,
+        }));
+        setAccounts(mappedAccounts);
       }
     } catch (error) {
-      const timestamp = Date.now().toString().slice(-6);
-      setSerialNo(timestamp);
+      console.log('Fetch Accounts Error:', error);
     } finally {
-      setSerialLoading(false);
+      setAccountsLoading(false);
     }
   };
 
@@ -190,6 +153,26 @@ export default function LocalPurchase({navigation}) {
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
+  };
+
+  const fetchExpenseAccounts = async () => {
+    setExpenseAccountsLoading(true);
+    try {
+      const response = await axios.get(
+        `${BASEURL}local_purchase_payment_account.php`,
+      );
+      if (response.data?.status === 'true' && response.data?.data) {
+        const mappedAccounts = response.data.data.map(acc => ({
+          label: acc.account_name.replace(/&amp;/g, '&'),
+          value: acc.account_code,
+        }));
+        setExpenseAccounts(mappedAccounts);
+      }
+    } catch (error) {
+      console.log('Fetch Expense Accounts Error:', error);
+    } finally {
+      setExpenseAccountsLoading(false);
+    }
   };
 
   const formatDateForApi = d => {
@@ -219,12 +202,12 @@ export default function LocalPurchase({navigation}) {
     return true;
   };
 
-  const pickImage = (setImageFn) => {
+  const pickImage = setImageFn => {
     const options = {
       mediaType: 'photo',
       quality: 0.8,
-      maxWidth: 1024,
-      maxHeight: 1024,
+      maxWidth: 800,
+      maxHeight: 800,
     };
 
     setImageLoading(true);
@@ -236,7 +219,7 @@ export default function LocalPurchase({navigation}) {
     });
   };
 
-  const captureImage = async (setImageFn) => {
+  const captureImage = async setImageFn => {
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
       ToastAndroid.show('Camera permission denied', ToastAndroid.SHORT);
@@ -246,8 +229,8 @@ export default function LocalPurchase({navigation}) {
     const options = {
       mediaType: 'photo',
       quality: 0.8,
-      maxWidth: 1024,
-      maxHeight: 1024,
+      maxWidth: 800,
+      maxHeight: 800,
       saveToPhotos: false,
     };
 
@@ -260,7 +243,7 @@ export default function LocalPurchase({navigation}) {
     });
   };
 
-  const viewImage = (imageUri) => {
+  const viewImage = imageUri => {
     setModalImage(imageUri);
     setShowImageModal(true);
   };
@@ -271,7 +254,9 @@ export default function LocalPurchase({navigation}) {
       ToastAndroid.show('Please fill Type and Amount', ToastAndroid.SHORT);
       return;
     }
-    const typeLabel = FACTORY_TYPE_OPTIONS.find(o => o.value === factoryType)?.label || factoryType;
+    const typeLabel =
+      FACTORY_TYPE_OPTIONS.find(o => o.value === factoryType)?.label ||
+      factoryType;
     setFactoryItems([
       ...factoryItems,
       {
@@ -295,8 +280,12 @@ export default function LocalPurchase({navigation}) {
       ToastAndroid.show('Please fill Category and Amount', ToastAndroid.SHORT);
       return;
     }
-    const categoryLabel = CATEGORY_OPTIONS.find(o => o.value === materialCategory)?.label || materialCategory;
-    const productTypeLabel = PRODUCT_TYPE_OPTIONS.find(o => o.value === materialProductType)?.label || materialProductType;
+    const categoryLabel =
+      CATEGORY_OPTIONS.find(o => o.value === materialCategory)?.label ||
+      materialCategory;
+    const productTypeLabel =
+      PRODUCT_TYPE_OPTIONS.find(o => o.value === materialProductType)?.label ||
+      materialProductType;
     setMaterialItems([
       ...materialItems,
       {
@@ -323,8 +312,12 @@ export default function LocalPurchase({navigation}) {
       ToastAndroid.show('Please fill Category and Amount', ToastAndroid.SHORT);
       return;
     }
-    const categoryLabel = CATEGORY_OPTIONS.find(o => o.value === storesCategory)?.label || storesCategory;
-    const productTypeLabel = PRODUCT_TYPE_OPTIONS.find(o => o.value === storesProductType)?.label || storesProductType;
+    const categoryLabel =
+      CATEGORY_OPTIONS.find(o => o.value === storesCategory)?.label ||
+      storesCategory;
+    const productTypeLabel =
+      PRODUCT_TYPE_OPTIONS.find(o => o.value === storesProductType)?.label ||
+      storesProductType;
     setStoresItems([
       ...storesItems,
       {
@@ -345,23 +338,23 @@ export default function LocalPurchase({navigation}) {
     setStoresItemImage(null);
   };
 
-  const removeFactoryItem = (itemId) => {
+  const removeFactoryItem = itemId => {
     setFactoryItems(factoryItems.filter(item => item.id !== itemId));
   };
 
-  const removeMaterialItem = (itemId) => {
+  const removeMaterialItem = itemId => {
     setMaterialItems(materialItems.filter(item => item.id !== itemId));
   };
 
-  const removeStoresItem = (itemId) => {
+  const removeStoresItem = itemId => {
     setStoresItems(storesItems.filter(item => item.id !== itemId));
   };
 
-  const calculateTotal = (items) => {
+  const calculateTotal = items => {
     return items.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
   };
 
-  const formatNumber = (num) => {
+  const formatNumber = num => {
     return parseFloat(num).toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -371,25 +364,9 @@ export default function LocalPurchase({navigation}) {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append('serial_no', serialNo);
-      formData.append('date', formatDateForApi(date));
-      formData.append('type', mainTab);
-      formData.append('user_id', id);
-
       if (mainTab === 'receipt') {
         if (!receiptFrom) {
           ToastAndroid.show('Please select Receipt From', ToastAndroid.SHORT);
-          setLoading(false);
-          return;
-        }
-        if (receiptFrom === 'customer_cash' && !customerName.trim()) {
-          ToastAndroid.show('Please enter Customer Name', ToastAndroid.SHORT);
-          setLoading(false);
-          return;
-        }
-        if (receiptFrom !== 'customer_cash' && !receiptInto) {
-          ToastAndroid.show('Please select Receipt Into', ToastAndroid.SHORT);
           setLoading(false);
           return;
         }
@@ -399,105 +376,177 @@ export default function LocalPurchase({navigation}) {
           return;
         }
 
-        const receiptFromLabel = RECEIPT_FROM_OPTIONS.find(o => o.value === receiptFrom)?.label || '';
-        const receiptIntoLabel = RECEIPT_INTO_OPTIONS.find(o => o.value === receiptInto)?.label || '';
+        if (!id) {
+          ToastAndroid.show(
+            'User ID not found. Please login again.',
+            ToastAndroid.SHORT,
+          );
+          setLoading(false);
+          return;
+        }
 
-        formData.append('receipt_from', receiptFromLabel);
-        formData.append('customer_name', receiptFrom === 'customer_cash' ? customerName.trim() : '');
-        formData.append('receipt_into', receiptFrom === 'customer_cash' ? 'Cash' : receiptIntoLabel);
-        formData.append('amount', receiptAmount.trim());
+        const body = new FormData();
+        body.append('trans_date', formatToYYYYMMDD(date));
+        body.append('amount', receiptAmount.trim());
+        body.append('user_id', id);
+
+        const receiptDetail = [
+          {
+            account_code: receiptFrom,
+            amount: receiptAmount.trim(),
+          },
+        ];
+        body.append('receipt_detail', JSON.stringify(receiptDetail));
 
         if (receiptImage) {
-          formData.append('image', {
+          const imageFile = {
             uri: receiptImage,
             type: 'image/jpeg',
-            name: `receipt_${serialNo}_${Date.now()}.jpg`,
-          });
+            name: `receipt_${Date.now()}.jpg`,
+          };
+          body.append('filename', imageFile);
+        }
+
+        console.log('Receipt Submission Data:', {
+          trans_date: formatToYYYYMMDD(date),
+          amount: receiptAmount.trim(),
+          user_id: id,
+          receipt_detail: receiptDetail,
+          has_image: !!receiptImage,
+        });
+
+        const response = await axios.post(
+          `${BASEURL}post_local_purchase_receipt.php`,
+          body,
+          {
+            timeout: 30000,
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          },
+        );
+
+        if (
+          response.data?.status === true ||
+          response.data?.status === 'true'
+        ) {
+          ToastAndroid.show('Submitted successfully', ToastAndroid.LONG);
+          resetForm();
+        } else {
+          ToastAndroid.show(
+            response.data?.message || 'Server error',
+            ToastAndroid.LONG,
+          );
         }
       } else {
         // Payment
-        formData.append('payment_category', paymentCategory);
-
-        if (paidFrom === 'direct_to_vendor') {
-          if (!supplierName.trim()) {
-            ToastAndroid.show('Please enter Supplier Name', ToastAndroid.SHORT);
-            setLoading(false);
-            return;
-          }
-          if (!paymentMode) {
-            ToastAndroid.show('Please select Payment Mode', ToastAndroid.SHORT);
-            setLoading(false);
-            return;
-          }
-          formData.append('supplier_name', supplierName.trim());
-          formData.append('payment_mode', PAYMENT_MODE_OPTIONS.find(o => o.value === paymentMode)?.label || '');
-        } else {
-          if (!paidFrom) {
-            ToastAndroid.show('Please select Paid From', ToastAndroid.SHORT);
-            setLoading(false);
-            return;
-          }
-          const paidFromLabel = PAID_FROM_OPTIONS.find(o => o.value === paidFrom)?.label || '';
-          formData.append('paid_from', paidFromLabel);
+        if (!id) {
+          ToastAndroid.show(
+            'User ID not found. Please login again.',
+            ToastAndroid.SHORT,
+          );
+          setLoading(false);
+          return;
         }
 
         let items = [];
-        let totalAmount = 0;
-
         if (paymentCategory === 'factory_expenses') {
           if (factoryItems.length === 0) {
-            ToastAndroid.show('Please add at least one item', ToastAndroid.SHORT);
+            ToastAndroid.show(
+              'Please add at least one item',
+              ToastAndroid.SHORT,
+            );
             setLoading(false);
             return;
           }
           items = factoryItems;
-          totalAmount = calculateTotal(factoryItems);
         } else if (paymentCategory === 'material_purchase') {
           if (materialItems.length === 0) {
-            ToastAndroid.show('Please add at least one item', ToastAndroid.SHORT);
+            ToastAndroid.show(
+              'Please add at least one item',
+              ToastAndroid.SHORT,
+            );
             setLoading(false);
             return;
           }
           items = materialItems;
-          totalAmount = calculateTotal(materialItems);
         } else {
           if (storesItems.length === 0) {
-            ToastAndroid.show('Please add at least one item', ToastAndroid.SHORT);
+            ToastAndroid.show(
+              'Please add at least one item',
+              ToastAndroid.SHORT,
+            );
             setLoading(false);
             return;
           }
           items = storesItems;
-          totalAmount = calculateTotal(storesItems);
         }
 
-        formData.append('items', JSON.stringify(items));
-        formData.append('total_amount', totalAmount.toString());
+        const totalAmount = calculateTotal(items);
+
+        // Map items to expense_detail
+        // Note: account_code is mapped from typeValue/categoryValue
+        // We ensure line_memo and amount are correctly set
+        const expenseDetail = items.map(item => ({
+          account_code: item.typeValue || item.categoryValue || '',
+          amount: parseFloat(item.amount),
+          line_memo: item.description || '',
+        }));
+
+        const formData = new FormData();
+        formData.append('trans_date', formatToYYYYMMDD(date));
+        formData.append('amount', totalAmount.toString());
+        formData.append('user_id', id);
+        formData.append('expense_detail', JSON.stringify(expenseDetail));
 
         if (billsImage) {
-          formData.append('bills_image', {
+          const imageFile = {
             uri: billsImage,
             type: 'image/jpeg',
-            name: `bills_${serialNo}_${Date.now()}.jpg`,
-          });
+            name: `bills_${Date.now()}.jpg`,
+          };
+          formData.append('filename', imageFile);
+        }
+
+        console.log('Payment Submission Data:', {
+          trans_date: formatToYYYYMMDD(date),
+          amount: totalAmount,
+          user_id: id,
+          expense_detail: expenseDetail,
+          has_filename: !!billsImage,
+        });
+
+        const response = await axios.post(
+          `${BASEURL}post_local_purchase_payment.php`,
+          formData,
+          {
+            timeout: 30000,
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          },
+        );
+
+        console.log('Payment API Response:', response.data);
+
+        if (
+          response.data?.status === true ||
+          response.data?.status === 'true'
+        ) {
+          ToastAndroid.show('Submitted successfully', ToastAndroid.LONG);
+          resetForm();
+        } else {
+          ToastAndroid.show(
+            response.data?.message || 'Server error',
+            ToastAndroid.LONG,
+          );
         }
       }
-
-      const response = await axios.post(
-        `${BASEURL}local_purchase_post.php`,
-        formData,
-        {headers: {'Content-Type': 'multipart/form-data'}},
-      );
-
-      if (response.data?.status === true || response.data?.status === 'true') {
-        ToastAndroid.show('Submitted successfully', ToastAndroid.LONG);
-        resetForm();
-        generateSerialNo();
-      } else {
-        ToastAndroid.show(response.data?.message || 'Submission failed', ToastAndroid.LONG);
-      }
     } catch (error) {
-      console.log('Submit Error:', error);
-      ToastAndroid.show('Submission failed', ToastAndroid.LONG);
+      console.log('Submission Error:', error.response?.data || error.message);
+      const errorMsg =
+        error.response?.data?.message || error.message || 'Network error';
+      ToastAndroid.show(`Error: ${errorMsg}`, ToastAndroid.LONG);
     } finally {
       setLoading(false);
     }
@@ -505,13 +554,8 @@ export default function LocalPurchase({navigation}) {
 
   const resetForm = () => {
     setReceiptFrom(null);
-    setCustomerName('');
-    setReceiptInto(null);
     setReceiptAmount('');
     setReceiptImage(null);
-    setPaidFrom(null);
-    setSupplierName('');
-    setPaymentMode(null);
     setBillsImage(null);
     setFactoryItems([]);
     setMaterialItems([]);
@@ -557,19 +601,6 @@ export default function LocalPurchase({navigation}) {
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Receipt Details</Text>
 
-      {/* Serial No */}
-      <View style={styles.fieldRow}>
-        <Text style={styles.fieldLabel}>Serial No.</Text>
-        <View style={styles.serialField}>
-          {serialLoading ? (
-            <ActivityIndicator size="small" color={COLORS.AccentBlue} />
-          ) : (
-            <Text style={styles.serialText}>{serialNo}</Text>
-          )}
-          <Text style={styles.autoGeneratedBadge}>Auto Generated</Text>
-        </View>
-      </View>
-
       {/* Date */}
       <View style={styles.fieldRow}>
         <Text style={styles.fieldLabel}>Date</Text>
@@ -577,7 +608,11 @@ export default function LocalPurchase({navigation}) {
           style={styles.dateField}
           onPress={() => setShowDatePicker(true)}>
           <Text style={styles.dateText}>{formatDate(date)}</Text>
-          <Ionicons name="calendar-outline" size={20} color={COLORS.LabelColor} />
+          <Ionicons
+            name="calendar-outline"
+            size={20}
+            color={COLORS.LabelColor}
+          />
         </TouchableOpacity>
       </View>
 
@@ -588,51 +623,18 @@ export default function LocalPurchase({navigation}) {
           style={styles.dropdown}
           placeholderStyle={styles.dropdownPlaceholder}
           selectedTextStyle={styles.dropdownSelectedText}
-          data={RECEIPT_FROM_OPTIONS}
+          data={accounts}
           labelField="label"
           valueField="value"
-          placeholder="Select Receipt From"
+          placeholder={accountsLoading ? 'Loading...' : 'Select Receipt From'}
           value={receiptFrom}
           onChange={item => {
             setReceiptFrom(item.value);
-            if (item.value === 'customer_cash') {
-              setReceiptInto(null);
-            }
           }}
+          search
+          searchPlaceholder="Search account..."
         />
       </View>
-
-      {/* Customer Name */}
-      {receiptFrom === 'customer_cash' && (
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Name of Customer</Text>
-          <TextInput
-            style={styles.inputField}
-            placeholder="Enter customer name..."
-            placeholderTextColor={COLORS.LabelColor}
-            value={customerName}
-            onChangeText={setCustomerName}
-          />
-        </View>
-      )}
-
-      {/* Receipt Into */}
-      {receiptFrom !== 'customer_cash' && (
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Receipt Into</Text>
-          <Dropdown
-            style={styles.dropdown}
-            placeholderStyle={styles.dropdownPlaceholder}
-            selectedTextStyle={styles.dropdownSelectedText}
-            data={RECEIPT_INTO_OPTIONS}
-            labelField="label"
-            valueField="value"
-            placeholder="Select Receipt Into"
-            value={receiptInto}
-            onChange={item => setReceiptInto(item.value)}
-          />
-        </View>
-      )}
 
       {/* Amount */}
       <View style={styles.fieldRow}>
@@ -665,12 +667,14 @@ export default function LocalPurchase({navigation}) {
             style={styles.dropdown}
             placeholderStyle={styles.dropdownPlaceholder}
             selectedTextStyle={styles.dropdownSelectedText}
-            data={FACTORY_TYPE_OPTIONS}
+            data={expenseAccounts}
             labelField="label"
             valueField="value"
-            placeholder="Select Type"
+            placeholder={expenseAccountsLoading ? 'Loading...' : 'Select Type'}
             value={factoryType}
             onChange={item => setFactoryType(item.value)}
+            search
+            searchPlaceholder="Search expense type..."
           />
         </View>
 
@@ -697,8 +701,6 @@ export default function LocalPurchase({navigation}) {
           />
         </View>
 
-        {renderImagePicker(factoryItemImage, setFactoryItemImage, 'Attachment')}
-
         <TouchableOpacity style={styles.addItemBtn} onPress={addFactoryItem}>
           <Ionicons name="add-circle" size={20} color={COLORS.WHITE} />
           <Text style={styles.addItemBtnText}>Add Item</Text>
@@ -711,7 +713,9 @@ export default function LocalPurchase({navigation}) {
           <View style={styles.tableHeader}>
             <Text style={[styles.tableHeaderCell, {flex: 0.5}]}>#</Text>
             <Text style={[styles.tableHeaderCell, {flex: 1}]}>Type</Text>
-            <Text style={[styles.tableHeaderCell, {flex: 1.5}]}>Description</Text>
+            <Text style={[styles.tableHeaderCell, {flex: 1.5}]}>
+              Description
+            </Text>
             <Text style={[styles.tableHeaderCell, {flex: 1}]}>Amount</Text>
             <Text style={[styles.tableHeaderCell, {flex: 0.5}]}>Att.</Text>
             <Text style={[styles.tableHeaderCell, {flex: 0.5}]}></Text>
@@ -719,28 +723,39 @@ export default function LocalPurchase({navigation}) {
           {factoryItems.map((item, index) => (
             <View key={item.id} style={styles.tableRow}>
               <Text style={[styles.tableCell, {flex: 0.5}]}>{index + 1}</Text>
-              <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>{item.type}</Text>
-              <Text style={[styles.tableCell, {flex: 1.5}]} numberOfLines={1}>{item.description || '-'}</Text>
-              <Text style={[styles.tableCell, {flex: 1}]}>{formatNumber(item.amount)}</Text>
+              <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>
+                {item.type}
+              </Text>
+              <Text style={[styles.tableCell, {flex: 1.5}]} numberOfLines={1}>
+                {item.description || '-'}
+              </Text>
+              <Text style={[styles.tableCell, {flex: 1}]}>
+                {formatNumber(item.amount)}
+              </Text>
               <View style={[styles.tableCell, {flex: 0.5}]}>
                 {item.image && (
                   <TouchableOpacity onPress={() => viewImage(item.image)}>
-                    <Ionicons name="image" size={18} color={COLORS.AccentBlue} />
+                    <Ionicons
+                      name="image"
+                      size={18}
+                      color={COLORS.AccentBlue}
+                    />
                   </TouchableOpacity>
                 )}
               </View>
               <TouchableOpacity
                 style={[styles.tableCell, {flex: 0.5}]}
                 onPress={() => removeFactoryItem(item.id)}>
-                <Ionicons name="trash-outline" size={18} color={COLORS.Danger} />
+                <Ionicons
+                  name="trash-outline"
+                  size={18}
+                  color={COLORS.Danger}
+                />
               </TouchableOpacity>
             </View>
           ))}
         </View>
       )}
-
-      {/* Paid From */}
-      {renderPaidFromSection()}
     </View>
   );
 
@@ -804,7 +819,11 @@ export default function LocalPurchase({navigation}) {
           />
         </View>
 
-        {renderImagePicker(materialItemImage, setMaterialItemImage, 'Attachment')}
+        {renderImagePicker(
+          materialItemImage,
+          setMaterialItemImage,
+          'Attachment',
+        )}
 
         <TouchableOpacity style={styles.addItemBtn} onPress={addMaterialItem}>
           <Ionicons name="add-circle" size={20} color={COLORS.WHITE} />
@@ -828,34 +847,49 @@ export default function LocalPurchase({navigation}) {
             {materialItems.map((item, index) => (
               <View key={item.id} style={styles.tableRow}>
                 <Text style={[styles.tableCell, {flex: 0.4}]}>{index + 1}</Text>
-                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>{item.category}</Text>
-                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>{item.productType || '-'}</Text>
-                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>{item.description || '-'}</Text>
-                <Text style={[styles.tableCell, {flex: 0.8}]}>{formatNumber(item.amount)}</Text>
+                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>
+                  {item.category}
+                </Text>
+                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>
+                  {item.productType || '-'}
+                </Text>
+                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>
+                  {item.description || '-'}
+                </Text>
+                <Text style={[styles.tableCell, {flex: 0.8}]}>
+                  {formatNumber(item.amount)}
+                </Text>
                 <View style={[styles.tableCell, {flex: 0.4}]}>
                   {item.image && (
                     <TouchableOpacity onPress={() => viewImage(item.image)}>
-                      <Ionicons name="image" size={18} color={COLORS.AccentBlue} />
+                      <Ionicons
+                        name="image"
+                        size={18}
+                        color={COLORS.AccentBlue}
+                      />
                     </TouchableOpacity>
                   )}
                 </View>
                 <TouchableOpacity
                   style={[styles.tableCell, {flex: 0.4}]}
                   onPress={() => removeMaterialItem(item.id)}>
-                  <Ionicons name="trash-outline" size={18} color={COLORS.Danger} />
+                  <Ionicons
+                    name="trash-outline"
+                    size={18}
+                    color={COLORS.Danger}
+                  />
                 </TouchableOpacity>
               </View>
             ))}
           </View>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Total Amount:</Text>
-            <Text style={styles.totalValue}>{formatNumber(calculateTotal(materialItems))}</Text>
+            <Text style={styles.totalValue}>
+              {formatNumber(calculateTotal(materialItems))}
+            </Text>
           </View>
         </>
       )}
-
-      {/* Paid From */}
-      {renderPaidFromSection()}
     </View>
   );
 
@@ -943,94 +977,49 @@ export default function LocalPurchase({navigation}) {
             {storesItems.map((item, index) => (
               <View key={item.id} style={styles.tableRow}>
                 <Text style={[styles.tableCell, {flex: 0.4}]}>{index + 1}</Text>
-                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>{item.category}</Text>
-                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>{item.productType || '-'}</Text>
-                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>{item.description || '-'}</Text>
-                <Text style={[styles.tableCell, {flex: 0.8}]}>{formatNumber(item.amount)}</Text>
+                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>
+                  {item.category}
+                </Text>
+                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>
+                  {item.productType || '-'}
+                </Text>
+                <Text style={[styles.tableCell, {flex: 1}]} numberOfLines={1}>
+                  {item.description || '-'}
+                </Text>
+                <Text style={[styles.tableCell, {flex: 0.8}]}>
+                  {formatNumber(item.amount)}
+                </Text>
                 <View style={[styles.tableCell, {flex: 0.4}]}>
                   {item.image && (
                     <TouchableOpacity onPress={() => viewImage(item.image)}>
-                      <Ionicons name="image" size={18} color={COLORS.AccentBlue} />
+                      <Ionicons
+                        name="image"
+                        size={18}
+                        color={COLORS.AccentBlue}
+                      />
                     </TouchableOpacity>
                   )}
                 </View>
                 <TouchableOpacity
                   style={[styles.tableCell, {flex: 0.4}]}
                   onPress={() => removeStoresItem(item.id)}>
-                  <Ionicons name="trash-outline" size={18} color={COLORS.Danger} />
+                  <Ionicons
+                    name="trash-outline"
+                    size={18}
+                    color={COLORS.Danger}
+                  />
                 </TouchableOpacity>
               </View>
             ))}
           </View>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Total Amount:</Text>
-            <Text style={styles.totalValue}>{formatNumber(calculateTotal(storesItems))}</Text>
+            <Text style={styles.totalValue}>
+              {formatNumber(calculateTotal(storesItems))}
+            </Text>
           </View>
         </>
       )}
-
-      {/* Paid From */}
-      {renderPaidFromSection()}
-    </View>
-  );
-
-  // Render Paid From Section
-  const renderPaidFromSection = () => (
-    <View style={styles.paidFromSection}>
-      <View style={styles.fieldRow}>
-        <Text style={styles.fieldLabel}>Paid From</Text>
-        <Dropdown
-          style={styles.dropdown}
-          placeholderStyle={styles.dropdownPlaceholder}
-          selectedTextStyle={styles.dropdownSelectedText}
-          data={PAID_FROM_OPTIONS}
-          labelField="label"
-          valueField="value"
-          placeholder="Select Paid From"
-          value={paidFrom}
-          onChange={item => {
-            setPaidFrom(item.value);
-            if (item.value !== 'direct_to_vendor') {
-              setSupplierName('');
-              setPaymentMode(null);
-            }
-          }}
-        />
-      </View>
-
-      {/* Direct to Vendor Fields */}
-      {paidFrom === 'direct_to_vendor' && (
-        <>
-          <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>Name of Supplier</Text>
-            <TextInput
-              style={styles.inputField}
-              placeholder="Enter supplier name..."
-              placeholderTextColor={COLORS.LabelColor}
-              value={supplierName}
-              onChangeText={setSupplierName}
-            />
-          </View>
-
-          <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>Payment Mode</Text>
-            <Dropdown
-              style={styles.dropdown}
-              placeholderStyle={styles.dropdownPlaceholder}
-              selectedTextStyle={styles.dropdownSelectedText}
-              data={PAYMENT_MODE_OPTIONS}
-              labelField="label"
-              valueField="value"
-              placeholder="Select Payment Mode"
-              value={paymentMode}
-              onChange={item => setPaymentMode(item.value)}
-            />
-          </View>
-        </>
-      )}
-
-      {/* Bills Attachment */}
-      {renderImagePicker(billsImage, setBillsImage, 'Bills Attachment')}
     </View>
   );
 
@@ -1041,26 +1030,40 @@ export default function LocalPurchase({navigation}) {
       {/* Main Tab Selection */}
       <View style={styles.mainTabContainer}>
         <TouchableOpacity
-          style={[styles.mainTab, mainTab === 'receipt' && styles.mainTabActive]}
+          style={[
+            styles.mainTab,
+            mainTab === 'receipt' && styles.mainTabActive,
+          ]}
           onPress={() => setMainTab('receipt')}>
           <Ionicons
             name="receipt-outline"
             size={18}
             color={mainTab === 'receipt' ? COLORS.WHITE : COLORS.TextDark}
           />
-          <Text style={[styles.mainTabText, mainTab === 'receipt' && styles.mainTabTextActive]}>
+          <Text
+            style={[
+              styles.mainTabText,
+              mainTab === 'receipt' && styles.mainTabTextActive,
+            ]}>
             Receipt
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.mainTab, mainTab === 'payment' && styles.mainTabActive]}
+          style={[
+            styles.mainTab,
+            mainTab === 'payment' && styles.mainTabActive,
+          ]}
           onPress={() => setMainTab('payment')}>
           <Ionicons
             name="wallet-outline"
             size={18}
             color={mainTab === 'payment' ? COLORS.WHITE : COLORS.TextDark}
           />
-          <Text style={[styles.mainTabText, mainTab === 'payment' && styles.mainTabTextActive]}>
+          <Text
+            style={[
+              styles.mainTabText,
+              mainTab === 'payment' && styles.mainTabTextActive,
+            ]}>
             Payment
           </Text>
         </TouchableOpacity>
@@ -1070,7 +1073,6 @@ export default function LocalPurchase({navigation}) {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
-
         {mainTab === 'receipt' ? (
           renderReceiptForm()
         ) : (
@@ -1078,23 +1080,50 @@ export default function LocalPurchase({navigation}) {
             {/* Payment Category Selection */}
             <View style={styles.categoryContainer}>
               <TouchableOpacity
-                style={[styles.categoryBtn, paymentCategory === 'factory_expenses' && styles.categoryBtnActive]}
+                style={[
+                  styles.categoryBtn,
+                  paymentCategory === 'factory_expenses' &&
+                    styles.categoryBtnActive,
+                ]}
                 onPress={() => setPaymentCategory('factory_expenses')}>
-                <Text style={[styles.categoryBtnText, paymentCategory === 'factory_expenses' && styles.categoryBtnTextActive]}>
+                <Text
+                  style={[
+                    styles.categoryBtnText,
+                    paymentCategory === 'factory_expenses' &&
+                      styles.categoryBtnTextActive,
+                  ]}>
                   Factory Expenses
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.categoryBtn, paymentCategory === 'material_purchase' && styles.categoryBtnActive]}
+                style={[
+                  styles.categoryBtn,
+                  paymentCategory === 'material_purchase' &&
+                    styles.categoryBtnActive,
+                ]}
                 onPress={() => setPaymentCategory('material_purchase')}>
-                <Text style={[styles.categoryBtnText, paymentCategory === 'material_purchase' && styles.categoryBtnTextActive]}>
+                <Text
+                  style={[
+                    styles.categoryBtnText,
+                    paymentCategory === 'material_purchase' &&
+                      styles.categoryBtnTextActive,
+                  ]}>
                   Material Purchase
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.categoryBtn, paymentCategory === 'stores_spares' && styles.categoryBtnActive]}
+                style={[
+                  styles.categoryBtn,
+                  paymentCategory === 'stores_spares' &&
+                    styles.categoryBtnActive,
+                ]}
                 onPress={() => setPaymentCategory('stores_spares')}>
-                <Text style={[styles.categoryBtnText, paymentCategory === 'stores_spares' && styles.categoryBtnTextActive]}>
+                <Text
+                  style={[
+                    styles.categoryBtnText,
+                    paymentCategory === 'stores_spares' &&
+                      styles.categoryBtnTextActive,
+                  ]}>
                   Stores, Spares & Tools
                 </Text>
               </TouchableOpacity>
@@ -1103,31 +1132,29 @@ export default function LocalPurchase({navigation}) {
             {/* Serial No & Date for Payment */}
             <View style={styles.card}>
               <View style={styles.fieldRow}>
-                <Text style={styles.fieldLabel}>Serial No.</Text>
-                <View style={styles.serialField}>
-                  {serialLoading ? (
-                    <ActivityIndicator size="small" color={COLORS.AccentBlue} />
-                  ) : (
-                    <Text style={styles.serialText}>{serialNo}</Text>
-                  )}
-                  <Text style={styles.autoGeneratedBadge}>Auto Generated</Text>
-                </View>
-              </View>
-
-              <View style={styles.fieldRow}>
                 <Text style={styles.fieldLabel}>Date</Text>
                 <TouchableOpacity
                   style={styles.dateField}
                   onPress={() => setShowDatePicker(true)}>
                   <Text style={styles.dateText}>{formatDate(date)}</Text>
-                  <Ionicons name="calendar-outline" size={20} color={COLORS.LabelColor} />
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color={COLORS.LabelColor}
+                  />
                 </TouchableOpacity>
               </View>
             </View>
 
-            {paymentCategory === 'factory_expenses' && renderFactoryExpensesForm()}
-            {paymentCategory === 'material_purchase' && renderMaterialPurchaseForm()}
+            {paymentCategory === 'factory_expenses' &&
+              renderFactoryExpensesForm()}
+            {paymentCategory === 'material_purchase' &&
+              renderMaterialPurchaseForm()}
             {paymentCategory === 'stores_spares' && renderStoresForm()}
+
+            <View style={styles.card}>
+              {renderImagePicker(billsImage, setBillsImage, 'Bills Attachment')}
+            </View>
           </>
         )}
 
@@ -1140,7 +1167,11 @@ export default function LocalPurchase({navigation}) {
             <ActivityIndicator color={COLORS.WHITE} />
           ) : (
             <>
-              <Ionicons name="checkmark-circle" size={22} color={COLORS.WHITE} />
+              <Ionicons
+                name="checkmark-circle"
+                size={22}
+                color={COLORS.WHITE}
+              />
               <Text style={styles.submitBtnText}>Submit</Text>
             </>
           )}
@@ -1175,7 +1206,11 @@ export default function LocalPurchase({navigation}) {
               </TouchableOpacity>
             </View>
             {modalImage && (
-              <Image source={{uri: modalImage}} style={styles.modalImage} resizeMode="contain" />
+              <Image
+                source={{uri: modalImage}}
+                style={styles.modalImage}
+                resizeMode="contain"
+              />
             )}
             <TouchableOpacity
               style={styles.modalCloseButton}

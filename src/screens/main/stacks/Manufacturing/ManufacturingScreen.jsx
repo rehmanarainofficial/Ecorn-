@@ -18,16 +18,16 @@ const buttons = [
     screen: 'MechanicalJobCardsScreen',
   },
   {
-    name: 'Product Options',
-    icon: 'cube-outline',
-    screen: 'ProductOptionsScreen',
+    name: 'Material Requisition Slip',
+    icon: 'file-document-outline',
+    screen: 'MaterialRequisitionSlipScreen',
   },
   {
     name: 'Manufacturing Transactions',
     icon: 'check-circle',
     screen: 'ApprovedRecordsScreen',
     params: {screenType: 'manufacturing'},
-  }
+  },
 ];
 
 export default function ManufacturingScreen({navigation}) {
