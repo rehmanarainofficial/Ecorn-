@@ -16,6 +16,8 @@ import * as Animatable from 'react-native-animatable';
 
 const ApprovedRecordsScreen = ({navigation, route}) => {
   const {screenType = 'sales'} = route.params || {};
+    console.log(route.params);
+    
   const dispatch = useDispatch();
   const {approvalCounts, loading} = useSelector(state => state.Approved);
   const [refreshing, setRefreshing] = useState(false);

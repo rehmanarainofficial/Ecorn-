@@ -19,6 +19,8 @@ import Toast from 'react-native-toast-message';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {formatNumber, formatQuantity} from '../../../../utils/NumberUtils';
+import SimpleHeader from '../../../../components/SimpleHeader';
+import axios from 'axios';
 
 const StockMovements = ({navigation}) => {
   const [locations, setLocations] = useState([]);
@@ -158,16 +160,21 @@ const StockMovements = ({navigation}) => {
       formData.append('to_date', toDate);
       formData.append('StockLocation', selectedLocation);
 
-      const res = await fetch(`${BASEURL}stock_movements.php`, {
-        method: 'POST',
-        body: formData,
+      const res = await axios.post(`${BASEURL}stock_movements.php`, formData, {
+        headers: {'Content-Type': 'multipart/form-data'},
       });
+      const json = res.data;
 
-      const responseText = await res.text();
+      if (json.status === 'true') {
+        setMovementData(json.data || []);
+        const opening = json.opening !== null ? parseFloat(json.opening) : 0;
+        setOpeningBalance(opening);
 
-      if (responseText.startsWith('{') || responseText.startsWith('[')) {
-        const json = JSON.parse(responseText);
-
+        let closing = opening;
+        if (json.data && json.data.length > 0) {
+          const lastTransaction = json.data[json.data.length - 1];
+          closing = parseFloat(lastTransaction.balance) || opening;
+        }
         if (json.status === 'true') {
           setMovementData(json.data || []);
           const opening = json.opening !== null ? parseFloat(json.opening) : 0;
@@ -202,7 +209,7 @@ const StockMovements = ({navigation}) => {
         showToast('error', 'Server error', 'Please check API endpoint');
       }
     } catch (e) {
-      console.log('❌ Fetch error:', e);
+      console.log('Fetch error:', e);
       showToast('error', 'Network error', e.message);
     } finally {
       setLoading(false);
@@ -278,18 +285,7 @@ const StockMovements = ({navigation}) => {
       <StatusBar backgroundColor={APPCOLORS.Primary} barStyle="light-content" />
 
       {/* ---------------- HEADER ---------------- */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={22} color="white" />
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>Stock Movement</Text>
-
-        {/* Reset Button in Header Right */}
-        <TouchableOpacity onPress={handleReset}>
-          <MaterialIcons name="refresh" size={22} color="white" />
-        </TouchableOpacity>
-      </View>
+     <SimpleHeader title="Stock Movements" />
 
       {/* ---------------- FILTER SECTION ---------------- */}
       <View style={styles.filterBox}>
@@ -345,7 +341,7 @@ const StockMovements = ({navigation}) => {
           </TouchableOpacity>
         </View>
 
-        {/* ROW 3 - DATE PICKERS & APPLY BUTTON */}
+        {/* ROW 3 - DATE PICKERS & APPLY BUTTON & CLEAR BUTTON */}
         <View style={styles.filterRow}>
           {/* From Date */}
           <TouchableOpacity
@@ -371,6 +367,13 @@ const StockMovements = ({navigation}) => {
             ) : (
               <MaterialIcons name="search" size={20} color="white" />
             )}
+          </TouchableOpacity>
+
+          {/* Clear Button */}
+          <TouchableOpacity
+            style={styles.clearBtn}
+            onPress={handleReset}>
+            <MaterialIcons name="close" size={20} color="white" />
           </TouchableOpacity>
         </View>
 
@@ -721,7 +724,18 @@ const styles = StyleSheet.create({
   },
 
   applyBtn: {
-    backgroundColor: APPCOLORS.Primary,
+    backgroundColor: '#000',
+    padding: 12,
+    borderRadius: 10,
+    width: 50,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+  },
+
+  clearBtn: {
+    backgroundColor: '#dc3545',
     padding: 12,
     borderRadius: 10,
     width: 50,

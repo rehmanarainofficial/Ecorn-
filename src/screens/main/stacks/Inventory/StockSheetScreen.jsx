@@ -10,15 +10,19 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
-import PlatformGradient from '../../../../components/PlatformGradient';
 import axios from 'axios';
 import {BASEURL} from '../../../../utils/BaseUrl';
+import SimpleHeader from '../../../../components/SimpleHeader';
 
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
   Primary: '#1a1c22',
   Secondary: '#5a5c6a',
+  BG: '#f3f4f6',
+  TEXT_PRIMARY: '#1f2937',
+  TEXT_SECONDARY: '#6b7280',
+  BORDER: '#e5e7eb',
 };
 
 export default function StockSheetScreen({navigation}) {
@@ -123,19 +127,9 @@ export default function StockSheetScreen({navigation}) {
   );
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={{flex: 1}}>
+    <View style={[styles.mainContainer, {flex: 1}]}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" color={COLORS.WHITE} size={28} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Stock Sheet</Text>
-        <TouchableOpacity onPress={clearFilters}>
-          <Text style={{color: COLORS.WHITE, fontSize: 14}}>Clear</Text>
-        </TouchableOpacity>
-      </View>
+     <SimpleHeader title="Stock Sheet" />
 
       {/* Filters */}
       <View style={{padding: 16}}>
@@ -144,7 +138,7 @@ export default function StockSheetScreen({navigation}) {
             <TextInput
               style={styles.textInput}
               placeholder="Search by Name"
-              placeholderTextColor={'rgba(255,255,255,0.6)'}
+              placeholderTextColor={COLORS.TEXT_SECONDARY}
               value={search}
               onChangeText={setSearch}
             />
@@ -156,9 +150,9 @@ export default function StockSheetScreen({navigation}) {
             labelField="label"
             valueField="value"
             placeholder="Select Location"
-            placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-            selectedTextStyle={{color: COLORS.WHITE}}
-            itemTextStyle={{color: COLORS.BLACK}}
+            placeholderStyle={{color: COLORS.TEXT_SECONDARY}}
+            selectedTextStyle={{color: COLORS.TEXT_PRIMARY}}
+            itemTextStyle={{color: COLORS.TEXT_PRIMARY}}
             value={location}
             onChange={item => setLocation(item.value)}
           />
@@ -172,9 +166,9 @@ export default function StockSheetScreen({navigation}) {
             labelField="label"
             valueField="value"
             placeholder="Select Category"
-            placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-            selectedTextStyle={{color: COLORS.WHITE}}
-            itemTextStyle={{color: COLORS.BLACK}}
+            placeholderStyle={{color: COLORS.TEXT_SECONDARY}}
+            selectedTextStyle={{color: COLORS.TEXT_PRIMARY}}
+            itemTextStyle={{color: COLORS.TEXT_PRIMARY}}
             value={category}
             onChange={item => setCategory(item.value)}
           />
@@ -191,7 +185,7 @@ export default function StockSheetScreen({navigation}) {
       {loading ? (
         <ActivityIndicator
           size="large"
-          color={COLORS.WHITE}
+          color={COLORS.Primary}
           style={{marginTop: 30}}
         />
       ) : (
@@ -204,7 +198,7 @@ export default function StockSheetScreen({navigation}) {
           ListEmptyComponent={() => (
             <Text
               style={{
-                color: COLORS.WHITE,
+                color: COLORS.TEXT_PRIMARY,
                 textAlign: 'center',
                 marginTop: 30,
               }}>
@@ -213,40 +207,45 @@ export default function StockSheetScreen({navigation}) {
           )}
         />
       )}
-    </PlatformGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    backgroundColor: COLORS.BG,
+  },
   header: {
     height: 80,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.BORDER,
   },
-  headerTitle: {color: '#fff', fontSize: 20, fontWeight: '700'},
+  headerTitle: {color: COLORS.TEXT_PRIMARY, fontSize: 20, fontWeight: '700'},
   glassInput: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 52,
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.BORDER,
   },
-  textInput: {color: '#fff', fontSize: 16},
+  textInput: {color: COLORS.TEXT_PRIMARY, fontSize: 16},
   dropdown: {
     height: 52,
     borderRadius: 10,
     paddingHorizontal: 8,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.BORDER,
   },
   applyButton: {
-    backgroundColor: '#3b3f51',
+    backgroundColor: COLORS.Primary,
     borderRadius: 10,
     height: 52,
     width: 52,
@@ -260,18 +259,22 @@ const styles = StyleSheet.create({
     width: 52,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8,
   },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: COLORS.WHITE,
     borderRadius: 16,
     padding: 16,
     marginTop: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.BORDER,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   cardTitle: {
-    color: COLORS.WHITE,
+    color: COLORS.TEXT_PRIMARY,
     fontWeight: '700',
     fontSize: 15,
     marginBottom: 8,
@@ -281,6 +284,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 4,
   },
-  cardKey: {color: 'rgba(255,255,255,0.7)', fontWeight: '600'},
-  cardValue: {color: COLORS.WHITE, textAlign: 'right', flexShrink: 1},
+  cardKey: {color: COLORS.TEXT_SECONDARY, fontWeight: '600'},
+  cardValue: {color: COLORS.TEXT_PRIMARY, textAlign: 'right', flexShrink: 1},
 });

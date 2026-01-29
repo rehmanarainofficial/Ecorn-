@@ -16,12 +16,17 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {formatQuantity} from '../../../../utils/NumberUtils';
+import SimpleHeader from '../../../../components/SimpleHeader';
 
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
   Primary: '#1a1c22',
   Secondary: '#5a5c6a',
+  BG: '#f3f4f6',
+  TEXT_PRIMARY: '#1f2937',
+  TEXT_SECONDARY: '#6b7280',
+  BORDER: '#e5e7eb',
 };
 
 export default function LocationTransfer({navigation}) {
@@ -189,18 +194,9 @@ export default function LocationTransfer({navigation}) {
   };
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={{flex: 1}}>
+    <View style={[styles.mainContainer, {flex: 1}]}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" color={COLORS.WHITE} size={28} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Location Transfer</Text>
-        <View style={{width: 28}} />
-      </View>
-
+      <SimpleHeader title="Location Transfer" />
       <ScrollView contentContainerStyle={{padding: 20, paddingBottom: 100}}>
         {/* From Location */}
         <Dropdown
@@ -210,9 +206,9 @@ export default function LocationTransfer({navigation}) {
           labelField="label"
           valueField="value"
           placeholder="From Location"
-          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-          selectedTextStyle={{color: COLORS.WHITE}}
-          itemTextStyle={{color: COLORS.BLACK}}
+          placeholderStyle={{color: COLORS.TEXT_SECONDARY}}
+          selectedTextStyle={{color: COLORS.TEXT_PRIMARY}}
+          itemTextStyle={{color: COLORS.TEXT_PRIMARY}}
           value={fromLocation}
           onChange={item => setFromLocation(item.value)}
         />
@@ -223,7 +219,7 @@ export default function LocationTransfer({navigation}) {
           <TouchableOpacity
             style={[styles.dropdown, {flex: 1, justifyContent: 'center'}]}
             onPress={() => setShowDate(true)}>
-            <Text style={{color: COLORS.WHITE}}>
+            <Text style={{color: COLORS.TEXT_PRIMARY}}>
               {date.toISOString().split('T')[0]}
             </Text>
           </TouchableOpacity>
@@ -236,9 +232,9 @@ export default function LocationTransfer({navigation}) {
             labelField="label"
             valueField="value"
             placeholder="To Location"
-            placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-            selectedTextStyle={{color: COLORS.WHITE}}
-            itemTextStyle={{color: COLORS.BLACK}}
+            placeholderStyle={{color: COLORS.TEXT_SECONDARY}}
+            selectedTextStyle={{color: COLORS.TEXT_PRIMARY}}
+            itemTextStyle={{color: COLORS.TEXT_PRIMARY}}
             value={toLocation}
             onChange={item => setToLocation(item.value)}
           />
@@ -288,9 +284,9 @@ export default function LocationTransfer({navigation}) {
             labelField="label"
             valueField="value"
             placeholder="Product"
-            placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-            selectedTextStyle={{color: COLORS.WHITE}}
-            itemTextStyle={{color: COLORS.BLACK}}
+            placeholderStyle={{color: COLORS.TEXT_SECONDARY}}
+            selectedTextStyle={{color: COLORS.TEXT_PRIMARY}}
+            itemTextStyle={{color: COLORS.TEXT_PRIMARY}}
             value={product}
             onChange={item => setProduct(item.value)}
             onChangeText={val => {
@@ -300,7 +296,7 @@ export default function LocationTransfer({navigation}) {
           <TextInput
             style={[styles.textInput, {flex: 2}]}
             placeholder="Qty"
-            placeholderTextColor="rgba(255,255,255,0.6)"
+            placeholderTextColor={COLORS.TEXT_SECONDARY}
             keyboardType="numeric"
             value={qty}
             onChangeText={setQty}
@@ -319,15 +315,13 @@ export default function LocationTransfer({navigation}) {
             {height: 100, textAlignVertical: 'top', marginTop: 10},
           ]}
           placeholder="Memo / Description"
-          placeholderTextColor="rgba(255,255,255,0.6)"
+          placeholderTextColor={COLORS.TEXT_SECONDARY}
           multiline
           value={memo}
           onChangeText={setMemo}
         />
-      </ScrollView>
 
-      {/* Bottom Button */}
-      <View style={styles.bottomBar}>
+        {/* Process Transfer Button */}
         <TouchableOpacity
           style={styles.submitBtn}
           onPress={handleSubmit}
@@ -340,50 +334,53 @@ export default function LocationTransfer({navigation}) {
             </Text>
           )}
         </TouchableOpacity>
-      </View>
-    </PlatformGradient>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    backgroundColor: COLORS.BG,
+  },
   header: {
     height: 80,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
+    borderBottomColor: COLORS.BORDER,
   },
-  headerTitle: {color: '#fff', fontSize: 20, fontWeight: '700'},
+  headerTitle: {color: COLORS.TEXT_PRIMARY, fontSize: 20, fontWeight: '700'},
   dropdown: {
     height: 52,
     borderRadius: 10,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.BORDER,
     marginBottom: 7,
   },
   textInput: {
     height: 52,
     borderRadius: 10,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    color: COLORS.WHITE,
+    borderColor: COLORS.BORDER,
+    color: COLORS.TEXT_PRIMARY,
     fontSize: 16,
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: COLORS.BORDER,
     padding: 8,
     borderRadius: 6,
   },
   tableHeaderText: {
-    color: COLORS.WHITE,
+    color: COLORS.TEXT_PRIMARY,
     fontWeight: '700',
     textAlign: 'center',
   },
@@ -391,17 +388,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 8,
     borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(255,255,255,0.2)',
+    borderBottomColor: COLORS.BORDER,
     alignItems: 'center',
   },
   tableText: {
-    color: COLORS.WHITE,
+    color: COLORS.TEXT_PRIMARY,
     textAlign: 'center',
   },
   addBtn: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.Secondary,
+    backgroundColor: COLORS.Primary,
     borderRadius: 8,
   },
   bottomBar: {
@@ -410,13 +407,16 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: 16,
-    backgroundColor: COLORS.Primary,
+    backgroundColor: COLORS.WHITE,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.BORDER,
   },
   submitBtn: {
     height: 56,
-    backgroundColor: COLORS.Secondary,
+    backgroundColor: COLORS.Primary,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 16,
   },
 });

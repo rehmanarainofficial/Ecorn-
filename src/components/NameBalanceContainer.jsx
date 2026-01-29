@@ -41,9 +41,8 @@ const NameBalanceContainer = ({Name, type, balance, item}) => {
   if (type === 'Banks' || type === 'Bank') {
     return (
       <TouchableOpacity onPress={handleBankPress} activeOpacity={0.7}>
-        <PlatformGradient
-          colors={[APPCOLORS.BLACK, APPCOLORS.Secondary]}
-          style={{padding: 15, borderRadius: 10}}>
+        <View
+          style={{padding: 15, borderRadius: 10, backgroundColor: '#F8FAFC'}}>
           <View
             style={{
               flexDirection: 'row',
@@ -56,7 +55,7 @@ const NameBalanceContainer = ({Name, type, balance, item}) => {
                 <AppText
                   title={Name}
                   titleSize={1.6}
-                  titleColor={APPCOLORS.WHITE}
+                  titleColor={APPCOLORS.PRIMARY}
                   numberOfLines={1}
                 />
               </View>
@@ -72,20 +71,19 @@ const NameBalanceContainer = ({Name, type, balance, item}) => {
               <AppText
                 title={formatNumber(balance)}
                 titleSize={1.6}
-                titleColor={APPCOLORS.WHITE}
+                titleColor={APPCOLORS.PRIMARY}
               />
-              <Icon name="chevron-right" size={24} color={APPCOLORS.WHITE} />
+              <Icon name="chevron-right" size={24} color={APPCOLORS.PRIMARY} />
             </View>
           </View>
-        </PlatformGradient>
+        </View>
       </TouchableOpacity>
     );
   }
 
   return (
-    <PlatformGradient
-      colors={[APPCOLORS.BLACK, APPCOLORS.Secondary]}
-      style={{padding: 15, borderRadius: 10}}>
+    <View
+      style={{padding: 15, borderRadius: 10, backgroundColor: '#F8FAFC'}}>
       <View
         style={{
           flexDirection: 'row',
@@ -98,7 +96,7 @@ const NameBalanceContainer = ({Name, type, balance, item}) => {
             <AppText
               title={Name}
               titleSize={1.6}
-              titleColor={APPCOLORS.WHITE}
+              titleColor={APPCOLORS.PRIMARY}
               numberOfLines={1}
             />
           </View>
@@ -114,7 +112,7 @@ const NameBalanceContainer = ({Name, type, balance, item}) => {
           <AppText
             title={formatNumber(balance)}
             titleSize={1.6}
-            titleColor={APPCOLORS.WHITE}
+            titleColor={APPCOLORS.PRIMARY}
           />
         </View>
 
@@ -124,7 +122,7 @@ const NameBalanceContainer = ({Name, type, balance, item}) => {
           <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
             {type === 'Items' ? (
               <TouchableOpacity onPress={handleLedgerPress}>
-                <Icon name="receipt-long" size={20} color={APPCOLORS.WHITE} />
+                <Icon name="receipt-long" size={20} color={APPCOLORS.PRIMARY} />
               </TouchableOpacity>
             ) : (
               <>
@@ -132,18 +130,18 @@ const NameBalanceContainer = ({Name, type, balance, item}) => {
                   <Icon
                     name="calendar-today"
                     size={20}
-                    color={APPCOLORS.WHITE}
+                    color={APPCOLORS.PRIMARY}
                   />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleLedgerPress}>
-                  <Icon name="receipt-long" size={20} color={APPCOLORS.WHITE} />
+                  <Icon name="receipt-long" size={20} color={APPCOLORS.PRIMARY} />
                 </TouchableOpacity>
               </>
             )}
           </View>
         )}
       </View>
-    </PlatformGradient>
+    </View>
   );
 };
 

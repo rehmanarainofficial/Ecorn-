@@ -14,12 +14,17 @@ import axios from 'axios';
 import {Dropdown} from 'react-native-element-dropdown';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import {formatNumber, formatQuantity} from '../../../../utils/NumberUtils';
+import SimpleHeader from '../../../../components/SimpleHeader';
 
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
   Primary: '#1a1c22',
   Secondary: '#5a5c6a',
+  BG: '#f3f4f6',
+  TEXT_PRIMARY: '#1f2937',
+  TEXT_SECONDARY: '#6b7280',
+  BORDER: '#e5e7eb',
 };
 
 const ITEMS_PER_PAGE = 30;
@@ -158,28 +163,10 @@ const ViewItem = ({navigation}) => {
   };
 
   return (
-    <PlatformGradient
-      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
-      style={{flex: 1}}>
+    <View style={[styles.mainContainer, {flex: 1}]}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" color={COLORS.WHITE} size={28} />
-        </TouchableOpacity>
+      <SimpleHeader title="View Item" />
 
-        <Text style={styles.headerTitle}>View Items</Text>
-
-        <TouchableOpacity
-          onPress={() => {
-            setCategory(null);
-            setSearchCode('');
-            setSearchName('');
-            setPage(1);
-            fetchItems(); // reset filter
-          }}>
-          <Ionicons name="close-circle" color={COLORS.WHITE} size={24} />
-        </TouchableOpacity>
-      </View>
 
       {/* Filters */}
       <View style={styles.filterContainer}>
@@ -189,9 +176,9 @@ const ViewItem = ({navigation}) => {
           labelField="label"
           valueField="value"
           placeholder="Select Category"
-          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-          selectedTextStyle={{color: COLORS.WHITE}}
-          itemTextStyle={{color: COLORS.BLACK}}
+          placeholderStyle={{color: COLORS.TEXT_SECONDARY}}
+          selectedTextStyle={{color: COLORS.TEXT_PRIMARY}}
+          itemTextStyle={{color: COLORS.TEXT_PRIMARY}}
           value={category}
           onChange={item => setCategory(item.value)}
           search
@@ -202,7 +189,7 @@ const ViewItem = ({navigation}) => {
           <TextInput
             style={styles.searchInput}
             placeholder="Search by Code"
-            placeholderTextColor="rgba(255,255,255,0.6)"
+            placeholderTextColor={COLORS.TEXT_SECONDARY}
             value={searchCode}
             onChangeText={txt => setSearchCode(txt)}
           />
@@ -212,7 +199,7 @@ const ViewItem = ({navigation}) => {
           <TextInput
             style={[styles.searchInput, {flex: 1}]}
             placeholder="Search by Name"
-            placeholderTextColor="rgba(255,255,255,0.6)"
+            placeholderTextColor={COLORS.TEXT_SECONDARY}
             value={searchName}
             onChangeText={txt => setSearchName(txt)}
           />
@@ -239,7 +226,7 @@ const ViewItem = ({navigation}) => {
       {loading ? (
         <ActivityIndicator
           size="large"
-          color={COLORS.WHITE}
+          color={COLORS.Primary}
           style={{marginTop: 30}}
         />
       ) : (
@@ -252,40 +239,45 @@ const ViewItem = ({navigation}) => {
           onEndReachedThreshold={0.5}
           ListFooterComponent={
             loadingMore ? (
-              <ActivityIndicator size="small" color={COLORS.WHITE} />
+              <ActivityIndicator size="small" color={COLORS.Primary} />
             ) : null
           }
           ListEmptyComponent={
             !loading && (
               <View style={styles.emptyContainer}>
-                <Ionicons name="alert-circle-outline" size={48} color="gray" />
+                <Ionicons name="alert-circle-outline" size={48} color={COLORS.TEXT_SECONDARY} />
                 <Text style={styles.emptyText}>No items found</Text>
               </View>
             )
           }
         />
       )}
-    </PlatformGradient>
+    </View>
   );
 };
 
 export default ViewItem;
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    backgroundColor: COLORS.BG,
+  },
   header: {
     height: 70,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.BORDER,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.WHITE,
+    color: COLORS.TEXT_PRIMARY,
   },
   filterContainer: {
     padding: 16,
@@ -294,9 +286,9 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 10,
     paddingHorizontal: 8,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.BORDER,
     marginBottom: 12,
   },
   searchRow: {
@@ -308,10 +300,10 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 10,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    color: COLORS.WHITE,
+    borderColor: COLORS.BORDER,
+    color: COLORS.TEXT_PRIMARY,
   },
   applyButton: {
     height: 48,
@@ -321,7 +313,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: COLORS.Primary,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.BORDER,
     marginLeft: 8,
   },
   clearButton: {
@@ -332,16 +324,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#dc3545',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.BORDER,
     marginLeft: 8,
   },
   card: {
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.WHITE,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.BORDER,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   kvRow: {
     flexDirection: 'row',
@@ -351,11 +348,11 @@ const styles = StyleSheet.create({
   kvKey: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.WHITE,
+    color: COLORS.TEXT_SECONDARY,
   },
   kvValue: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.85)',
+    color: COLORS.TEXT_PRIMARY,
     textAlign: 'right',
     flex: 1,
     marginLeft: 8,
@@ -369,7 +366,7 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: 10,
     fontSize: 16,
-    color: COLORS.WHITE,
+    color: COLORS.TEXT_PRIMARY,
     fontWeight: '600',
   },
 });

@@ -55,6 +55,7 @@ const GrnAgainst = ({navigation, route}) => {
   const fetchCustomers = async () => {
     try {
       const res = await axios.get(`${BASEURL}suppliers.php`);
+      
       if (res.data?.status === 'true') {
         setCustomers(
           res.data.data.map(c => ({
