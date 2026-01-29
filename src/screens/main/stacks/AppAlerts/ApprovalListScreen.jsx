@@ -683,6 +683,7 @@ const ApprovalListScreen = ({route, navigation}) => {
           filteredData.map((item, index) => (
             <ApprovalCard
               key={index}
+              index={index}
               serialNo={index + 1}
               reference={item.reference || 'N/A'}
               ord_date={item.ord_date || 'N/A'}
