@@ -13,17 +13,20 @@ export const fetchApprovedData = createAsyncThunk(
       if (reference) formData.append('ref', reference);
       if (name) formData.append('name', name);
 
-      const response = await axios.post(`${BASEURL}dash_approved.php`, formData, {
+      const res = await fetch(`${BASEURL}dash_approved.php`, {
+        method: 'POST',
+        body: formData,
         headers: {
-          'Content-Type': 'multipart/form-data',
+          Accept: 'application/json',
         },
       });
 
-      console.log('Approved Data API Response:', response.data);
-      return response.data;
+      const data = await res.json();
+      console.log('Approved Data API Response:', data);
+      return data;
     } catch (error) {
       console.log('Approved Data API Error:', error);
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -74,7 +77,7 @@ const ApprovedSlice = createSlice({
       .addCase(fetchApprovedData.fulfilled, (state, action) => {
         state.loading = false;
         const data = action.payload;
-        
+
         state.approvalCounts = data.approval_data || null;
         state.quotationData = data.data_unapprove_quote || [];
         state.salesOrderData = data.data_unapprove_order || [];

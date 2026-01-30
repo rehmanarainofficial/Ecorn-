@@ -61,13 +61,17 @@ const ApprovalCard = ({
       formData.append('trans_no', trans_no);
       formData.append('type', type);
 
-      const response = await axios.post(`${BASEURL}view_gl.php`, formData, {
+      const res = await fetch(`${BASEURL}view_gl.php`, {
+        method: 'POST',
+        body: formData,
         headers: {
-          'Content-Type': 'multipart/form-data',
+          Accept: 'application/json',
         },
       });
+
+      const responseData = await res.json();
       navigation.navigate('GLViewScreen', {
-        glData: response.data,
+        glData: responseData,
         reference: reference,
         transNo: trans_no,
       });
@@ -95,14 +99,17 @@ const ApprovalCard = ({
         formData.append('trans_no', trans_no);
         formData.append('type', type);
 
-        const response = await axios.post(`${BASEURL}view_data.php`, formData, {
+        const res = await fetch(`${BASEURL}view_data.php`, {
+          method: 'POST',
+          body: formData,
           headers: {
-            'Content-Type': 'multipart/form-data',
+            Accept: 'application/json',
           },
         });
+        const responseData = await res.json();
 
         navigation.navigate('ViewDetailsScreen', {
-          viewData: response.data,
+          viewData: responseData,
           screenType: screenType,
         });
       } else {
@@ -111,14 +118,17 @@ const ApprovalCard = ({
         formData.append('trans_no', trans_no);
         formData.append('type', type);
 
-        const response = await axios.post(`${BASEURL}view_data.php`, formData, {
+        const res = await fetch(`${BASEURL}view_data.php`, {
+          method: 'POST',
+          body: formData,
           headers: {
-            'Content-Type': 'multipart/form-data',
+            Accept: 'application/json',
           },
         });
+        const responseData = await res.json();
 
         navigation.navigate('ViewDetailsScreen', {
-          viewData: response.data,
+          viewData: responseData,
           screenType: screenType,
         });
       }
@@ -167,14 +177,16 @@ const ApprovalCard = ({
       formData.append('trans_no', trans_no);
       formData.append('type', type);
 
-      const response = await axios.post(`${BASEURL}view_data.php`, formData, {
+      const res = await fetch(`${BASEURL}view_data.php`, {
+        method: 'POST',
+        body: formData,
         headers: {
-          'Content-Type': 'multipart/form-data',
+          Accept: 'application/json',
         },
       });
 
-      const data = response.data;
-      await generateAndDownloadPDF(data, reference);
+      const responseData = await res.json();
+      await generateAndDownloadPDF(responseData, reference);
     } catch (error) {
       Toast.show({
         type: 'error',

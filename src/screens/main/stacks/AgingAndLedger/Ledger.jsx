@@ -539,14 +539,7 @@ const Ledger = ({navigation, route}) => {
         true,
         rgb(0.13, 0.13, 0.47),
       );
-      drawText(
-        formatNumber(Math.abs(closingBalance)),
-        colX[6] + 5,
-        y,
-        9,
-        true,
-        rgb(0.13, 0.13, 0.47),
-      );
+      drawText('', colX[6] + 5, y, 9, true, rgb(0.13, 0.13, 0.47));
 
       // Generate filename: ledgername_fromdate_todate
       const safeLedgerName = getAccountName()

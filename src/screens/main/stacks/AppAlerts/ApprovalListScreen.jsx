@@ -178,14 +178,17 @@ const ApprovalListScreen = ({route, navigation}) => {
       formData.append('ref', ref);
       formData.append('cost_center', searchLocation);
 
-      const res = await axios.post(apiEndpoint, formData, {
+      const res = await fetch(apiEndpoint, {
+        method: 'POST',
+        body: formData,
         headers: {
-          'Content-Type': 'multipart/form-data',
+          Accept: 'application/json',
         },
       });
 
+      const responseData = await res.json();
       const mappedKey = keyMap[listKey];
-      const newData = res.data?.[mappedKey] || [];
+      const newData = responseData?.[mappedKey] || [];
 
       setData(newData);
       setFilteredData(newData);
@@ -248,14 +251,17 @@ const ApprovalListScreen = ({route, navigation}) => {
         formData.append('name', searchName);
       }
 
-      const res = await axios.post(apiEndpoint, formData, {
+      const res = await fetch(apiEndpoint, {
+        method: 'POST',
+        body: formData,
         headers: {
-          'Content-Type': 'multipart/form-data',
+          Accept: 'application/json',
         },
       });
 
+      const responseData = await res.json();
       const mappedKey = keyMap[listKey];
-      const newData = res.data?.[mappedKey] || [];
+      const newData = responseData?.[mappedKey] || [];
 
       setData(newData);
 
@@ -357,19 +363,18 @@ const ApprovalListScreen = ({route, navigation}) => {
         listKey: listKey,
       });
 
-      const res = await axios.post(
-        `${BASEURL}dash_approval_post.php`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+      const res = await fetch(`${BASEURL}dash_approval_post.php`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Accept: 'application/json',
         },
-      );
+      });
 
-      console.log('Approve Response:', res.data);
+      const responseData = await res.json();
+      console.log('Approve Response:', responseData);
 
-      if (res.data?.status === true || res.data?.status === 'true') {
+      if (responseData?.status === true || responseData?.status === 'true') {
         Toast.show({
           type: 'success',
           text1: 'Approved Successfully',
@@ -381,7 +386,7 @@ const ApprovalListScreen = ({route, navigation}) => {
         Toast.show({
           type: 'error',
           text1: 'Approval Failed',
-          text2: res.data?.message || 'Something went wrong',
+          text2: responseData?.message || 'Something went wrong',
         });
       }
     } catch (err) {
@@ -418,18 +423,18 @@ const ApprovalListScreen = ({route, navigation}) => {
         listKey: listKey,
       });
 
-      const res = await axios.post(
-        `${BASEURL}dash_approval_post.php`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+      const res = await fetch(`${BASEURL}dash_approval_post.php`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Accept: 'application/json',
         },
-      );
-      console.log('Unapprove Response:', res.data);
+      });
 
-      if (res.data?.status === true || res.data?.status === 'true') {
+      const responseData = await res.json();
+      console.log('Unapprove Response:', responseData);
+
+      if (responseData?.status === true || responseData?.status === 'true') {
         Toast.show({
           type: 'success',
           text1: 'Unapproved Successfully',

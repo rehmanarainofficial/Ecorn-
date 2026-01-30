@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -18,18 +18,18 @@ import moment from 'moment';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import PlatformGradient from '../../../../components/PlatformGradient';
-import { Dropdown } from 'react-native-element-dropdown';
+import {Dropdown} from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { BASEURL } from '.././../../../utils/BaseUrl';
-import { APPCOLORS } from '../../../../utils/APPCOLORS';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { formatNumber } from '../../../../utils/NumberUtils';
+import {BASEURL} from '.././../../../utils/BaseUrl';
+import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {formatNumber} from '../../../../utils/NumberUtils';
 import Orientation from 'react-native-orientation-locker';
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import {PDFDocument, StandardFonts, rgb} from 'pdf-lib';
 import RNBlobUtil from 'react-native-blob-util';
 import FileViewer from 'react-native-file-viewer';
 
-const ViewLedger = ({ navigation, route }) => {
+const ViewLedger = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
 
   // Get params from navigation (for bank click)
@@ -107,36 +107,42 @@ const ViewLedger = ({ navigation, route }) => {
 
   // Auto-select account if passed from bank click (but don't auto-fetch)
   useEffect(() => {
-    if ((passedAccountCode || passedAccountName) && accounts.length > 0 && !autoFetchDone) {
+    if (
+      (passedAccountCode || passedAccountName) &&
+      accounts.length > 0 &&
+      !autoFetchDone
+    ) {
       // Try to match by account_code first
-      let matchedAccount = accounts.find(acc => acc.value === passedAccountCode);
-      
+      let matchedAccount = accounts.find(
+        acc => acc.value === passedAccountCode,
+      );
+
       // If not found, try exact match by account name (for banks)
       if (!matchedAccount && passedAccountName) {
         // First try exact match
-        matchedAccount = accounts.find(acc => 
-          acc.account_name?.toLowerCase() === passedAccountName.toLowerCase()
+        matchedAccount = accounts.find(
+          acc =>
+            acc.account_name?.toLowerCase() === passedAccountName.toLowerCase(),
         );
-        
+
         // If still not found, try partial match
         if (!matchedAccount) {
-          matchedAccount = accounts.find(acc => 
-            acc.account_name?.toLowerCase().includes(passedAccountName.toLowerCase()) ||
-            passedAccountName.toLowerCase().includes(acc.account_name?.toLowerCase())
+          matchedAccount = accounts.find(
+            acc =>
+              acc.account_name
+                ?.toLowerCase()
+                .includes(passedAccountName.toLowerCase()) ||
+              passedAccountName
+                .toLowerCase()
+                .includes(acc.account_name?.toLowerCase()),
           );
         }
       }
-      
-      console.log('Passed Account Code:', passedAccountCode);
-      console.log('Passed Account Name:', passedAccountName);
-      console.log('Matched Account:', matchedAccount);
-      console.log('All Accounts:', accounts.slice(0, 5)); // Show first 5 accounts for debugging
-      
+
+
       if (matchedAccount) {
         setSelectedAccount(matchedAccount);
         setAutoFetchDone(true);
-        // Don't auto-fetch - user will click search button
-        // Also fetch counter parties for the account
         fetchCounterParties(matchedAccount.value);
       } else {
         console.log('No matching account found for:', passedAccountName);
@@ -153,7 +159,7 @@ const ViewLedger = ({ navigation, route }) => {
   }, [fadeAnim]);
 
   // Format date to dd/mm/yyyy
-  const formatDateDisplay = (dateStr) => {
+  const formatDateDisplay = dateStr => {
     if (!dateStr) return '';
     try {
       const date = new Date(dateStr);
@@ -199,7 +205,7 @@ const ViewLedger = ({ navigation, route }) => {
 
       const response = await fetch(`${BASEURL}get_counter_party.php`, {
         method: 'POST',
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: {'Content-Type': 'multipart/form-data'},
         body: formData,
       });
 
@@ -232,7 +238,7 @@ const ViewLedger = ({ navigation, route }) => {
   };
 
   // Fetch data with specific account (for auto-fetch when bank is clicked)
-  const fetchDataWithAccount = async (account) => {
+  const fetchDataWithAccount = async account => {
     try {
       setLoading(true);
 
@@ -346,14 +352,21 @@ const ViewLedger = ({ navigation, route }) => {
 
       const pdfDoc = await PDFDocument.create();
       let page = pdfDoc.addPage([841.89, 595.28]);
-      const { width, height } = page.getSize();
+      const {width, height} = page.getSize();
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
       let y = height - 40;
       const margin = 30;
 
-      const drawText = (text, x, yPos, size = 10, bold = false, color = rgb(0, 0, 0)) => {
+      const drawText = (
+        text,
+        x,
+        yPos,
+        size = 10,
+        bold = false,
+        color = rgb(0, 0, 0),
+      ) => {
         page.drawText(String(text || ''), {
           x,
           y: yPos,
@@ -368,20 +381,61 @@ const ViewLedger = ({ navigation, route }) => {
         y = height - 40;
       };
 
-      drawText('GL Account Transactions Report', margin, y, 16, true, rgb(0.13, 0.13, 0.47));
+      drawText(
+        'GL Account Transactions Report',
+        margin,
+        y,
+        16,
+        true,
+        rgb(0.13, 0.13, 0.47),
+      );
       y -= 20;
 
-      drawText(`Account: ${selectedAccount?.label || 'N/A'}`, margin, y, 11, true);
+      drawText(
+        `Account: ${selectedAccount?.label || 'N/A'}`,
+        margin,
+        y,
+        11,
+        true,
+      );
       drawText(`Company: Ercon Industries Pvt. Ltd`, width - 250, y, 11, true);
       y -= 15;
 
-      drawText(`${formatDateDisplay(fromDate)} To ${formatDateDisplay(toDate)}`, margin, y, 10);
-      drawText(`Generated: ${moment().format('DD/MM/YYYY HH:mm')}`, width - 200, y, 10);
+      drawText(
+        `${formatDateDisplay(fromDate)} To ${formatDateDisplay(toDate)}`,
+        margin,
+        y,
+        10,
+      );
+      drawText(
+        `Generated: ${moment().format('DD/MM/YYYY HH:mm')}`,
+        width - 200,
+        y,
+        10,
+      );
       y -= 20;
 
-      drawText(`Opening Balance: ${formatNumber(openingBalance)}`, margin, y, 10, true);
-      drawText(`Net Difference: ${formatNumber(totalDebit - totalCredit)}`, 250, y, 10, true);
-      drawText(`Closing Balance: ${formatNumber(closingBalance)}`, 450, y, 10, true);
+      drawText(
+        `Opening Balance: ${formatNumber(openingBalance)}`,
+        margin,
+        y,
+        10,
+        true,
+      );
+      drawText(
+        `Net Difference: ${formatNumber(totalDebit - totalCredit)}`,
+        250,
+        y,
+        10,
+        true,
+      );
+      drawText(
+        `Closing Balance: ${formatNumber(closingBalance)}`,
+        450,
+        y,
+        10,
+        true,
+      );
       y -= 25;
 
       const colWidths = [100, 80, 100, 150, 90, 90, 90];
@@ -389,7 +443,15 @@ const ViewLedger = ({ navigation, route }) => {
       for (let i = 1; i < colWidths.length; i++) {
         colX.push(colX[i - 1] + colWidths[i - 1]);
       }
-      const headers = ['Reference', 'Date', 'Counter', 'Particular', 'Debit', 'Credit', 'Balance'];
+      const headers = [
+        'Reference',
+        'Date',
+        'Counter',
+        'Particular',
+        'Debit',
+        'Credit',
+        'Balance',
+      ];
 
       page.drawRectangle({
         x: margin,
@@ -456,18 +518,34 @@ const ViewLedger = ({ navigation, route }) => {
         color: rgb(0.9, 0.9, 0.9),
       });
       page.drawLine({
-        start: { x: margin, y: y + 15 },
-        end: { x: width - margin, y: y + 15 },
+        start: {x: margin, y: y + 15},
+        end: {x: width - margin, y: y + 15},
         thickness: 1,
         color: rgb(0.13, 0.13, 0.47),
       });
 
       drawText('TOTAL', colX[0] + 5, y, 9, true);
-      drawText(formatNumber(totalDebit), colX[4] + 5, y, 9, true, rgb(0.13, 0.13, 0.47));
-      drawText(formatNumber(totalCredit), colX[5] + 5, y, 9, true, rgb(0.13, 0.13, 0.47));
-      drawText(formatNumber(Math.abs(closingBalance)), colX[6] + 5, y, 9, true, rgb(0.13, 0.13, 0.47));
+      drawText(
+        formatNumber(totalDebit),
+        colX[4] + 5,
+        y,
+        9,
+        true,
+        rgb(0.13, 0.13, 0.47),
+      );
+      drawText(
+        formatNumber(totalCredit),
+        colX[5] + 5,
+        y,
+        9,
+        true,
+        rgb(0.13, 0.13, 0.47),
+      );
+      drawText('', colX[6] + 5, y, 9, true, rgb(0.13, 0.13, 0.47));
 
-      const safeAccountName = (selectedAccount?.account_name || 'GLAccount').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
+      const safeAccountName = (selectedAccount?.account_name || 'GLAccount')
+        .replace(/[^a-zA-Z0-9]/g, '_')
+        .substring(0, 30);
       const safeFromDate = moment(fromDate).format('DDMMYYYY');
       const safeToDate = moment(toDate).format('DDMMYYYY');
       const fileName = `${safeAccountName}_${safeFromDate}_${safeToDate}.pdf`;
@@ -485,7 +563,7 @@ const ViewLedger = ({ navigation, route }) => {
       if (Platform.OS === 'android') {
         const downloadDir = '/storage/emulated/0/Download';
         const appFolder = `${downloadDir}/LedgerReports`;
-        await RNBlobUtil.fs.mkdir(appFolder).catch(() => { });
+        await RNBlobUtil.fs.mkdir(appFolder).catch(() => {});
         filePath = `${appFolder}/${fileName}`;
         await RNBlobUtil.fs.writeFile(filePath, base64Data, 'base64');
 
@@ -497,23 +575,25 @@ const ViewLedger = ({ navigation, route }) => {
           showNotification: true,
         });
 
-        ToastAndroid.show('PDF saved! Tap notification to open.', ToastAndroid.LONG);
+        ToastAndroid.show(
+          'PDF saved! Tap notification to open.',
+          ToastAndroid.LONG,
+        );
 
         setTimeout(() => {
-          FileViewer.open(filePath, { showOpenWithDialog: true })
-            .catch(err => console.log('Error opening file:', err));
+          FileViewer.open(filePath, {showOpenWithDialog: true}).catch(err =>
+            console.log('Error opening file:', err),
+          );
         }, 500);
       } else {
         const dirs = RNBlobUtil.fs.dirs;
         filePath = `${dirs.DocumentDir}/${fileName}`;
         await RNBlobUtil.fs.writeFile(filePath, base64Data, 'base64');
 
-        FileViewer.open(filePath, { showOpenWithDialog: true })
-          .catch(() => {
-            Alert.alert('Success', 'PDF saved successfully!');
-          });
+        FileViewer.open(filePath, {showOpenWithDialog: true}).catch(() => {
+          Alert.alert('Success', 'PDF saved successfully!');
+        });
       }
-
     } catch (error) {
       console.error('PDF generation error:', error);
       if (Platform.OS === 'android') {
@@ -572,22 +652,32 @@ const ViewLedger = ({ navigation, route }) => {
   };
 
   // Table Cell Component
-  const TableCell = ({ value, isAmount = false, isLast = false, isCredit = false, isBalance = false, isDate = false }) => {
+  const TableCell = ({
+    value,
+    isAmount = false,
+    isLast = false,
+    isCredit = false,
+    isBalance = false,
+    isDate = false,
+  }) => {
     let displayValue = '';
 
     if (isAmount) {
       const numValue = parseFloat(value) || 0;
-      const absValue = (isCredit || isBalance) ? Math.abs(numValue) : numValue;
+      const absValue = isCredit || isBalance ? Math.abs(numValue) : numValue;
       displayValue = absValue !== 0 ? formatNumber(absValue) : '';
     } else if (isDate) {
       displayValue = formatDateDisplay(value);
     } else {
-      displayValue = value && value !== '0' && value !== 0 ? value.toString() : '';
+      displayValue =
+        value && value !== '0' && value !== 0 ? value.toString() : '';
     }
 
     return (
       <View style={[styles.tableCell, isLast && styles.lastCell]}>
-        <Text style={[styles.cellText, isAmount && styles.amountText]} numberOfLines={2}>
+        <Text
+          style={[styles.cellText, isAmount && styles.amountText]}
+          numberOfLines={2}>
           {displayValue}
         </Text>
       </View>
@@ -596,7 +686,15 @@ const ViewLedger = ({ navigation, route }) => {
 
   // Render Table Header
   const renderTableHeader = () => {
-    const headers = ['Reference', 'Date', 'Counter', 'Particular', 'Debit', 'Credit', 'Balance'];
+    const headers = [
+      'Reference',
+      'Date',
+      'Counter',
+      'Particular',
+      'Debit',
+      'Credit',
+      'Balance',
+    ];
     return (
       <View style={styles.tableHeader}>
         {headers.map((header, index) => (
@@ -604,7 +702,7 @@ const ViewLedger = ({ navigation, route }) => {
             key={index}
             style={[
               styles.headerCell,
-              index === headers.length - 1 && styles.lastHeaderCell
+              index === headers.length - 1 && styles.lastHeaderCell,
             ]}>
             <Text style={styles.headerText}>{header}</Text>
           </View>
@@ -614,7 +712,7 @@ const ViewLedger = ({ navigation, route }) => {
   };
 
   // Render Item - Table Row
-  const renderItem = ({ item, index }) => {
+  const renderItem = ({item, index}) => {
     const isEven = index % 2 === 0;
     const amount = parseFloat(item.amount) || 0;
     const debit = amount > 0 ? amount : 0;
@@ -622,7 +720,12 @@ const ViewLedger = ({ navigation, route }) => {
     const balance = transactionBalances[index] || closingBalance;
 
     return (
-      <Animated.View style={[styles.tableRow, isEven && styles.evenRow, { opacity: fadeAnim }]}>
+      <Animated.View
+        style={[
+          styles.tableRow,
+          isEven && styles.evenRow,
+          {opacity: fadeAnim},
+        ]}>
         <TableCell value={item.reference} />
         <TableCell value={item.doc_date} isDate />
         <TableCell value={item.person_name} />
@@ -656,18 +759,23 @@ const ViewLedger = ({ navigation, route }) => {
         style={[
           styles.header,
           {
-            paddingTop: Platform.OS === 'ios' ? insets.top + 10 : Math.max(insets.top, 24) + 10,
+            paddingTop:
+              Platform.OS === 'ios'
+                ? insets.top + 10
+                : Math.max(insets.top, 24) + 10,
             paddingBottom: Platform.OS === 'ios' ? 20 : 25,
           },
         ]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 40 }}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={{width: 40}}>
           <Ionicons name="arrow-back" size={22} color={APPCOLORS.WHITE} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>View Transactions</Text>
 
         <TouchableOpacity
-          style={{ width: 40, alignItems: 'flex-end' }}
+          style={{width: 40, alignItems: 'flex-end'}}
           onPress={handleDownload}
           disabled={downloadLoading || flatData.length === 0}>
           {downloadLoading ? (
@@ -676,7 +784,11 @@ const ViewLedger = ({ navigation, route }) => {
             <MaterialIcons
               name="file-download"
               size={26}
-              color={flatData.length === 0 ? APPCOLORS.TEXTFIELDCOLOR : APPCOLORS.WHITE}
+              color={
+                flatData.length === 0
+                  ? APPCOLORS.TEXTFIELDCOLOR
+                  : APPCOLORS.WHITE
+              }
             />
           )}
         </TouchableOpacity>
@@ -704,8 +816,7 @@ const ViewLedger = ({ navigation, route }) => {
       <ScrollView
         showsVerticalScrollIndicator={true}
         nestedScrollEnabled={true}
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}>
-        
+        contentContainerStyle={{flexGrow: 1, paddingBottom: 20}}>
         {/* Filter Section - Now inside ScrollView */}
         <View style={styles.filterContainer}>
           <View style={styles.filterRow}>
@@ -743,7 +854,9 @@ const ViewLedger = ({ navigation, route }) => {
                   maxHeight={300}
                   labelField="label"
                   valueField="value"
-                  placeholder={counterPartiesLoading ? 'Loading...' : 'Counter Party'}
+                  placeholder={
+                    counterPartiesLoading ? 'Loading...' : 'Counter Party'
+                  }
                   searchPlaceholder="Search..."
                   value={selectedCounterParty}
                   onChange={setSelectedCounterParty}
@@ -767,9 +880,7 @@ const ViewLedger = ({ navigation, route }) => {
               <TouchableOpacity
                 style={styles.dateInput}
                 onPress={() => setShowToDatePicker(true)}>
-                <Text style={styles.dateText}>
-                  {formatDateDisplay(toDate)}
-                </Text>
+                <Text style={styles.dateText}>{formatDateDisplay(toDate)}</Text>
               </TouchableOpacity>
             </View>
 
@@ -786,7 +897,10 @@ const ViewLedger = ({ navigation, route }) => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.applyButton, !selectedAccount && styles.disabledButton]}
+                style={[
+                  styles.applyButton,
+                  !selectedAccount && styles.disabledButton,
+                ]}
                 onPress={handleApplyFilter}
                 disabled={!selectedAccount || loading}>
                 {loading ? (
@@ -803,30 +917,39 @@ const ViewLedger = ({ navigation, route }) => {
           </View>
 
           {/* Balance Information */}
-          {(openingBalance !== 0 || closingBalance !== 0 || flatData.length > 0) && selectedAccount && (
-            <View style={styles.balanceContainer}>
-              <View style={styles.balanceInfo}>
-                <Text style={styles.balanceLabel}>Opening Balance</Text>
-                <Text style={styles.balanceValue}>{formatNumber(openingBalance)}</Text>
-              </View>
-              {flatData.length > 0 && (
+          {(openingBalance !== 0 ||
+            closingBalance !== 0 ||
+            flatData.length > 0) &&
+            selectedAccount && (
+              <View style={styles.balanceContainer}>
                 <View style={styles.balanceInfo}>
-                  <Text style={styles.balanceLabel}>Net Difference</Text>
-                  <Text style={[styles.balanceValue, (totalDebit - totalCredit) < 0 && { color: '#DC2626' }]}>
-                    {formatNumber(totalDebit - totalCredit)}
-                  </Text>
-                </View>
-              )}
-              {flatData.length > 0 && (
-                <View style={styles.balanceInfo}>
-                  <Text style={styles.balanceLabel}>Closing Balance</Text>
+                  <Text style={styles.balanceLabel}>Opening Balance</Text>
                   <Text style={styles.balanceValue}>
-                    {formatNumber(closingBalance)}
+                    {formatNumber(openingBalance)}
                   </Text>
                 </View>
-              )}
-            </View>
-          )}
+                {flatData.length > 0 && (
+                  <View style={styles.balanceInfo}>
+                    <Text style={styles.balanceLabel}>Net Difference</Text>
+                    <Text
+                      style={[
+                        styles.balanceValue,
+                        totalDebit - totalCredit < 0 && {color: '#DC2626'},
+                      ]}>
+                      {formatNumber(totalDebit - totalCredit)}
+                    </Text>
+                  </View>
+                )}
+                {flatData.length > 0 && (
+                  <View style={styles.balanceInfo}>
+                    <Text style={styles.balanceLabel}>Closing Balance</Text>
+                    <Text style={styles.balanceValue}>
+                      {formatNumber(closingBalance)}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
         </View>
 
         {/* Horizontal Scroll for Table */}
@@ -834,8 +957,7 @@ const ViewLedger = ({ navigation, route }) => {
           horizontal
           showsHorizontalScrollIndicator={true}
           nestedScrollEnabled={true}
-          contentContainerStyle={{ flexGrow: 1, minWidth: '100%' }}>
-
+          contentContainerStyle={{flexGrow: 1, minWidth: '100%'}}>
           {/* Transactions Table */}
           <View style={styles.container}>
             {flatData.length > 0 ? (
@@ -846,7 +968,7 @@ const ViewLedger = ({ navigation, route }) => {
                 {/* Table Body */}
                 {flatData.map((item, index) => (
                   <View key={index.toString()}>
-                    {renderItem({ item, index })}
+                    {renderItem({item, index})}
                   </View>
                 ))}
 
@@ -865,13 +987,17 @@ const ViewLedger = ({ navigation, route }) => {
                     <Text style={styles.totalsText}></Text>
                   </View>
                   <View style={styles.tableCell}>
-                    <Text style={styles.totalsAmountText}>{formatNumber(totalDebit)}</Text>
+                    <Text style={styles.totalsAmountText}>
+                      {formatNumber(totalDebit)}
+                    </Text>
                   </View>
                   <View style={styles.tableCell}>
-                    <Text style={styles.totalsAmountText}>{formatNumber(totalCredit)}</Text>
+                    <Text style={styles.totalsAmountText}>
+                      {formatNumber(totalCredit)}
+                    </Text>
                   </View>
                   <View style={[styles.tableCell, styles.lastCell]}>
-                    <Text style={styles.totalsAmountText}>{formatNumber(Math.abs(closingBalance))}</Text>
+                    <Text style={styles.totalsAmountText}></Text>
                   </View>
                 </View>
               </View>
@@ -886,8 +1012,8 @@ const ViewLedger = ({ navigation, route }) => {
                   {selectedAccount && loading
                     ? 'Loading transactions...'
                     : selectedAccount
-                      ? 'No transactions found for selected filters'
-                      : 'Please select an account to view transactions'}
+                    ? 'No transactions found for selected filters'
+                    : 'Please select an account to view transactions'}
                 </Text>
               </View>
             )}
@@ -913,7 +1039,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
@@ -932,7 +1058,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     borderRadius: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
@@ -961,7 +1087,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     backgroundColor: '#FFFFFF',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
@@ -991,7 +1117,7 @@ const styles = StyleSheet.create({
     padding: 14,
     backgroundColor: '#FFFFFF',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
@@ -1010,7 +1136,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
@@ -1023,7 +1149,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: APPCOLORS.Primary,
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: {width: 0, height: 3},
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 4,
@@ -1039,7 +1165,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
@@ -1072,7 +1198,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     width: '100%',
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: {width: 0, height: 3},
     elevation: 4,
     minWidth: '100%',
     borderWidth: 1,

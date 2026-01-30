@@ -2,7 +2,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
   FlatList,
   StatusBar,
@@ -49,7 +48,6 @@ const Aging = ({navigation, route}) => {
     axios
       .post(`${BASEURL}dash_cust_aging.php`, data, {
         headers: {'Content-Type': 'multipart/form-data'},
-        timeout: 10000,
       })
       .then(res => setAgingData(res.data.data_cust_age || []))
       .catch(err => console.warn('API error', err.message))
@@ -64,7 +62,6 @@ const Aging = ({navigation, route}) => {
     axios
       .post(`${BASEURL}dash_supp_aging.php`, data, {
         headers: {'Content-Type': 'multipart/form-data'},
-        timeout: 10000,
       })
       .then(res => setAgingData(res.data.data_cust_age || []))
       .catch(err => console.warn('API error', err.message))
@@ -72,7 +69,7 @@ const Aging = ({navigation, route}) => {
   };
 
   // Helper function to safely parse numbers (handles strings with commas)
-  const safeParseNumber = (value) => {
+  const safeParseNumber = value => {
     if (value === null || value === undefined || value === '') return 0;
     if (typeof value === 'number') return value;
     // Remove commas and parse
@@ -258,7 +255,7 @@ const Aging = ({navigation, route}) => {
       const totals = [
         formatNumber(totalAllocated),
         formatNumber(totalInvoice),
-        formatNumber(totalBalance),
+        '',
       ];
 
       totals.forEach(total => {
@@ -328,7 +325,7 @@ const Aging = ({navigation, route}) => {
           text2: 'File saved to Documents folder',
           visibilityTime: 3000,
         });
-        
+
         // Auto open on iOS
         FileViewer.open(filePath, {showOpenWithDialog: true}).catch(err => {
           console.log('Error opening PDF:', err);

@@ -1,4 +1,5 @@
 import {View, Text, FlatList, TextInput, Alert} from 'react-native';
+import {useSelector} from 'react-redux';
 import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
@@ -11,7 +12,6 @@ import {formatNumber} from '../../../../utils/NumberUtils';
 const ShowUnapprovedDetails = ({route, navigation}) => {
   const {dataDetail, type} = route.params;
   const currentUser = useSelector(state => state.Data.currentData);
-  
 
   const [filteredData, setFilteredData] = useState(dataDetail);
   const [searchText, setSearchText] = useState('');
@@ -45,28 +45,29 @@ const ShowUnapprovedDetails = ({route, navigation}) => {
     data.append('type', item?.type);
     data.append('approval', JSON.stringify(status));
     data.append('user_id', currentUser?.id);
-    
 
-    let config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: `${BASEURL}dash_approval_post.php`,
+    fetch(`${BASEURL}dash_approval_post.php`, {
+      method: 'POST',
+      body: data,
       headers: {
-        'content-type': 'multipart/form-data',
+        Accept: 'application/json',
       },
-      data: data,
-    };
-
-    axios
-      .request(config)
-      .then(response => {
-        if (response.data.status == true) {
+    })
+      .then(res => res.json())
+      .then(responseData => {
+        if (responseData.status == true || responseData.status == 'true') {
           Alert.alert(`Status ${status == 0 ? 'UnApproved' : 'Approved'}`);
           navigation.goBack();
+        } else {
+          Alert.alert(
+            'Action Failed',
+            responseData.message || 'Something went wrong',
+          );
         }
       })
       .catch(error => {
-        console.log(error);
+        console.log('Approval API Error:', error);
+        Alert.alert('Network Error', 'Check your internet connection');
       });
   };
 
