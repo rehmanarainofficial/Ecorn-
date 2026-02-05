@@ -133,7 +133,7 @@ const PdcDetailScreen = () => {
 
   return (
     <View style={styles.container}>
-      <SimpleHeader title="Post Dated Cheque Details" />
+      <SimpleHeader title="Post Dated Cheque" />
 
       {/* Filters */}
       <View style={styles.filterContainer}>

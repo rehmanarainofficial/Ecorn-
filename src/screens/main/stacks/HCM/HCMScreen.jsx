@@ -3,6 +3,8 @@ import {View, Text, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import * as Animatable from 'react-native-animatable';
+import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import {useSelector} from 'react-redux';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -13,51 +15,71 @@ const COLORS = {
   TextMuted: '#64748B',
 };
 
-const buttons = [
-  {
-    name: 'Attendance',
-    icon: 'calendar-check',
-    screen: 'Attendance',
-    color: '#10B981',
-  },
-  {
-    name: 'Expense Claim',
-    icon: 'file-document-edit',
-    screen: 'ExpenseClaimInquiry',
-    color: '#EF4444',
-  },
-  {
-    name: 'DVR Inquiry',
-    icon: 'card-search-outline',
-    screen: 'DVRInquiry',
-    color: '#6366F1',
-  },
-];
-
 export default function HCMScreen({navigation}) {
-  const renderButton = ({item, index}) => (
-    <Animatable.View
-      animation="fadeInUp"
-      delay={index * 120}
-      useNativeDriver
-      style={styles.buttonWrapper}>
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={() => navigation.navigate(item.screen)}
-        style={styles.buttonContainer}>
-        <View style={[styles.iconContainer, {backgroundColor: item.color}]}>
-          <Icon name={item.icon} size={24} color={COLORS.WHITE} />
-        </View>
-        <View style={styles.textContainer}>
-          <Text style={styles.buttonText}>{item.name}</Text>
-          <Text style={styles.buttonSubtext}>
-            Manage {item.name.toLowerCase()}
-          </Text>
-        </View>
-        <Icon name="chevron-right" size={24} color={COLORS.TextMuted} />
-      </TouchableOpacity>
-    </Animatable.View>
-  );
+  const mobileAccessData = useSelector(state => state.Data.mobileAccessData);
+
+  const buttons = [
+    {
+      name: 'Attendance',
+      icon: 'calendar-check',
+      screen: 'Attendance',
+      color: '#10B981',
+      accessKey: 'hcm_attendence',
+    },
+    {
+      name: 'Expense Claim',
+      icon: 'file-document-edit',
+      screen: 'ExpenseClaimInquiry',
+      color: '#EF4444',
+      accessKey: 'hcm_expense_claim',
+    },
+    {
+      name: 'DVR Inquiry',
+      icon: 'card-search-outline',
+      screen: 'DVRInquiry',
+      color: '#6366F1',
+      accessKey: 'hcm_dvr_inquiry',
+    },
+    {
+      name: 'Local Purchase',
+      icon: 'cart-plus',
+      screen: 'LocalPurchase',
+      color: '#10B981',
+      accessKey: 'hcm_local_purchase',
+    },
+  ];
+
+  const renderButton = ({item, index}) => {
+    const isDisabled = mobileAccessData?.[0]?.[item.accessKey] === '1';
+
+    return (
+      <Animatable.View
+        animation="fadeInUp"
+        delay={index * 120}
+        useNativeDriver
+        style={styles.buttonWrapper}>
+        <TouchableOpacity
+          activeOpacity={isDisabled ? 1 : 0.7}
+          onPress={() => (isDisabled ? null : navigation.navigate(item.screen))}
+          style={[styles.buttonContainer, {opacity: isDisabled ? 0.5 : 1}]}>
+          <View style={[styles.iconContainer, {backgroundColor: item.color}]}>
+            <Icon name={item.icon} size={24} color={COLORS.WHITE} />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={styles.buttonText}>{item.name}</Text>
+            <Text style={styles.buttonSubtext}>
+              {isDisabled
+                ? 'Access Restricted'
+                : `Manage ${item.name.toLowerCase()}`}
+            </Text>
+          </View>
+          {!isDisabled && (
+            <Icon name="chevron-right" size={24} color={COLORS.TextMuted} />
+          )}
+        </TouchableOpacity>
+      </Animatable.View>
+    );
+  };
 
   return (
     <View style={styles.container}>

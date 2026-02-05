@@ -25,13 +25,15 @@ import {BASEURL} from '../../utils/BaseUrl';
 import axios from 'axios';
 import moment from 'moment';
 import GetUserAccessData from '../../global/GetUserAccessData';
+import GetMobileAccessData from '../../global/GetMobileAccessData';
 import {useDispatch, useSelector} from 'react-redux';
-import {setUserAccess} from '../../redux/AuthSlice';
+import {setUserAccess, setMobileAccess} from '../../redux/AuthSlice';
 import {formatNumber} from '../../utils/NumberUtils';
 
 const Dashboard = ({navigation}) => {
   const [visible, setVisible] = useState(false);
   const userData = useSelector(state => state.Data.currentData);
+  const mobileAccessData = useSelector(state => state.Data.mobileAccessData);
   const [AllData, setAllData] = useState();
   const [Type, setType] = useState();
   const [firstLoad, setFirstLoad] = useState(true);
@@ -47,48 +49,56 @@ const Dashboard = ({navigation}) => {
       name: 'Dashboard',
       icon: 'grid',
       onPress: () => navigation.navigate('Detail'),
+      disabled: mobileAccessData?.[0]?.dashboard === '1',
     },
     {
       id: 2,
       name: 'Approval',
       icon: 'check-circle',
       onPress: () => navigation.navigate('AlertScreen', {type: 'customer'}),
+      disabled: mobileAccessData?.[0]?.approval === '1',
     },
     {
       id: 3,
       name: 'Sales',
       icon: 'shopping-cart',
       onPress: () => navigation.navigate('SalesScreen'),
+      disabled: mobileAccessData?.[0]?.sales === '1',
     },
     {
       id: 4,
       name: 'Purchase',
       icon: 'shopping-bag',
       onPress: () => navigation.navigate('PurchaseScreen'),
+      disabled: mobileAccessData?.[0]?.purchase === '1',
     },
     {
       id: 5,
       name: 'Inventory',
       icon: 'box',
       onPress: () => navigation.navigate('InventoryScreen'),
+      disabled: mobileAccessData?.[0]?.inventory === '1',
     },
     {
       id: 6,
       name: 'HCM',
       icon: 'users',
       onPress: () => navigation.navigate('HCMScreen'),
+      disabled: mobileAccessData?.[0]?.hcm === '1',
     },
     {
       id: 7,
       name: 'Manufactur..',
       icon: 'settings',
       onPress: () => navigation.navigate('ManufacturingScreen'),
+      disabled: mobileAccessData?.[0]?.manufacturing === '1',
     },
     {
       id: 8,
       name: 'CRM',
       icon: 'briefcase',
       onPress: () => navigation.navigate('CrmScreen'),
+      disabled: mobileAccessData?.[0]?.crm === '1',
     },
   ];
 
@@ -99,12 +109,14 @@ const Dashboard = ({navigation}) => {
       name: 'Finance',
       icon: 'dollar-sign',
       onPress: () => navigation.navigate('FinanceScreen'),
+      disabled: mobileAccessData?.[0]?.finance === '1',
     },
     {
       id: 10,
       name: 'Attach Docs',
       icon: 'file-plus',
       onPress: () => navigation.navigate('AttachDocumentScreen'),
+      disabled: mobileAccessData?.[0]?.attach_doc === '1',
     },
   ];
 
@@ -163,8 +175,20 @@ const Dashboard = ({navigation}) => {
   };
 
   const getUserAccess = async () => {
-    const res = await GetUserAccessData(userData.id);
-    dispatch(setUserAccess(res.data));
+    try {
+      const res = await GetUserAccessData(userData.id);
+      dispatch(setUserAccess(res.data));
+
+      // Fetch Mobile Access based on role_id
+      if (userData?.role_id) {
+        const mobileRes = await GetMobileAccessData(userData.role_id);
+        if (mobileRes.status === 'true') {
+          dispatch(setMobileAccess(mobileRes.data));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching access data:', error);
+    }
   };
 
   return (
@@ -320,6 +344,7 @@ const Dashboard = ({navigation}) => {
               name={item.name}
               onPress={item.onPress}
               isMoreButton={item.isMoreButton}
+              disabled={item.disabled}
             />
           ))}
         </View>

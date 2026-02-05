@@ -11,12 +11,20 @@ type Props = {
   onPress?: () => void;
   icon: string;
   isMoreButton?: boolean;
+  disabled?: boolean;
 };
 
-const DashboardTabs = ({name, onPress, icon, isMoreButton}: Props) => {
+const DashboardTabs = ({
+  name,
+  onPress,
+  icon,
+  isMoreButton,
+  disabled,
+}: Props) => {
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={disabled ? undefined : onPress}
+      activeOpacity={disabled ? 1 : 0.7}
       style={{
         height: responsiveHeight(14),
         width: responsiveHeight(14),
@@ -26,6 +34,7 @@ const DashboardTabs = ({name, onPress, icon, isMoreButton}: Props) => {
         justifyContent: 'center',
         gap: 9,
         paddingHorizontal: 15,
+        opacity: disabled ? 0.5 : 1,
       }}>
       <Feather name={icon} size={35} color="black" />
       <AppText

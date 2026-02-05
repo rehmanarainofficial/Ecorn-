@@ -9,11 +9,6 @@ import * as Animatable from 'react-native-animatable';
 const buttons = [
   {name: 'View Ledger', icon: 'book-open-page-variant', screen: 'ViewLedger'},
   {
-    name: 'Local Purchase',
-    icon: 'cart-plus',
-    screen: 'LocalPurchase',
-  },
-  {
     name: 'Financial Transactions',
     icon: 'check-circle',
     screen: 'ApprovedRecordsScreen',

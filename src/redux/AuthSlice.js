@@ -58,6 +58,7 @@ export const AuthSlice = createSlice({
     Loading: false,
     AllProduct: [],
     accessData: [],
+    mobileAccessData: null,
   },
   reducers: {
     setLoader: (state, action) => {
@@ -80,6 +81,9 @@ export const AuthSlice = createSlice({
     },
     setUserAccess: (state, action) => {
       state.accessData = action.payload;
+    },
+    setMobileAccess: (state, action) => {
+      state.mobileAccessData = action.payload;
     },
 
     setLogout: state => {
@@ -115,6 +119,7 @@ export const {
   setGrandCartTotalPrice,
   setAllProducts,
   setUserAccess,
+  setMobileAccess,
 } = AuthSlice.actions;
 
 export default AuthSlice.reducer;
