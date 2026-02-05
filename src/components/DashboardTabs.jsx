@@ -5,22 +5,7 @@ import {APPCOLORS} from '../utils/APPCOLORS';
 import AppText from './AppText';
 import Feather from 'react-native-vector-icons/Feather';
 
-type Props = {
-  name?: string;
-  isNew?: boolean;
-  onPress?: () => void;
-  icon: string;
-  isMoreButton?: boolean;
-  disabled?: boolean;
-};
-
-const DashboardTabs = ({
-  name,
-  onPress,
-  icon,
-  isMoreButton,
-  disabled,
-}: Props) => {
+const DashboardTabs = ({name, onPress, icon, disabled}) => {
   return (
     <TouchableOpacity
       onPress={disabled ? undefined : onPress}
