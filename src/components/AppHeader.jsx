@@ -43,7 +43,7 @@ const AppHeader = ({ title, onPress }) => {
           marginTop: 20,
         }}>
         <AppText
-          title="Ecorn Industry"
+          title="Ercon Industry"
           titleColor={APPCOLORS.WHITE}
           titleSize={3}
           titleWeight

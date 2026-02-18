@@ -14,7 +14,7 @@ type props = {
     secureTextEntry?:boolean
 }
 
-const AppInput = ({isPassword, logo, moreStyle, placeHolder,onChangeText,value, txtColor, secureTextEntry}: props) => {
+const AppInput = ({logo,placeHolder,onChangeText,value, txtColor, secureTextEntry}: props) => {
   return (
     <View style={{borderWidth:1, borderRadius:10, borderColor:APPCOLORS.WHITE, flexDirection:'row', alignItems:'center',  width:responsiveWidth(90), paddingHorizontal:15 , gap:10}}>
         {

@@ -1,37 +1,27 @@
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity, StyleSheet} from 'react-native';
 import React from 'react';
 import AppText from './AppText';
 import {APPCOLORS} from '../utils/APPCOLORS';
-import PlatformGradient from './PlatformGradient';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {formatNumber} from '../utils/NumberUtils';
 
-const NameBalanceContainer = ({Name, type, balance, item}) => {
+const NameBalanceContainer = ({Name, type, balance, item, darkMode}) => {
+  const textColor = darkMode ? '#FFFFFF' : APPCOLORS.PRIMARY;
   const navigation = useNavigation();
+
   const handleAgingPress = () => {
-    navigation.navigate('Aging', {
-      name: type,
-      item: item,
-    });
+    navigation.navigate('Aging', {name: type, item: item});
   };
 
   const handleLedgerPress = () => {
-    // Normalize 'Bank' to 'Banks' for Ledger screen
     const ledgerType = type === 'Bank' ? 'Banks' : type;
-    navigation.navigate('Ledger', {
-      name: ledgerType,
-      item: item,
-    });
+    navigation.navigate('Ledger', {name: ledgerType, item: item});
   };
 
-  // For Banks - navigate to ViewLedger with account code
   const handleBankPress = () => {
-    // Log item to see available fields
-    console.log('Bank Item:', JSON.stringify(item, null, 2));
-    
     navigation.navigate('ViewLedger', {
-      accountCode: item?.account, // API returns 'account' field e.g. "1012015"
+      accountCode: item?.account,
       accountName: item?.bank_name || Name,
       item: item,
     });
@@ -40,101 +30,69 @@ const NameBalanceContainer = ({Name, type, balance, item}) => {
   // For Banks - make entire card clickable
   if (type === 'Banks' || type === 'Bank') {
     return (
-      <TouchableOpacity onPress={handleBankPress} activeOpacity={0.7}>
-        <View
-          style={{padding: 15, borderRadius: 10, backgroundColor: '#F8FAFC'}}>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-            <View
-              style={{flex: 1, flexDirection: 'row', alignItems: 'center', gap: 3}}>
-              <View style={{flex: 1}}>
-                <AppText
-                  title={Name}
-                  titleSize={1.6}
-                  titleColor={APPCOLORS.PRIMARY}
-                  numberOfLines={1}
-                />
-              </View>
-            </View>
-
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 6,
-                marginHorizontal: 8,
-              }}>
-              <AppText
-                title={formatNumber(balance)}
-                titleSize={1.6}
-                titleColor={APPCOLORS.PRIMARY}
-              />
-              <Icon name="chevron-right" size={24} color={APPCOLORS.PRIMARY} />
-            </View>
-          </View>
+      <TouchableOpacity
+        onPress={handleBankPress}
+        activeOpacity={0.7}
+        style={styles.row}>
+        <View style={styles.nameWrapper}>
+          <AppText
+            title={Name}
+            titleSize={1.6}
+            titleColor={textColor}
+            numberOfLines={2}
+          />
+        </View>
+        <View style={styles.rightSection}>
+          <AppText
+            title={formatNumber(balance)}
+            titleSize={1.6}
+            titleColor={textColor}
+          />
+          <Icon name="chevron-right" size={22} color={textColor} />
         </View>
       </TouchableOpacity>
     );
   }
 
   return (
-    <View
-      style={{padding: 15, borderRadius: 10, backgroundColor: '#F8FAFC'}}>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
-        <View
-          style={{flex: 1, flexDirection: 'row', alignItems: 'center', gap: 3}}>
-          <View style={{flex: 1}}>
-            <AppText
-              title={Name}
-              titleSize={1.6}
-              titleColor={APPCOLORS.PRIMARY}
-              numberOfLines={1}
-            />
-          </View>
-        </View>
+    <View style={styles.row}>
+      {/* Name - flex:1 so it wraps and doesn't push icons */}
+      <View style={styles.nameWrapper}>
+        <AppText
+          title={Name}
+          titleSize={1.6}
+          titleColor={textColor}
+          numberOfLines={2}
+        />
+      </View>
 
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            marginHorizontal: 8,
-          }}>
-          <AppText
-            title={formatNumber(balance)}
-            titleSize={1.6}
-            titleColor={APPCOLORS.PRIMARY}
-          />
-        </View>
+      {/* Amount + Icons - fixed width, always visible */}
+      <View style={styles.rightSection}>
+        <AppText
+          title={formatNumber(balance)}
+          titleSize={1.6}
+          titleColor={textColor}
+        />
 
-        {(type === 'Customer' ||
-          type === 'Suppliers' ||
-          type === 'Items') && (
-          <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+        {(type === 'Customer' || type === 'Suppliers' || type === 'Items') && (
+          <View style={styles.iconsRow}>
             {type === 'Items' ? (
-              <TouchableOpacity onPress={handleLedgerPress}>
-                <Icon name="receipt-long" size={20} color={APPCOLORS.PRIMARY} />
+              <TouchableOpacity
+                onPress={handleLedgerPress}
+                hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+                <Icon name="receipt-long" size={20} color={textColor} />
               </TouchableOpacity>
             ) : (
               <>
-                <TouchableOpacity onPress={handleAgingPress}>
-                  <Icon
-                    name="calendar-today"
-                    size={20}
-                    color={APPCOLORS.PRIMARY}
-                  />
+                <TouchableOpacity
+                  onPress={handleAgingPress}
+                  hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+                  <Icon name="calendar-today" size={20} color={textColor} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleLedgerPress}>
-                  <Icon name="receipt-long" size={20} color={APPCOLORS.PRIMARY} />
+                <TouchableOpacity
+                  onPress={handleLedgerPress}
+                  hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+                  <Icon name="receipt-long" size={20} color={textColor} />
                 </TouchableOpacity>
               </>
             )}
@@ -144,5 +102,29 @@ const NameBalanceContainer = ({Name, type, balance, item}) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+  },
+  nameWrapper: {
+    flex: 1,
+    paddingRight: 10,
+  },
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flexShrink: 0,
+  },
+  iconsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+});
 
 export default NameBalanceContainer;

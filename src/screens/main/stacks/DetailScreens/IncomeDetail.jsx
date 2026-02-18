@@ -1,7 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet, ScrollView} from 'react-native';
 import SimpleHeader from '../../../../components/SimpleHeader';
-import PlatformGradient from '../../../../components/PlatformGradient';
 import PieChart from 'react-native-pie-chart';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {formatNumber} from '../../../../utils/NumberUtils';

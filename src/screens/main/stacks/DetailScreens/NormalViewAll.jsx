@@ -4,6 +4,7 @@ import PlatformGradient from '../../../../components/PlatformGradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
+import CustomerPayableCard from '../../../../components/CustomerPayableCard';
 import {responsiveHeight, responsiveWidth} from '../../../../utils/Responsive';
 
 const NormalViewAll = ({navigation, route}) => {
@@ -115,6 +116,29 @@ const NormalViewAll = ({navigation, route}) => {
         }}
         renderItem={({item}) => {
           const {Name, Balance} = getNameAndBalance(item, dataname);
+
+          const isDark =
+            dataname === 'Customer' ||
+            dataname === 'Suppliers' ||
+            dataname === 'Payable' ||
+            dataname === 'Receivable';
+
+          if (isDark) {
+            return (
+              <CustomerPayableCard
+                name={Name}
+                balance={Balance}
+                type={
+                  dataname === 'Payable'
+                    ? 'Suppliers'
+                    : dataname === 'Receivable'
+                    ? 'Customer'
+                    : dataname
+                }
+                item={item}
+              />
+            );
+          }
 
           return (
             <View style={{marginBottom: 12}}>

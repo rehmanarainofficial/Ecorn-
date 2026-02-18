@@ -12,7 +12,6 @@ import axios from 'axios';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SimpleHeader from '../../../../components/SimpleHeader';
-import PlatformGradient from '../../../../components/PlatformGradient';
 import PieChart from 'react-native-pie-chart';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {formatNumber} from '../../../../utils/NumberUtils';
@@ -34,8 +33,14 @@ const ExpenseDetail = ({navigation, route}) => {
   const widthAndHeight = 250;
 
   // Date Filter State
-  const [startDate, setStartDate] = useState(from_date ? new Date(from_date) : new Date(new Date().setDate(new Date().getDate() - 30)));
-  const [endDate, setEndDate] = useState(to_date ? new Date(to_date) : new Date());
+  const [startDate, setStartDate] = useState(
+    from_date
+      ? new Date(from_date)
+      : new Date(new Date().setDate(new Date().getDate() - 30)),
+  );
+  const [endDate, setEndDate] = useState(
+    to_date ? new Date(to_date) : new Date(),
+  );
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [dateMode, setDateMode] = useState('start');
   const [loading, setLoading] = useState(true);
@@ -85,11 +90,14 @@ const ExpenseDetail = ({navigation, route}) => {
 
       if (res.data?.data_exp_det && Array.isArray(res.data.data_exp_det)) {
         const apiData = res.data.data_exp_det;
-        
+
         // Map API data to expense format
         const mappedExpenses = apiData.map((item, index) => {
           const title = item.name?.replace(/&amp;/g, '&') || item.title;
-          const iconData = EXPENSE_ICONS[title] || {icon: 'cash', color: CHART_COLORS[index % CHART_COLORS.length]};
+          const iconData = EXPENSE_ICONS[title] || {
+            icon: 'cash',
+            color: CHART_COLORS[index % CHART_COLORS.length],
+          };
           return {
             id: index + 1,
             title: title,
@@ -101,9 +109,12 @@ const ExpenseDetail = ({navigation, route}) => {
         });
 
         setExpenseData(mappedExpenses);
-        
+
         // Calculate total
-        const total = mappedExpenses.reduce((acc, item) => acc + item.amount, 0);
+        const total = mappedExpenses.reduce(
+          (acc, item) => acc + item.amount,
+          0,
+        );
         setTotalExpense(total);
       }
     } catch (error) {
@@ -154,9 +165,14 @@ const ExpenseDetail = ({navigation, route}) => {
           <TouchableOpacity
             style={styles.clearBtn}
             onPress={() => {
-              setStartDate(new Date(new Date().setDate(new Date().getDate() - 30)));
+              setStartDate(
+                new Date(new Date().setDate(new Date().getDate() - 30)),
+              );
               setEndDate(new Date());
-              fetchExpenseData(new Date(new Date().setDate(new Date().getDate() - 30)), new Date());
+              fetchExpenseData(
+                new Date(new Date().setDate(new Date().getDate() - 30)),
+                new Date(),
+              );
             }}>
             <Ionicons name="close-circle" size={18} color="#fff" />
           </TouchableOpacity>

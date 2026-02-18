@@ -9,6 +9,7 @@ import {
 import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
+import CustomerPayableCard from '../../../../components/CustomerPayableCard';
 import ViewAll from '../../../../components/ViewAll';
 import {GetReceivable} from '../../../../global/ChartApisCall';
 import {formatNumber} from '../../../../utils/NumberUtils';
@@ -30,8 +31,8 @@ const ReceivableScreen = ({navigation}) => {
   const [viewAllData, setViewAllData] = useState([]);
   const [circleData, setCircleData] = useState(null);
   const [loading, setLoading] = useState(true);
-  console.log("viewAllData", viewAllData);
-  
+  console.log('viewAllData', viewAllData);
+
   const colors = [
     '#3B82F6',
     '#EF4444',
@@ -89,8 +90,8 @@ const ReceivableScreen = ({navigation}) => {
 
   const listData = getListData();
 
-  // Calculate total receivable balance
-  const totalBalance = listData.reduce((sum, item) => {
+  // Calculate total receivable balance for all customers
+  const totalBalance = viewAllData.reduce((sum, item) => {
     return sum + (parseFloat(item?.Balance) || 0);
   }, 0);
 
@@ -117,7 +118,7 @@ const ReceivableScreen = ({navigation}) => {
                   {formatNumber(totalBalance)}
                 </Text>
                 <Text style={styles.summarySubtitle}>
-                  From {listData.length} customers
+                  From {viewAllData.length} customers
                 </Text>
               </View>
 
@@ -186,22 +187,13 @@ const ReceivableScreen = ({navigation}) => {
                         : 0;
 
                     return (
-                      <View
-                        style={[
-                          styles.card,
-                          {
-                            borderLeftColor: colors[index % colors.length],
-                            borderLeftWidth: 4,
-                          },
-                        ]}>
-                        <NameBalanceContainer
-                          Name={item?.name || 'Unknown Customer'}
-                          balance={balance}
-                          perc={perc}
-                          type="Customer"
-                          item={item}
-                        />
-                      </View>
+                      <CustomerPayableCard
+                        name={item?.name || 'Unknown Customer'}
+                        balance={balance}
+                        accentColor={colors[index % colors.length]}
+                        type="Customer"
+                        item={item}
+                      />
                     );
                   }}
                   ListEmptyComponent={
@@ -349,14 +341,14 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   card: {
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: '#1a1c22',
     padding: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.Border,
+    borderColor: '#1a1c22',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 2,
   },

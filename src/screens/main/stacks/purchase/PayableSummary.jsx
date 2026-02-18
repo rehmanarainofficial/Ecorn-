@@ -9,6 +9,7 @@ import {
 import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
+import CustomerPayableCard from '../../../../components/CustomerPayableCard';
 import ViewAll from '../../../../components/ViewAll';
 import {GetPayable} from '../../../../global/ChartApisCall';
 import {formatNumber} from '../../../../utils/NumberUtils';
@@ -82,7 +83,8 @@ const PayableScreen = ({navigation}) => {
 
   const listData = dataState?.data_supp_bal || [];
 
-  const totalBalance = listData.reduce((sum, item) => {
+  // Calculate total payable balance for all suppliers
+  const totalBalance = viewAllData.reduce((sum, item) => {
     return sum + (parseFloat(item?.Balance) || 0);
   }, 0);
 
@@ -109,7 +111,7 @@ const PayableScreen = ({navigation}) => {
                   {formatNumber(totalBalance)}
                 </Text>
                 <Text style={styles.summarySubtitle}>
-                  To {listData.length} suppliers
+                  To {viewAllData.length} suppliers
                 </Text>
               </View>
 
@@ -178,22 +180,13 @@ const PayableScreen = ({navigation}) => {
                         : 0;
 
                     return (
-                      <View
-                        style={[
-                          styles.card,
-                          {
-                            borderLeftColor: colors[index % colors.length],
-                            borderLeftWidth: 4,
-                          },
-                        ]}>
-                        <NameBalanceContainer
-                          Name={item?.supp_name || 'Unknown Supplier'}
-                          balance={balance}
-                          perc={perc}
-                          type="Suppliers"
-                          item={item}
-                        />
-                      </View>
+                      <CustomerPayableCard
+                        name={item?.supp_name || 'Unknown Supplier'}
+                        balance={balance}
+                        accentColor={colors[index % colors.length]}
+                        type="Suppliers"
+                        item={item}
+                      />
                     );
                   }}
                   ListEmptyComponent={
@@ -341,14 +334,14 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   card: {
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: '#1a1c22',
     padding: 16,
     borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: COLORS.Border,
+    borderWidth: 1,
+    borderColor: '#1a1c22',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.15,
     shadowRadius: 6,
     elevation: 3,
     marginHorizontal: 2,
