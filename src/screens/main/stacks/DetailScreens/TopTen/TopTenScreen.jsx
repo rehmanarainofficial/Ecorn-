@@ -14,6 +14,7 @@ import {BASEURL} from '../../../../../utils/BaseUrl';
 import axios from 'axios';
 import AppText from '../../../../../components/AppText';
 import NameBalanceContainer from '../../../../../components/NameBalanceContainer';
+import CustomerPayableCard from '../../../../../components/CustomerPayableCard';
 import {
   GetBankBalance,
   GetItemBalance,
@@ -39,7 +40,7 @@ const TopTenScreen = ({route, navigation}) => {
       if (name == 'Customer') {
         setLoader(true);
         const response = await GetReceivable();
-setLoader(false);
+        setLoader(false);
         setTop(response.data_cust_bal);
         setAllData(response.data_view_cust_bal);
       } else if (name == 'Suppliers') {
@@ -76,115 +77,126 @@ setLoader(false);
     return unsubscribe;
   }, [navigation]);
 
- return (
-  <View style={{flex: 1}}>
-    <SimpleHeader title={`Top 10 ${name}`} />
+  return (
+    <View style={{flex: 1}}>
+      <SimpleHeader title={`Top 10 ${name}`} />
 
-    <ScrollView contentContainerStyle={{flexGrow: 1, padding: 20}}>
-      {/* Header Row */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 10,
-        }}>
-        <AppText title={`Top 10 ${name}`} titleSize={2} titleWeight />
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate('ViewAllTopTen', {
-              name: name,
-              allData: allData,
-            })
-          }>
-          <AppText title={`View All`} titleSize={2} titleWeight />
-        </TouchableOpacity>
-      </View>
+      <ScrollView contentContainerStyle={{flexGrow: 1, padding: 20}}>
+        {/* Header Row */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 10,
+          }}>
+          <AppText title={`Top 10 ${name}`} titleSize={2} titleWeight />
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('ViewAllTopTen', {
+                name: name,
+                allData: allData,
+              })
+            }>
+            <AppText title={`View All`} titleSize={2} titleWeight />
+          </TouchableOpacity>
+        </View>
 
-      {/* Search Input */}
-      <TextInput
-        placeholder={`Search ${name}`}
-        onChangeText={text => {
-          if (text === '') {
-            setTop(allData.slice(0, 10));
-          } else {
-            const query = text.toLowerCase();
-            const filtered = allData.filter(item => {
-              if (name === 'Suppliers') {
-                return item?.supp_name?.toLowerCase().includes(query);
-              } else if (name === 'Banks') {
-                return item?.bank_name?.toLowerCase().includes(query);
-              } else if (name === 'Items') {
-                return item?.description?.toLowerCase().includes(query);
-              } else {
-                return item?.name?.toLowerCase().includes(query);
-              }
-            });
-            setTop(filtered.slice(0, 10));
-          }
-        }}
-        style={{
-          backgroundColor: '#F3F4F6',
-          borderRadius: 10,
-          paddingHorizontal: 15,
-          paddingVertical: 10,
-          borderColor: '#ccc',
-          borderWidth: 1,
-          marginBottom: 15,
-        }}
-      />
+        {/* Search Input */}
+        <TextInput
+          placeholder={`Search ${name}`}
+          onChangeText={text => {
+            if (text === '') {
+              setTop(allData.slice(0, 10));
+            } else {
+              const query = text.toLowerCase();
+              const filtered = allData.filter(item => {
+                if (name === 'Suppliers') {
+                  return item?.supp_name?.toLowerCase().includes(query);
+                } else if (name === 'Banks') {
+                  return item?.bank_name?.toLowerCase().includes(query);
+                } else if (name === 'Items') {
+                  return item?.description?.toLowerCase().includes(query);
+                } else {
+                  return item?.name?.toLowerCase().includes(query);
+                }
+              });
+              setTop(filtered.slice(0, 10));
+            }
+          }}
+          style={{
+            backgroundColor: '#F3F4F6',
+            borderRadius: 10,
+            paddingHorizontal: 15,
+            paddingVertical: 10,
+            borderColor: '#ccc',
+            borderWidth: 1,
+            marginBottom: 15,
+          }}
+        />
 
-      {/* Data or Loader */}
-      {loader ? (
-        <ActivityIndicator size={'large'} style={{alignSelf: 'center'}} />
-      ) : (
-        <>
-          {top?.length > 0 ? (
-            <FlatList
-              data={top}
-              contentContainerStyle={{gap: 10}}
-              renderItem={({item}) => {
-                return (
-                  <NameBalanceContainer
-                    Name={
-                      name == 'Suppliers'
-                        ? item?.supp_name
-                        : name == 'Items'
-                        ? item.description
-                        : name == 'Banks'
-                        ? item?.bank_name
-                        : item?.name
-                    }
-                    balance={
-                      name == 'Items'
-                        ? item.total
-                        : name == 'Banks'
-                        ? item?.bank_balance
-                        : item?.Balance
-                    }
-                    type={name}
-                    item={item}
-                  />
-                );
-              }}
-            />
-          ) : (
-            <View
-              style={{
-                height: responsiveHeight(60),
-                width: responsiveWidth(100),
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <AppText title={`No Top ${name} found`} />
-            </View>
-          )}
-        </>
-      )}
-    </ScrollView>
-  </View>
-);
+        {/* Data or Loader */}
+        {loader ? (
+          <ActivityIndicator size={'large'} style={{alignSelf: 'center'}} />
+        ) : (
+          <>
+            {top?.length > 0 ? (
+              <FlatList
+                data={top}
+                contentContainerStyle={{gap: 10}}
+                renderItem={({item}) => {
+                  const itemName =
+                    name == 'Suppliers'
+                      ? item?.supp_name
+                      : name == 'Items'
+                      ? item.description
+                      : name == 'Banks'
+                      ? item?.bank_name
+                      : item?.name;
+                  const itemBalance =
+                    name == 'Items'
+                      ? item.total
+                      : name == 'Banks'
+                      ? item?.bank_balance
+                      : item?.Balance;
 
+                  if (name === 'Customer' || name === 'Suppliers') {
+                    return (
+                      <CustomerPayableCard
+                        name={itemName}
+                        balance={itemBalance}
+                        type={name}
+                        item={item}
+                      />
+                    );
+                  }
+
+                  return (
+                    <NameBalanceContainer
+                      Name={itemName}
+                      balance={itemBalance}
+                      type={name}
+                      item={item}
+                    />
+                  );
+                }}
+              />
+            ) : (
+              <View
+                style={{
+                  height: responsiveHeight(60),
+                  width: responsiveWidth(100),
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <AppText title={`No Top ${name} found`} />
+              </View>
+            )}
+          </>
+        )}
+      </ScrollView>
+    </View>
+  );
 };
 
 export default TopTenScreen;
