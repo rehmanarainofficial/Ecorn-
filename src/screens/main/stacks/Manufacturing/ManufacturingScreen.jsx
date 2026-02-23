@@ -18,11 +18,6 @@ const buttons = [
     screen: 'MechanicalJobCardsScreen',
   },
   {
-    name: 'Material Requisition Slip',
-    icon: 'file-document-outline',
-    screen: 'MaterialRequisitionSlipScreen',
-  },
-  {
     name: 'Manufacturing Transactions',
     icon: 'check-circle',
     screen: 'ApprovedRecordsScreen',

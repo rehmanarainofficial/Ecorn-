@@ -8,6 +8,8 @@ const Stack = createStackNavigator();
 
 const Routes = () => {
   const token = useSelector(state => state.Data.token);
+  console.log(token);
+  
 
   return (
     <Stack.Navigator screenOptions={{headerShown: false}}>

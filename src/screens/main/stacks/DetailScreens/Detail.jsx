@@ -350,28 +350,12 @@ const Detail = ({navigation}) => {
           </View>
         )}
 
-        {/* Bottom Sections
-        <View style={{paddingHorizontal: 20}}>
-          <View style={{gap: 10}}>
-            {accessData?.[0]?.profit_loss_d === '1' && (
-              <TopTen
-                onPress={() => navigation.navigate('ProfitAndLossScreen')}
-                title="Profit and Loss"
-                backgroundColor="#1a1c22"
-              />
-            )}
-
-            {accessData?.[0]?.what_about === '1' && (
-              <TopTen
-                onPress={() =>
-                  navigation.navigate('Ledger', {name: 'Audit', item: null})
-                }
-                title="What About Today"
-                backgroundColor="#1a1c22"
-              />
-            )}
-          </View>
-        </View> */}
+        {/* Security Rule Button */}
+        <TouchableOpacity
+          style={styles.securityBtn}
+          onPress={() => navigation.navigate('SecurityRule')}>
+          <Text style={styles.securityBtnText}>Security Rule</Text>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -530,5 +514,24 @@ let styles = StyleSheet.create({
     marginLeft: 8,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  securityBtn: {
+    backgroundColor: '#1a1c22',
+    marginHorizontal: 15,
+    height: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  securityBtnText: {
+    color: COLORS.WHITE,
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });
