@@ -20,6 +20,9 @@ const AlertCards = ({
   onValuePressOne,
   onValuePressTwo,
   onValuePressThree,
+  disabledOne,
+  disabledTwo,
+  disabledThree,
 }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -54,7 +57,10 @@ const AlertCards = ({
           useNativeDriver
           style={styles.content}>
           {HeadingOne && (
-            <TouchableOpacity onPress={onValuePressOne} style={styles.itemRow}>
+            <TouchableOpacity
+              onPress={disabledOne ? undefined : onValuePressOne}
+              activeOpacity={disabledOne ? 1 : 0.7}
+              style={[styles.itemRow, {opacity: disabledOne ? 0.5 : 1}]}>
               <View style={styles.itemInfo}>
                 <Icon
                   name={IconOne || 'file-text'}
@@ -67,16 +73,29 @@ const AlertCards = ({
                   titleColor={APPCOLORS.BLACK}
                 />
               </View>
-              <AppText
-                title={ValueOne}
-                titleSize={2}
-                titleColor={APPCOLORS.BLACK}
-              />
+              <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <AppText
+                  title={ValueOne}
+                  titleSize={2}
+                  titleColor={APPCOLORS.BLACK}
+                />
+                {disabledOne && (
+                  <Icon
+                    name="lock"
+                    size={14}
+                    color="#94A3B8"
+                    style={{marginLeft: 8}}
+                  />
+                )}
+              </View>
             </TouchableOpacity>
           )}
 
           {HeadingTwo && (
-            <TouchableOpacity onPress={onValuePressTwo} style={styles.itemRow}>
+            <TouchableOpacity
+              onPress={disabledTwo ? undefined : onValuePressTwo}
+              activeOpacity={disabledTwo ? 1 : 0.7}
+              style={[styles.itemRow, {opacity: disabledTwo ? 0.5 : 1}]}>
               <View style={styles.itemInfo}>
                 <Icon
                   name={IconTwo || 'shopping-cart'}
@@ -89,18 +108,29 @@ const AlertCards = ({
                   titleColor={APPCOLORS.BLACK}
                 />
               </View>
-              <AppText
-                title={ValueTwo}
-                titleSize={2}
-                titleColor={APPCOLORS.BLACK}
-              />
+              <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <AppText
+                  title={ValueTwo}
+                  titleSize={2}
+                  titleColor={APPCOLORS.BLACK}
+                />
+                {disabledTwo && (
+                  <Icon
+                    name="lock"
+                    size={14}
+                    color="#94A3B8"
+                    style={{marginLeft: 8}}
+                  />
+                )}
+              </View>
             </TouchableOpacity>
           )}
 
           {HeadingThree && (
             <TouchableOpacity
-              onPress={onValuePressThree}
-              style={styles.itemRow}>
+              onPress={disabledThree ? undefined : onValuePressThree}
+              activeOpacity={disabledThree ? 1 : 0.7}
+              style={[styles.itemRow, {opacity: disabledThree ? 0.5 : 1}]}>
               <View style={styles.itemInfo}>
                 <Icon
                   name={IconThree || 'truck'}
@@ -113,11 +143,21 @@ const AlertCards = ({
                   titleColor={APPCOLORS.BLACK}
                 />
               </View>
-              <AppText
-                title={ValueThree}
-                titleSize={2}
-                titleColor={APPCOLORS.BLACK}
-              />
+              <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <AppText
+                  title={ValueThree}
+                  titleSize={2}
+                  titleColor={APPCOLORS.BLACK}
+                />
+                {disabledThree && (
+                  <Icon
+                    name="lock"
+                    size={14}
+                    color="#94A3B8"
+                    style={{marginLeft: 8}}
+                  />
+                )}
+              </View>
             </TouchableOpacity>
           )}
         </Animatable.View>

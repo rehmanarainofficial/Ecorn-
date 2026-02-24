@@ -9,9 +9,11 @@ import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import AlertCards from '../../../../components/AlertCards';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import {useSelector} from 'react-redux';
 import {BASEURL} from '../../../../utils/BaseUrl';
 
 const AlertScreen = ({navigation}) => {
+  const mobileAccessData = useSelector(state => state.Data.mobileAccessData);
   const [AllData, setAllData] = useState({});
   const [Loading, setLoading] = useState(false);
   const [Refreshing, setRefreshing] = useState(false);
@@ -27,7 +29,7 @@ const AlertScreen = ({navigation}) => {
       const newData = res.data?.approval_data || {};
       setAllData(newData);
     } catch (err) {
-      console.log('API Error: ', err);  
+      console.log('API Error: ', err);
     }
     setLoading(false);
   };
@@ -62,6 +64,7 @@ const AlertScreen = ({navigation}) => {
           screen: 'SaleDeliveryScreen',
         },
       ],
+      accessKey: 'sales_alerts',
     },
     {
       title: 'Purchase Alert',
@@ -79,6 +82,7 @@ const AlertScreen = ({navigation}) => {
           screen: 'GrnApprovalScreen',
         },
       ],
+      accessKey: 'purchase_alerts',
     },
     {
       title: 'Inventory Alert',
@@ -90,6 +94,7 @@ const AlertScreen = ({navigation}) => {
           screen: 'LocationTransferScreen',
         },
       ],
+      accessKey: 'inventory_alerts',
     },
     {
       title: 'Account Approval',
@@ -101,6 +106,7 @@ const AlertScreen = ({navigation}) => {
           screen: 'VoucherApprovalScreen',
         },
       ],
+      accessKey: 'accounts_alerts',
     },
     {
       title: 'Job Card Approval',
@@ -118,6 +124,7 @@ const AlertScreen = ({navigation}) => {
           screen: 'MechanicalApprovalScreen',
         },
       ],
+      accessKey: 'job_card_alerts',
     },
   ];
 
@@ -138,6 +145,9 @@ const AlertScreen = ({navigation}) => {
           <RefreshControl refreshing={Refreshing} onRefresh={onRefresh} />
         }>
         {moduleGroups.map((group, idx) => {
+          // Check access for the entire section
+          const isRestricted = mobileAccessData?.[0]?.[group.accessKey] === '1';
+
           const props = {
             AlertHeading: group.title,
           };
@@ -154,6 +164,7 @@ const AlertScreen = ({navigation}) => {
                   listKey: item.key,
                   title: item.heading,
                 }),
+              disabled: isRestricted, // Section level restriction
             };
 
             if (i === 0) {
@@ -161,18 +172,21 @@ const AlertScreen = ({navigation}) => {
               props.ValueOne = commonProps.value;
               props.IconOne = commonProps.icon;
               props.onValuePressOne = commonProps.onPress;
+              props.disabledOne = commonProps.disabled;
             }
             if (i === 1) {
               props.HeadingTwo = commonProps.heading;
               props.ValueTwo = commonProps.value;
               props.IconTwo = commonProps.icon;
               props.onValuePressTwo = commonProps.onPress;
+              props.disabledTwo = commonProps.disabled;
             }
             if (i === 2) {
               props.HeadingThree = commonProps.heading;
               props.ValueThree = commonProps.value;
               props.IconThree = commonProps.icon;
               props.onValuePressThree = commonProps.onPress;
+              props.disabledThree = commonProps.disabled;
             }
           });
 

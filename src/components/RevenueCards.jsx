@@ -14,10 +14,12 @@ const RevenueCards = ({
   title,
   IsUp,
   onPress,
-  accessData,
+  disabled,
 }) => {
   return (
-    <TouchableOpacity onPress={onPress}>
+    <TouchableOpacity
+      onPress={disabled ? undefined : onPress}
+      activeOpacity={disabled ? 1 : 0.7}>
       <PlatformGradient
         colors={[gradientTopColor, gradientBottomColor]}
         start={{x: 0, y: 0}}
@@ -28,42 +30,51 @@ const RevenueCards = ({
           marginLeft: 10,
           borderRadius: 20,
           justifyContent: 'space-between',
+          opacity: disabled ? 0.5 : 1,
         }}>
-        <View>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+          }}>
           <AppText
             title={title}
             titleSize={1.8}
             titleWeight
             titleColor={APPCOLORS.WHITE}
           />
-          <View
-            style={{
-              marginTop: 2,
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-            <AppText
-              title={`${formatNumber(amount)}`}
-              titleSize={2}
-              titleColor={parseFloat(amount) < 0 ? '#FF5252' : APPCOLORS.WHITE}
-              titleWeight
-            />
+          {disabled && (
+            <AntDesign name="lock" size={16} color={APPCOLORS.WHITE} />
+          )}
+        </View>
+        <View
+          style={{
+            marginTop: 2,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+          <AppText
+            title={`${formatNumber(amount)}`}
+            titleSize={2}
+            titleColor={parseFloat(amount) < 0 ? '#FF5252' : APPCOLORS.WHITE}
+            titleWeight
+          />
 
-            {IsUp ? (
-              <AntDesign
-                name={'arrowup'}
-                size={responsiveFontSize(3)}
-                color={APPCOLORS.WHITE}
-              />
-            ) : (
-              <AntDesign
-                name={'arrowdown'}
-                size={responsiveFontSize(3)}
-                color={APPCOLORS.WHITE}
-              />
-            )}
-          </View>
+          {IsUp ? (
+            <AntDesign
+              name={'arrowup'}
+              size={responsiveFontSize(3)}
+              color={APPCOLORS.WHITE}
+            />
+          ) : (
+            <AntDesign
+              name={'arrowdown'}
+              size={responsiveFontSize(3)}
+              color={APPCOLORS.WHITE}
+            />
+          )}
         </View>
       </PlatformGradient>
     </TouchableOpacity>

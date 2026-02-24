@@ -3,6 +3,7 @@ import {View, Text, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import * as Animatable from 'react-native-animatable';
+import {useSelector} from 'react-redux';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -14,33 +15,64 @@ const COLORS = {
 };
 
 const buttons = [
-  {name: 'Sale Order', icon: 'cart-outline', navigate: 'SaleOrder', color: '#3B82F6'},
-  {name: 'Purchase Order', icon: 'cart-arrow-down', navigate: 'PurchaseOrder', color: '#10B981'},
-  {name: 'Voucher', icon: 'file-document-outline', navigate: 'VoucherScreen', color: '#F59E0B'},
+  {
+    name: 'Sale Order',
+    icon: 'cart-outline',
+    navigate: 'SaleOrder',
+    color: '#3B82F6',
+    accessKey: 'attach_sales_order',
+  },
+  {
+    name: 'Purchase Order',
+    icon: 'cart-arrow-down',
+    navigate: 'PurchaseOrder',
+    color: '#10B981',
+    accessKey: 'attach_purchase_order',
+  },
+  {
+    name: 'Voucher',
+    icon: 'file-document-outline',
+    navigate: 'VoucherScreen',
+    color: '#F59E0B',
+    accessKey: 'attach_voucher',
+  },
 ];
 
 export default function AttachDocumentScreen({navigation}) {
-  const renderButton = ({item, index}) => (
-    <Animatable.View
-      animation="fadeInUp"
-      delay={index * 120}
-      useNativeDriver
-      style={styles.buttonWrapper}>
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={() => navigation.navigate(item.navigate)}
-        style={styles.buttonContainer}>
-        <View style={[styles.iconContainer, {backgroundColor: item.color}]}>
-          <Icon name={item.icon} size={24} color={COLORS.WHITE} />
-        </View>
-        <View style={styles.textContainer}>
-          <Text style={styles.buttonText}>{item.name}</Text>
-          <Text style={styles.buttonSubtext}>View and manage documents</Text>
-        </View>
-        <Icon name="chevron-right" size={24} color={COLORS.TextMuted} />
-      </TouchableOpacity>
-    </Animatable.View>
-  );
+  const mobileAccessData = useSelector(state => state.Data.mobileAccessData);
+
+  const renderButton = ({item, index}) => {
+    const isDisabled = mobileAccessData?.[0]?.[item.accessKey] === '1';
+
+    return (
+      <Animatable.View
+        animation="fadeInUp"
+        delay={index * 120}
+        useNativeDriver
+        style={styles.buttonWrapper}>
+        <TouchableOpacity
+          activeOpacity={isDisabled ? 1 : 0.7}
+          disabled={isDisabled}
+          onPress={() => navigation.navigate(item.navigate)}
+          style={[styles.buttonContainer, {opacity: isDisabled ? 0.5 : 1}]}>
+          <View style={[styles.iconContainer, {backgroundColor: item.color}]}>
+            <Icon name={item.icon} size={24} color={COLORS.WHITE} />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={styles.buttonText}>{item.name}</Text>
+            <Text style={styles.buttonSubtext}>
+              {isDisabled ? 'Access Restricted' : 'View and manage documents'}
+            </Text>
+          </View>
+          {isDisabled ? (
+            <Icon name="lock" size={24} color="#94A3B8" />
+          ) : (
+            <Icon name="chevron-right" size={24} color={COLORS.TextMuted} />
+          )}
+        </TouchableOpacity>
+      </Animatable.View>
+    );
+  };
 
   return (
     <View style={styles.container}>

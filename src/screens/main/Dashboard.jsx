@@ -24,7 +24,6 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import {BASEURL} from '../../utils/BaseUrl';
 import axios from 'axios';
 import moment from 'moment';
-import GetUserAccessData from '../../global/GetUserAccessData';
 import GetMobileAccessData from '../../global/GetMobileAccessData';
 import {useDispatch, useSelector} from 'react-redux';
 import {setUserAccess, setMobileAccess} from '../../redux/AuthSlice';
@@ -41,6 +40,8 @@ const Dashboard = ({navigation}) => {
 
   const [loader, setLoader] = useState(false);
   const dispatch = useDispatch();
+
+  console.log('mobileAccessData', mobileAccessData);
 
   // Main cards (first 8)
   const mainCards = [
@@ -176,14 +177,12 @@ const Dashboard = ({navigation}) => {
 
   const getUserAccess = async () => {
     try {
-      const res = await GetUserAccessData(userData.id);
-      dispatch(setUserAccess(res.data));
-
       // Fetch Mobile Access based on role_id
       if (userData?.role_id) {
         const mobileRes = await GetMobileAccessData(userData.role_id);
         if (mobileRes.status === 'true') {
           dispatch(setMobileAccess(mobileRes.data));
+          dispatch(setUserAccess(mobileRes.data));
         }
       }
     } catch (error) {

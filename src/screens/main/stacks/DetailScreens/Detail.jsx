@@ -196,13 +196,20 @@ const Detail = ({navigation}) => {
     return RowContent;
   };
 
-  // Filtered data - ab actual data use karenge
+  // Filtered data - show all but identify restricted ones
   const filteredData = Array.isArray(accessData)
-    ? revData.filter(item => {
-        const hasAccess = accessData?.[0]?.[item.accessKey] === '1';
-        const hasAmount = parseFloat(item.Amount || 0) !== 0;
-        return hasAccess && hasAmount;
-      })
+    ? revData
+        .map(item => {
+          // Rule: 0 is ENABLED, 1 is DISABLED
+          const isDisabled = accessData?.[0]?.[item.accessKey] === '1';
+          const hasAmount = parseFloat(item.Amount || 0) !== 0;
+          return {
+            ...item,
+            isDisabled,
+            hasAmount,
+          };
+        })
+        .filter(item => item.hasAmount) // Still hide if amount is 0/missing
     : [];
 
   // Platform-specific colors for cards
@@ -327,18 +334,23 @@ const Detail = ({navigation}) => {
                     gradientTopColor={cardColors.topColor}
                     gradientBottomColor={cardColors.bottomColor}
                     IsUp={item.isUp}
-                    onPress={() => {
-                      if (item.title === 'Short term loan') {
-                        navigation.navigate('ShortTermLoanDetail', {
-                          title: item.title,
-                        });
-                      } else {
-                        navigation.navigate('MoreDetail', {
-                          slider_data: AllData,
-                          type: item.accessKey,
-                        });
-                      }
-                    }}
+                    onPress={
+                      item.isDisabled
+                        ? undefined
+                        : () => {
+                            if (item.title === 'Short term loan') {
+                              navigation.navigate('ShortTermLoanDetail', {
+                                title: item.title,
+                              });
+                            } else {
+                              navigation.navigate('MoreDetail', {
+                                slider_data: AllData,
+                                type: item.accessKey,
+                              });
+                            }
+                          }
+                    }
+                    disabled={item.isDisabled}
                   />
                 </View>
               ))}

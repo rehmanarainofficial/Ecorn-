@@ -60,6 +60,7 @@ export default function HCMScreen({navigation}) {
         style={styles.buttonWrapper}>
         <TouchableOpacity
           activeOpacity={isDisabled ? 1 : 0.7}
+          disabled={isDisabled}
           onPress={() => (isDisabled ? null : navigation.navigate(item.screen))}
           style={[styles.buttonContainer, {opacity: isDisabled ? 0.5 : 1}]}>
           <View style={[styles.iconContainer, {backgroundColor: item.color}]}>
@@ -73,7 +74,9 @@ export default function HCMScreen({navigation}) {
                 : `Manage ${item.name.toLowerCase()}`}
             </Text>
           </View>
-          {!isDisabled && (
+          {isDisabled ? (
+            <Icon name="lock" size={24} color="#94A3B8" />
+          ) : (
             <Icon name="chevron-right" size={24} color={COLORS.TextMuted} />
           )}
         </TouchableOpacity>

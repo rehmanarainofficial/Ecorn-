@@ -9,12 +9,16 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  ToastAndroid,
+  Alert,
 } from 'react-native';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {Dropdown} from 'react-native-element-dropdown';
 import axios from 'axios';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import GetMobileAccessData from '../../../../global/GetMobileAccessData';
+import UpdateMobileAccessData from '../../../../global/UpdateMobileAccessData';
 
 if (
   Platform.OS === 'android' &&
@@ -27,117 +31,115 @@ const MODULES_CONFIG = [
   {
     id: 'dashboard',
     name: 'Dashboard',
-    items: [{id: 'dash_detail', name: 'Detail'}],
+    items: [],
   },
   {
     id: 'approval',
     name: 'Approval',
     items: [
-      {id: 'app_sq', name: 'Sale Quotation'},
-      {id: 'app_so', name: 'Sale Order'},
-      {id: 'app_dn', name: 'Delivery Note'},
-      {id: 'app_po', name: 'Purchase Order'},
-      {id: 'app_grn', name: 'GRN Approval'},
-      {id: 'app_lt', name: 'Location Transfer'},
-      {id: 'app_va', name: 'Voucher Approval'},
-      {id: 'app_ea', name: 'Electrical Approval'},
-      {id: 'app_ma', name: 'Mechanical Approval'},
+      {id: 'sales_alerts', name: 'Sales Alerts'},
+      {id: 'purchase_alerts', name: 'Purchase Alerts'},
+      {id: 'inventory_alerts', name: 'Inventory Alerts'},
+      {id: 'accounts_alerts', name: 'Accounts Alerts'},
+      {id: 'job_card_alerts', name: 'Job Card Alerts'},
     ],
   },
   {
     id: 'sales',
     name: 'Sales',
     items: [
-      {id: 'sal_ac', name: 'Add Customer'},
-      {id: 'sal_del', name: 'Delivery'},
-      {id: 'sal_tos', name: 'Track Order Status'},
-      {id: 'sal_rec', name: 'Receivable'},
-      {id: 'sal_cc', name: 'Cost Center'},
-      {id: 'sal_st', name: 'Sales Transactions'},
+      {id: 'add_customer', name: 'Add Customer'},
+      {id: 'delivery', name: 'Delivery'},
+      {id: 'track_order_status', name: 'Track Order Status'},
+      {id: 'receivable', name: 'Receivable'},
+      {id: 'cost_center', name: 'Cost Center'},
+      {id: 'sales_transction', name: 'Sales Transaction'},
     ],
   },
   {
     id: 'purchase',
     name: 'Purchase',
     items: [
-      {id: 'pur_as', name: 'Add Suppliers'},
-      {id: 'pur_grn', name: 'GRN against PO'},
-      {id: 'pur_pdc', name: 'Post Dated Cheque Detail'},
-      {id: 'pur_ps', name: 'Payable Summary'},
-      {id: 'pur_pt', name: 'Purchase Transactions'},
+      {id: 'add_supplier', name: 'Add Supplier'},
+      {id: 'grn', name: 'GRN'},
+      {id: 'post_dated_cheque', name: 'Post Dated Cheque'},
+      {id: 'payable', name: 'Payable'},
+      {id: 'purchase_transction', name: 'Purchase Transaction'},
     ],
   },
   {
     id: 'inventory',
     name: 'Inventory',
     items: [
-      {id: 'inv_ai', name: 'Add Item'},
-      {id: 'inv_si', name: 'Search Item'},
-      {id: 'inv_im', name: 'Item Movement'},
-      {id: 'inv_lt', name: 'Location Transfer'},
-      {id: 'inv_ia', name: 'Inventory Adjustment'},
-      {id: 'inv_dss', name: 'Dated Stock Sheet'},
-      {id: 'inv_it', name: 'Inventory Transactions'},
+      {id: 'add_item', name: 'Add Item'},
+      {id: 'search_item', name: 'Search Item'},
+      {id: 'item_movement', name: 'Item Movement'},
+      {id: 'location_transfer', name: 'Location Transfer'},
+      {id: 'inventory_adjustment', name: 'Inventory Adjustment'},
+      {id: 'dated_stock_sheet', name: 'Dated Stock Sheet'},
+      {id: 'inventory_transction', name: 'Inventory Transaction'},
     ],
   },
   {
     id: 'hcm',
     name: 'HCM',
     items: [
-      {id: 'hcm_att', name: 'Attendance'},
-      {id: 'hcm_ec', name: 'Expense Claim'},
-      {id: 'hcm_dvr', name: 'DVR Inquiry'},
-      {id: 'hcm_lp', name: 'Local Purchase'},
+      {id: 'hcm_attendence', name: 'Attendance'},
+      {id: 'hcm_expense_claim', name: 'Expense Claim'},
+      {id: 'hcm_dvr_inquiry', name: 'DVR Inquiry'},
+      {id: 'hcm_local_purchase', name: 'Local Purchase'},
     ],
   },
   {
     id: 'manufacturing',
     name: 'Manufacturing',
     items: [
-      {id: 'man_ejc', name: 'Electrical Job Cards'},
-      {id: 'man_mjc', name: 'Mechanical Job Cards'},
-      {id: 'man_mt', name: 'Manufacturing Transactions'},
+      {id: 'electrical_job_card', name: 'Electrical Job Card'},
+      {id: 'mechnical_job_card', name: 'Mechanical Job Card'},
+      {id: 'manufacturing_transction', name: 'Manufacturing Transaction'},
     ],
   },
   {
     id: 'crm',
     name: 'CRM',
     items: [
-      {id: 'crm_al', name: 'Add Lead'},
-      {id: 'crm_vl', name: 'View Leads'},
-      {id: 'crm_sm', name: 'Schedule Meeting'},
-      {id: 'crm_vlo', name: 'View Lead to Order'},
+      {id: 'add_lead', name: 'Add Lead'},
+      {id: 'view_lead', name: 'View Lead'},
+      {id: 'shedule_meeting', name: 'Schedule Meeting'},
+      {id: 'view_lead_to_order', name: 'View Lead to Order'},
     ],
   },
   {
     id: 'finance',
     name: 'Finance',
     items: [
-      {id: 'fin_vl', name: 'View Ledger'},
-      {id: 'fin_ft', name: 'Financial Transactions'},
+      {id: 'view_ledger', name: 'View Ledger'},
+      {id: 'local_purchase', name: 'Local Purchase'},
+      {id: 'finance_transction', name: 'Finance Transaction'},
     ],
   },
   {
-    id: 'attach_docs',
+    id: 'attach_doc',
     name: 'Attach Docs',
     items: [
-      {id: 'ad_so', name: 'Sale Order'},
-      {id: 'ad_po', name: 'Purchase Order'},
-      {id: 'ad_v', name: 'Voucher'},
+      {id: 'attach_sales_order', name: 'Attach Sales Order'},
+      {id: 'attach_purchase_order', name: 'Attach Purchase Order'},
+      {id: 'attach_voucher', name: 'Attach Voucher'},
     ],
   },
 ];
 
 const SecurityRule = () => {
-  const [value, setValue] = useState(null);
+  const [roleId, setRoleId] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchLoading, setFetchLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
 
-  // Selection states
-  const [selectedModules, setSelectedModules] = useState({}); // { moduleId: boolean }
-  const [selectedItems, setSelectedItems] = useState({}); // { itemId: boolean }
-  const [expandedModules, setExpandedModules] = useState({}); // { moduleId: boolean }
+  // Access data state (raw '0' or '1' from API)
+  const [accessData, setAccessData] = useState({});
+  const [expandedModules, setExpandedModules] = useState({});
 
   useEffect(() => {
     fetchRoles();
@@ -156,6 +158,31 @@ const SecurityRule = () => {
     }
   };
 
+  const fetchAccessData = async rId => {
+    setFetchLoading(true);
+    try {
+      const res = await GetMobileAccessData(rId);
+      if (res.status === 'true' && res.data && res.data.length > 0) {
+        setAccessData(res.data[0]);
+      } else {
+        // Initialize with default values if no data exists
+        const defaultAccess = {};
+        MODULES_CONFIG.forEach(module => {
+          defaultAccess[module.id] = '1'; // Default: Unchecked (1)
+          module.items.forEach(item => {
+            defaultAccess[item.id] = '1';
+          });
+        });
+        setAccessData(defaultAccess);
+      }
+    } catch (error) {
+      console.error('Error fetching access data:', error);
+      Alert.alert('Error', 'Failed to fetch access data');
+    } finally {
+      setFetchLoading(false);
+    }
+  };
+
   const toggleModuleExpand = moduleId => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedModules(prev => ({
@@ -164,49 +191,67 @@ const SecurityRule = () => {
     }));
   };
 
-  const toggleModuleSelect = moduleId => {
-    const isSelected = !selectedModules[moduleId];
-    const targetModule = MODULES_CONFIG.find(m => m.id === moduleId);
-
-    setSelectedModules(prev => ({
-      ...prev,
-      [moduleId]: isSelected,
-    }));
-
-    // Update all child items
-    if (targetModule) {
-      const newItems = {...selectedItems};
-      targetModule.items.forEach(item => {
-        newItems[item.id] = isSelected;
-      });
-      setSelectedItems(newItems);
-    }
+  const isChecked = key => {
+    // Logic: 0 is checked (tick), 1 is unchecked
+    return accessData[key] === '0';
   };
 
-  const toggleItemSelect = (moduleId, itemId) => {
-    const isSelected = !selectedItems[itemId];
-    setSelectedItems(prev => ({
+  const toggleValue = key => {
+    const currentValue = accessData[key];
+    const newValue = currentValue === '0' ? '1' : '0';
+    setAccessData(prev => ({
       ...prev,
-      [itemId]: isSelected,
+      [key]: newValue,
     }));
-
-    // Logic: If any item is selected, the parent should be selected?
-    // User requested checkboxes on both, so we'll keep it manual but logical
-    if (isSelected) {
-      setSelectedModules(prev => ({
-        ...prev,
-        [moduleId]: true,
-      }));
-    }
   };
 
-  const handleSave = () => {
-    console.log('Saved Rules:', {
-      roleId: value,
-      selectedModules,
-      selectedItems,
+  const toggleModuleSelection = module => {
+    const currentValue = accessData[module.id];
+    const newValue = currentValue === '0' ? '1' : '0';
+
+    const updatedAccess = {...accessData};
+    updatedAccess[module.id] = newValue;
+
+    // Also update all items under this module
+    module.items.forEach(item => {
+      updatedAccess[item.id] = newValue;
     });
-    alert('Rules saved successfully!');
+
+    setAccessData(updatedAccess);
+  };
+
+  const handleSave = async () => {
+    if (!roleId) return;
+
+    setSaveLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('role_id', roleId);
+
+      // Append all permissions from config
+      MODULES_CONFIG.forEach(module => {
+        formData.append(module.id, accessData[module.id] || '1');
+        module.items.forEach(item => {
+          formData.append(item.id, accessData[item.id] || '1');
+        });
+      });
+
+      const res = await UpdateMobileAccessData(formData);
+      if (res.status === 'true' || res.status === true) {
+        if (Platform.OS === 'android') {
+          ToastAndroid.show('Rules updated successfully', ToastAndroid.SHORT);
+        } else {
+          Alert.alert('Success', 'Rules updated successfully');
+        }
+      } else {
+        Alert.alert('Error', res.message || 'Failed to update rules');
+      }
+    } catch (error) {
+      console.error('Error saving rules:', error);
+      Alert.alert('Error', 'An error occurred while saving rules');
+    } finally {
+      setSaveLoading(false);
+    }
   };
 
   const dropdownData = roles.map(item => ({
@@ -236,79 +281,109 @@ const SecurityRule = () => {
               valueField="value"
               placeholder={!isFocus ? 'Select Role' : '...'}
               searchPlaceholder="Search..."
-              value={value}
+              value={roleId}
               onFocus={() => setIsFocus(true)}
               onBlur={() => setIsFocus(false)}
               onChange={item => {
-                setValue(item.value);
+                setRoleId(item.value);
                 setIsFocus(false);
+                fetchAccessData(item.value);
               }}
             />
           )}
         </View>
 
-        <View style={styles.modulesContainer}>
-          <Text style={styles.sectionHeader}>Module Access Rules</Text>
-          {MODULES_CONFIG.map(module => (
-            <View key={module.id} style={styles.moduleWrapper}>
-              <View style={styles.moduleRow}>
-                <TouchableOpacity
-                  style={styles.checkboxContainer}
-                  onPress={() => toggleModuleSelect(module.id)}>
-                  <Ionicons
-                    name={
-                      selectedModules[module.id] ? 'checkbox' : 'square-outline'
-                    }
-                    size={24}
-                    color={selectedModules[module.id] ? '#1a1c22' : '#64748B'}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.moduleTextContainer}
-                  onPress={() => toggleModuleExpand(module.id)}>
-                  <Text style={styles.moduleName}>{module.name}</Text>
-                  <Ionicons
-                    name={
-                      expandedModules[module.id] ? 'chevron-up' : 'chevron-down'
-                    }
-                    size={20}
-                    color="#64748B"
-                  />
-                </TouchableOpacity>
-              </View>
+        {fetchLoading ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color="#1a1c22" />
+            <Text style={styles.loaderText}>Fetching Access Data...</Text>
+          </View>
+        ) : (
+          roleId && (
+            <View style={styles.modulesContainer}>
+              <Text style={styles.sectionHeader}>Module Access Rules</Text>
+              {MODULES_CONFIG.map(module => (
+                <View key={module.id} style={styles.moduleWrapper}>
+                  <View style={styles.moduleRow}>
+                    <TouchableOpacity
+                      style={styles.checkboxContainer}
+                      onPress={() => toggleModuleSelection(module)}>
+                      <Ionicons
+                        name={
+                          isChecked(module.id) ? 'checkbox' : 'square-outline'
+                        }
+                        size={24}
+                        color={isChecked(module.id) ? '#1a1c22' : '#64748B'}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.moduleTextContainer}
+                      onPress={() => toggleModuleExpand(module.id)}>
+                      <Text style={styles.moduleName}>{module.name}</Text>
+                      <Ionicons
+                        name={
+                          expandedModules[module.id]
+                            ? 'chevron-up'
+                            : 'chevron-down'
+                        }
+                        size={20}
+                        color="#64748B"
+                      />
+                    </TouchableOpacity>
+                  </View>
 
-              {expandedModules[module.id] && (
-                <View style={styles.itemsContainer}>
-                  {module.items.map(item => (
-                    <View key={item.id} style={styles.itemRow}>
-                      <TouchableOpacity
-                        style={styles.checkboxContainer}
-                        onPress={() => toggleItemSelect(module.id, item.id)}>
-                        <Ionicons
-                          name={
-                            selectedItems[item.id]
-                              ? 'checkbox'
-                              : 'square-outline'
-                          }
-                          size={22}
-                          color={selectedItems[item.id] ? '#1a1c22' : '#64748B'}
-                        />
-                      </TouchableOpacity>
-                      <Text style={styles.itemName}>{item.name}</Text>
+                  {expandedModules[module.id] && module.items.length > 0 && (
+                    <View style={styles.itemsContainer}>
+                      {module.items.map(item => (
+                        <View key={item.id} style={styles.itemRow}>
+                          <TouchableOpacity
+                            style={styles.checkboxContainer}
+                            onPress={() => toggleValue(item.id)}>
+                            <Ionicons
+                              name={
+                                isChecked(item.id)
+                                  ? 'checkbox'
+                                  : 'square-outline'
+                              }
+                              size={22}
+                              color={isChecked(item.id) ? '#1a1c22' : '#64748B'}
+                            />
+                          </TouchableOpacity>
+                          <Text style={styles.itemName}>{item.name}</Text>
+                        </View>
+                      ))}
                     </View>
-                  ))}
+                  )}
                 </View>
-              )}
+              ))}
+            </View>
+          )
+        )}
+
+        {(roleId && !fetchLoading && (
+          <TouchableOpacity
+            style={[styles.saveBtn, saveLoading && styles.saveBtnDisabled]}
+            disabled={saveLoading}
+            onPress={handleSave}>
+            {saveLoading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={styles.saveBtnText}>Save Rules</Text>
+            )}
+          </TouchableOpacity>
+        )) ||
+          (!roleId && (
+            <View style={styles.emptyState}>
+              <Ionicons
+                name="shield-checkmark-outline"
+                size={60}
+                color="#CBD5E1"
+              />
+              <Text style={styles.emptyStateText}>
+                Select a role to manage security rules
+              </Text>
             </View>
           ))}
-        </View>
-
-        <TouchableOpacity
-          style={[styles.saveBtn, !value && styles.saveBtnDisabled]}
-          disabled={!value}
-          onPress={handleSave}>
-          <Text style={styles.saveBtnText}>Save Rules</Text>
-        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -367,6 +442,15 @@ const styles = StyleSheet.create({
   },
   inputSearchStyle: {
     height: 40,
+    fontSize: 16,
+  },
+  loaderContainer: {
+    marginTop: 50,
+    alignItems: 'center',
+  },
+  loaderText: {
+    marginTop: 10,
+    color: '#64748B',
     fontSize: 16,
   },
   modulesContainer: {
@@ -452,5 +536,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     letterSpacing: 1,
+  },
+  emptyState: {
+    marginTop: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+  },
+  emptyStateText: {
+    marginTop: 20,
+    fontSize: 16,
+    color: '#94A3B8',
+    textAlign: 'center',
+    lineHeight: 24,
   },
 });
