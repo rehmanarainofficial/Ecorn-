@@ -33,8 +33,13 @@ export default function PurchaseOrder({navigation}) {
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
-  const [fromDate, setFromDate] = useState(null);
-  const [toDate, setToDate] = useState(null);
+  // Default: 1 week range
+  const [fromDate, setFromDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d;
+  });
+  const [toDate, setToDate] = useState(new Date());
 
   const [showPicker, setShowPicker] = useState({visible: false, type: null});
   const route = useRoute();
@@ -52,10 +57,26 @@ export default function PurchaseOrder({navigation}) {
     }, [route.params?.refresh]),
   );
 
-  const fetchData = async () => {
+  const fetchData = async (start = fromDate, end = toDate) => {
     setLoading(true);
     try {
-      const res = await axios.get(`${BASEURL}dash_upload_purchase.php`);
+      const from_date = start ? start.toISOString().split('T')[0] : '';
+      const to_date = end ? end.toISOString().split('T')[0] : '';
+
+      const formData = new FormData();
+      formData.append('from_date', from_date);
+      formData.append('to_date', to_date);
+
+      const res = await axios.post(
+        `${BASEURL}dash_upload_purchase.php`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+
       let result = res.data?.data_cust_age || [];
       setAllData(result);
 
@@ -65,36 +86,30 @@ export default function PurchaseOrder({navigation}) {
         return;
       }
 
-      const parsed = result.map(item => {
-        const dateStr = item.tran_date.split(' ')[0];
-        const [year, month, day] = dateStr.split('-').map(Number);
-        return {...item, jsDate: new Date(year, month - 1, day)};
-      });
-
-      const latestDate = new Date(
-        Math.max(...parsed.map(i => i.jsDate.getTime())),
-      );
-
-      const lastMonth = new Date(
-        latestDate.getFullYear(),
-        latestDate.getMonth() - 1,
-        1,
-      );
-      const thisMonth = new Date(
-        latestDate.getFullYear(),
-        latestDate.getMonth(),
-        1,
-      );
-
-      const filtered = parsed.filter(item => {
-        return item.jsDate >= lastMonth && item.jsDate < thisMonth;
-      });
-
-      setData(filtered);
+      setData(result);
     } catch (error) {
       console.log('Error fetching data:', error);
     }
     setLoading(false);
+  };
+
+  const applyFilter = () => {
+    fetchData(fromDate, toDate);
+  };
+
+  const clearFilter = () => {
+    const defaultEnd = new Date();
+    const defaultStart = new Date();
+    defaultStart.setDate(defaultStart.getDate() - 7);
+
+    setFromDate(defaultStart);
+    setToDate(defaultEnd);
+    fetchData(defaultStart, defaultEnd);
+  };
+
+  const normalizeDate = date => {
+    if (!date) return null;
+    return new Date(date).toISOString().split('T')[0];
   };
 
   const handleDownload = async (trans_no, type) => {
@@ -107,41 +122,6 @@ export default function PurchaseOrder({navigation}) {
       console.log('Download handler error:', error);
     }
     setDownloading(false);
-  };
-
-  const normalizeDate = date => {
-    if (!date) return null;
-    return new Date(date).toISOString().split('T')[0];
-  };
-
-  const applyFilter = () => {
-    if (!fromDate && !toDate) {
-      setData(allData);
-      return;
-    }
-
-    let filtered = allData.filter(item => {
-      const apiDate = item.tran_date?.split(' ')[0];
-
-      let afterFrom = true;
-      let beforeTo = true;
-
-      if (fromDate) {
-        afterFrom = apiDate >= normalizeDate(fromDate);
-      }
-      if (toDate) {
-        beforeTo = apiDate <= normalizeDate(toDate);
-      }
-      return afterFrom && beforeTo;
-    });
-
-    setData(filtered);
-  };
-
-  const clearFilter = () => {
-    setFromDate(null);
-    setToDate(null);
-    setData(allData);
   };
 
   return (
@@ -179,7 +159,11 @@ export default function PurchaseOrder({navigation}) {
 
       {showPicker.visible && (
         <DateTimePicker
-          value={new Date()}
+          value={
+            showPicker.type === 'from'
+              ? fromDate || new Date()
+              : toDate || new Date()
+          }
           mode="date"
           display="default"
           onChange={(e, date) => {
@@ -200,7 +184,11 @@ export default function PurchaseOrder({navigation}) {
         />
       ) : data.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Icon name="file-document-outline" size={48} color={COLORS.TextMuted} />
+          <Icon
+            name="file-document-outline"
+            size={48}
+            color={COLORS.TextMuted}
+          />
           <Text style={styles.emptyText}>No Data Found</Text>
         </View>
       ) : (
@@ -333,6 +321,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   row: {
     flexDirection: 'row',
     alignItems: 'center',

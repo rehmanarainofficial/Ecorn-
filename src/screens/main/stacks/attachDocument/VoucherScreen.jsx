@@ -6,10 +6,12 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import {Dropdown} from 'react-native-element-dropdown';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {BASEURL} from '../../../../utils/BaseUrl';
@@ -33,15 +35,40 @@ export default function VoucherScreen({navigation}) {
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
-  const [fromDate, setFromDate] = useState(null);
-  const [toDate, setToDate] = useState(null);
+  // Default: 1 week range
+  const [fromDate, setFromDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d;
+  });
+  const [toDate, setToDate] = useState(new Date());
 
   const [showPicker, setShowPicker] = useState({visible: false, type: null});
+  const [reference, setReference] = useState('');
+  const [selectedType, setSelectedType] = useState(null);
+  const [softwareTypes, setSoftwareTypes] = useState([]);
+
   const route = useRoute();
 
   useEffect(() => {
     fetchData();
+    fetchSoftwareTypes();
   }, []);
+
+  const fetchSoftwareTypes = async () => {
+    try {
+      const res = await axios.get(`${BASEURL}software_type.php`);
+      if (res.data?.status === 'true' && Array.isArray(res.data?.data)) {
+        const formattedData = res.data.data.map(item => ({
+          label: item.type_name,
+          value: item.id,
+        }));
+        setSoftwareTypes(formattedData);
+      }
+    } catch (err) {
+      console.log('Software Types API Error:', err);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -52,10 +79,31 @@ export default function VoucherScreen({navigation}) {
     }, [route.params?.refresh]),
   );
 
-  const fetchData = async () => {
+  const fetchData = async (
+    start = fromDate,
+    end = toDate,
+    refStr = reference,
+    typeVal = selectedType,
+  ) => {
     setLoading(true);
     try {
-      const res = await axios.get(`${BASEURL}dash_upload.php`);
+      const from_date = start ? start.toISOString().split('T')[0] : '';
+      const to_date = end ? end.toISOString().split('T')[0] : '';
+
+      const formData = new FormData();
+      formData.append('from_date', from_date);
+      formData.append('to_date', to_date);
+      formData.append('ref', refStr);
+      if (typeVal) {
+        formData.append('type', typeVal);
+      }
+
+      const res = await axios.post(`${BASEURL}dash_upload.php`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
       let result = res.data?.data_cust_age || [];
       setAllData(result);
 
@@ -65,12 +113,32 @@ export default function VoucherScreen({navigation}) {
         return;
       }
 
-      const last30 = result.slice(-30);
-      setData(last30);
+      setData(result);
     } catch (error) {
       console.log('Error fetching data:', error);
     }
     setLoading(false);
+  };
+
+  const applyFilter = () => {
+    fetchData(fromDate, toDate, reference, selectedType);
+  };
+
+  const clearFilter = () => {
+    const defaultEnd = new Date();
+    const defaultStart = new Date();
+    defaultStart.setDate(defaultStart.getDate() - 7);
+
+    setFromDate(defaultStart);
+    setToDate(defaultEnd);
+    setReference('');
+    setSelectedType(null);
+    fetchData(defaultStart, defaultEnd, '', null);
+  };
+
+  const normalizeDate = date => {
+    if (!date) return null;
+    return new Date(date).toISOString().split('T')[0];
   };
 
   const handleDownload = async (trans_no, type) => {
@@ -83,40 +151,6 @@ export default function VoucherScreen({navigation}) {
       console.log('Download handler error:', error);
     }
     setDownloading(false);
-  };
-
-  const normalizeDate = date => {
-    if (!date) return null;
-    return new Date(date).toISOString().split('T')[0];
-  };
-
-  const applyFilter = () => {
-    if (!fromDate && !toDate) {
-      setData(allData.slice(-30));
-      return;
-    }
-
-    let filtered = allData.filter(item => {
-      const apiDate = item.tran_date?.split(' ')[0];
-      let afterFrom = true;
-      let beforeTo = true;
-
-      if (fromDate) {
-        afterFrom = apiDate >= normalizeDate(fromDate);
-      }
-      if (toDate) {
-        beforeTo = apiDate <= normalizeDate(toDate);
-      }
-      return afterFrom && beforeTo;
-    });
-
-    setData(filtered.slice(-30));
-  };
-
-  const clearFilter = () => {
-    setFromDate(null);
-    setToDate(null);
-    setData(allData.slice(-30));
   };
 
   return (
@@ -152,9 +186,46 @@ export default function VoucherScreen({navigation}) {
         </TouchableOpacity>
       </View>
 
+      {/* Advanced Filter Row - Reference and Type */}
+      <View style={styles.advancedFilterContainer}>
+        <View style={styles.searchContainer}>
+          <Icon
+            name="magnify"
+            size={18}
+            color={COLORS.TextMuted}
+            style={styles.searchIcon}
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search Reference"
+            placeholderTextColor={COLORS.TextMuted}
+            value={reference}
+            onChangeText={setReference}
+          />
+        </View>
+
+        <Dropdown
+          style={styles.dropdown}
+          placeholderStyle={styles.placeholderStyle}
+          selectedTextStyle={styles.selectedTextStyle}
+          itemTextStyle={{color: '#000'}}
+          data={softwareTypes}
+          maxHeight={300}
+          labelField="label"
+          valueField="value"
+          placeholder="Type"
+          value={selectedType}
+          onChange={item => setSelectedType(item.value)}
+        />
+      </View>
+
       {showPicker.visible && (
         <DateTimePicker
-          value={new Date()}
+          value={
+            showPicker.type === 'from'
+              ? fromDate || new Date()
+              : toDate || new Date()
+          }
           mode="date"
           display="default"
           onChange={(e, date) => {
@@ -309,6 +380,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -340,5 +412,49 @@ const styles = StyleSheet.create({
     color: COLORS.TextMuted,
     fontSize: 16,
     fontWeight: '500',
+  },
+  advancedFilterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    gap: 8,
+  },
+  searchContainer: {
+    flex: 1.2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+    paddingHorizontal: 10,
+    height: 40,
+  },
+  searchIcon: {
+    marginRight: 6,
+  },
+  searchInput: {
+    flex: 1,
+    color: COLORS.TextDark,
+    fontSize: 13,
+    paddingVertical: 0,
+  },
+  dropdown: {
+    flex: 1,
+    height: 40,
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.Border,
+    paddingHorizontal: 12,
+  },
+  placeholderStyle: {
+    fontSize: 13,
+    color: COLORS.TextMuted,
+  },
+  selectedTextStyle: {
+    fontSize: 13,
+    color: COLORS.TextDark,
   },
 });

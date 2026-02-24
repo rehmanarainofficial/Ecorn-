@@ -82,14 +82,14 @@ const ApprovalListScreen = ({route, navigation}) => {
 
   useEffect(() => {
     const today = new Date();
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(today.getMonth() - 2);
+    const lastWeek = new Date();
+    lastWeek.setDate(today.getDate() - 7);
 
-    setFromDate(threeMonthsAgo);
+    setFromDate(lastWeek);
     setToDate(today);
 
     // Initial API call with default dates
-    fetchInitialData(threeMonthsAgo, today, '');
+    fetchInitialData(lastWeek, today, '');
 
     // Fetch software types for voucher approval dropdown only
     if (listKey === 'voucher_approval') {
@@ -325,14 +325,14 @@ const ApprovalListScreen = ({route, navigation}) => {
     setSelectedDebtor(null);
     setSelectedSupplier(null);
     const today = new Date();
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(today.getMonth() - 3);
+    const lastWeek = new Date();
+    lastWeek.setDate(today.getDate() - 7);
 
-    setFromDate(threeMonthsAgo);
+    setFromDate(lastWeek);
     setToDate(today);
 
     // Reset to initial data fetch with default dates
-    fetchInitialData(threeMonthsAgo, today, '');
+    fetchInitialData(lastWeek, today, '');
   };
 
   const handleApprove = async item => {
