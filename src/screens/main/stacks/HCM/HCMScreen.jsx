@@ -3,7 +3,6 @@ import {View, Text, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import * as Animatable from 'react-native-animatable';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {useSelector} from 'react-redux';
 
 const COLORS = {
@@ -46,6 +45,20 @@ export default function HCMScreen({navigation}) {
       screen: 'LocalPurchase',
       color: '#10B981',
       accessKey: 'hcm_local_purchase',
+    },
+    {
+      name: 'Leave',
+      icon: 'calendar-minus',
+      screen: 'Leave',
+      color: '#F59E0B',
+      accessKey: 'hcm_leave',
+    },
+    {
+      name: 'Leave Inquiry',
+      icon: 'file-search-outline',
+      screen: 'LeaveInquiry',
+      color: '#3B82F6',
+      accessKey: 'hcm_leave_inquiry',
     },
   ];
 
