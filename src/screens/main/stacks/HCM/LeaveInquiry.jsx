@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import {useSelector} from 'react-redux';
 import {
   View,
   Text,
@@ -20,6 +21,7 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 
 const LeaveInquiry = () => {
+  const userData = useSelector(state => state.Data.currentData);
   // Dropdown options states
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -33,31 +35,21 @@ const LeaveInquiry = () => {
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedDesig, setSelectedDesig] = useState('');
 
-  // Default dates are set to the current date (today)
   const todayStr = formatToYYYYMMDD(new Date());
   const [fromDate, setFromDate] = useState(todayStr);
   const [toDate, setToDate] = useState(todayStr);
 
-  // DatePicker state
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [dateField, setDateField] = useState(null); // 'from' or 'to'
-
-  // Inquiry list data & loading states
+  const [dateField, setDateField] = useState(null);
   const [inquiryData, setInquiryData] = useState([]);
   const [loadingList, setLoadingList] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  // Collapsible Filters Panel State
   const [showFilters, setShowFilters] = useState(true);
-
-  // Card approval loading state
   const [actionLoading, setActionLoading] = useState({});
 
-  // Fetch dropdown lists & initial inquiry on mount
   useEffect(() => {
     fetchFilterOptions();
     fetchLeaveInquiry(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchFilterOptions = async () => {
@@ -83,7 +75,6 @@ const LeaveInquiry = () => {
         }));
       }
 
-      // 3. Fetch Designations
       const desigRes = await axios.get(`${BASEURL}get_all_designation.php`);
       let desigData = [];
       if (desigRes.data && desigRes.data.status === true) {
@@ -93,7 +84,6 @@ const LeaveInquiry = () => {
         }));
       }
 
-      // Add "All" option to each filter list
       setEmployees([{label: 'All Employees', value: ''}, ...empData]);
       setDepartments([{label: 'All Departments', value: ''}, ...deptData]);
       setDesignations([{label: 'All Designations', value: ''}, ...desigData]);
@@ -123,6 +113,7 @@ const LeaveInquiry = () => {
       formData.append('designation', selectedDesig || '');
       formData.append('from_date', fromDate);
       formData.append('to_date', toDate);
+      formData.append('user_id', userData?.id || '');
 
       console.log('Fetching inquiry with fields:', {
         emp_id: selectedEmp,
@@ -130,6 +121,7 @@ const LeaveInquiry = () => {
         designation: selectedDesig,
         from_date: fromDate,
         to_date: toDate,
+        user_id: userData?.id,
       });
 
       const response = await axios.post(
@@ -142,16 +134,21 @@ const LeaveInquiry = () => {
         },
       );
 
-      if (response.data && response.data.status === true) {
-        console.log('Inquiry Data:', response.data.data);
+      if (response.data) {
+        const userId = userData?.id;
+        let listData = [];
+        if (userId && response.data[userId]) {
+          listData = response.data[userId];
+        } else if (response.data.data) {
+          listData = response.data.data;
+        } else if (response.data.status === true) {
+          listData = response.data.data || [];
+        }
 
-        setInquiryData(response.data.data || []);
+        console.log('Inquiry Data:', listData);
+        setInquiryData(listData || []);
       } else {
         setInquiryData([]);
-        // Some APIs return status false when no records found
-        if (response.data?.message) {
-          console.log('Inquiry response:', response.data.message);
-        }
       }
     } catch (error) {
       console.log('Error fetching leave inquiry:', error);
@@ -262,24 +259,22 @@ const LeaveInquiry = () => {
     }
   };
 
-  // Helper to render approval status badges
   const renderStatusBadge = (statusVal, label) => {
-    // approve: "1" means approved, "0" means pending, "2" or other means rejected
     const isApproved = statusVal === '1' || statusVal === 1;
     const isPending = statusVal === '0' || statusVal === 0 || !statusVal;
 
-    let bg = '#FEF3C7'; // Pending yellow
+    let bg = '#FEF3C7';
     let text = '#D97706';
     let icon = 'clock-outline';
     let statusText = 'Pending';
 
     if (isApproved) {
-      bg = '#D1FAE5'; // Approved green
+      bg = '#D1FAE5';
       text = '#059669';
       icon = 'check-circle-outline';
       statusText = 'Approved';
     } else if (!isPending) {
-      bg = '#FEE2E2'; // Rejected red
+      bg = '#FEE2E2';
       text = '#DC2626';
       icon = 'close-circle-outline';
       statusText = 'Rejected';
@@ -389,7 +384,7 @@ const LeaveInquiry = () => {
               <TouchableOpacity
                 onPress={() =>
                   handleApproval(
-                    item.id,
+                    item.emp_id,
                     'manager',
                     item.approve === '1' ? '0' : '1',
                   )
@@ -420,7 +415,7 @@ const LeaveInquiry = () => {
               <TouchableOpacity
                 onPress={() =>
                   handleApproval(
-                    item.id,
+                    item.emp_id,
                     'hr',
                     item.hr_approve === '1' ? '0' : '1',
                   )
