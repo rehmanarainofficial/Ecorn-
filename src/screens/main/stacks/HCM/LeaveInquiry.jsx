@@ -22,12 +22,10 @@ import {APPCOLORS} from '../../../../utils/APPCOLORS';
 
 const LeaveInquiry = () => {
   const userData = useSelector(state => state.Data.currentData);
-  // Dropdown options states
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
 
-  // Loading states for options
   const [loadingOptions, setLoadingOptions] = useState(false);
 
   // Selected filter states
@@ -35,9 +33,17 @@ const LeaveInquiry = () => {
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedDesig, setSelectedDesig] = useState('');
 
-  const todayStr = formatToYYYYMMDD(new Date());
+  const today = new Date();
+  const todayStr = formatToYYYYMMDD(today);
+  const getTwoMonthsAhead = () => {
+    const d = new Date(today);
+    d.setMonth(d.getMonth() + 2);
+    return formatToYYYYMMDD(d);
+  };
+  const twoMonthsAheadStr = getTwoMonthsAhead();
+
   const [fromDate, setFromDate] = useState(todayStr);
-  const [toDate, setToDate] = useState(todayStr);
+  const [toDate, setToDate] = useState(twoMonthsAheadStr);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateField, setDateField] = useState(null);
@@ -47,9 +53,42 @@ const LeaveInquiry = () => {
   const [showFilters, setShowFilters] = useState(true);
   const [actionLoading, setActionLoading] = useState({});
 
+  const [activeTab, setActiveTab] = useState('Department');
+  const isApproved = val => val === '1' || val === 1;
+
+  const getTabCount = tabName => {
+    return inquiryData.filter(item => {
+      const isDeptApproved = isApproved(item.approve);
+      const isHrApproved = isApproved(item.hr_approve);
+      if (tabName === 'Department') return !isDeptApproved && !isHrApproved;
+      if (tabName === 'HR') return isDeptApproved && !isHrApproved;
+      if (tabName === 'Approve') return isDeptApproved && isHrApproved;
+      return false;
+    }).length;
+  };
+
+  const getFilteredData = () => {
+    return inquiryData.filter(item => {
+      const isDeptApproved = isApproved(item.approve);
+      const isHrApproved = isApproved(item.hr_approve);
+
+      if (activeTab === 'Department') {
+        return !isDeptApproved && !isHrApproved;
+      }
+      if (activeTab === 'HR') {
+        return isDeptApproved && !isHrApproved;
+      }
+      if (activeTab === 'Approve') {
+        return isDeptApproved && isHrApproved;
+      }
+      return true;
+    });
+  };
+
   useEffect(() => {
     fetchFilterOptions();
     fetchLeaveInquiry(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchFilterOptions = async () => {
@@ -200,7 +239,7 @@ const LeaveInquiry = () => {
     setSelectedDept('');
     setSelectedDesig('');
     setFromDate(todayStr);
-    setToDate(todayStr);
+    setToDate(twoMonthsAheadStr);
     Toast.show({
       type: 'info',
       text1: 'Filters Reset',
@@ -260,7 +299,7 @@ const LeaveInquiry = () => {
   };
 
   const renderStatusBadge = (statusVal, label) => {
-    const isApproved = statusVal === '1' || statusVal === 1;
+    const isBadgeApproved = isApproved(statusVal);
     const isPending = statusVal === '0' || statusVal === 0 || !statusVal;
 
     let bg = '#FEF3C7';
@@ -268,7 +307,7 @@ const LeaveInquiry = () => {
     let icon = 'clock-outline';
     let statusText = 'Pending';
 
-    if (isApproved) {
+    if (isBadgeApproved) {
       bg = '#D1FAE5';
       text = '#059669';
       icon = 'check-circle-outline';
@@ -608,6 +647,41 @@ const LeaveInquiry = () => {
         )}
       </View>
 
+      {/* Tabs Bar */}
+      <View style={styles.tabBarContainer}>
+        {['Department', 'HR', 'Approve'].map(tab => {
+          const isActive = activeTab === tab;
+          const count = getTabCount(tab);
+          return (
+            <TouchableOpacity
+              key={tab}
+              style={[styles.tabButton, isActive && styles.activeTabButton]}
+              onPress={() => setActiveTab(tab)}>
+              <Text
+                style={[
+                  styles.tabButtonText,
+                  isActive && styles.activeTabButtonText,
+                ]}>
+                {tab}
+              </Text>
+              <View
+                style={[
+                  styles.tabBadge,
+                  isActive ? styles.activeTabBadge : styles.inactiveTabBadge,
+                ]}>
+                <Text
+                  style={[
+                    styles.tabBadgeText,
+                    isActive ? styles.activeTabBadgeText : styles.inactiveTabBadgeText,
+                  ]}>
+                  {count}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
       {/* Inquiry List */}
       {loadingList && !refreshing ? (
         <View style={styles.centeredContainer}>
@@ -618,7 +692,7 @@ const LeaveInquiry = () => {
         </View>
       ) : (
         <FlatList
-          data={inquiryData}
+          data={getFilteredData()}
           renderItem={renderLeaveCard}
           keyExtractor={(item, index) =>
             item.id ? item.id.toString() : index.toString()
@@ -979,5 +1053,66 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     marginLeft: 6,
+  },
+  tabBarContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#ffffff',
+    marginHorizontal: 12,
+    marginTop: 10,
+    borderRadius: 10,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    justifyContent: 'space-between',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  tabButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 8,
+    gap: 6,
+  },
+  activeTabButton: {
+    backgroundColor: APPCOLORS.Primary || '#1a1c22',
+  },
+  tabButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#4b5563',
+  },
+  activeTabButtonText: {
+    color: '#ffffff',
+    fontWeight: '700',
+  },
+  tabBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    minWidth: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inactiveTabBadge: {
+    backgroundColor: '#f3f4f6',
+  },
+  activeTabBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  tabBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  inactiveTabBadgeText: {
+    color: '#4b5563',
+  },
+  activeTabBadgeText: {
+    color: '#ffffff',
   },
 });

@@ -60,6 +60,13 @@ export default function HCMScreen({navigation}) {
       color: '#3B82F6',
       accessKey: 'hcm_leave_inquiry',
     },
+    {
+      name: 'Policy',
+      icon: 'file-certificate-outline',
+      screen: 'Policy',
+      color: '#8B5CF6',
+      accessKey: 'hcm_policy',
+    },
   ];
 
   const renderButton = ({item, index}) => {
