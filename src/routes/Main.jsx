@@ -98,6 +98,7 @@ import HCMScreen from '../screens/main/stacks/HCM/HCMScreen';
 import DVRInquiry from '../screens/main/stacks/HCM/DVRInquiry';
 import Leave from '../screens/main/stacks/HCM/Leave';
 import LeaveInquiry from '../screens/main/stacks/HCM/LeaveInquiry';
+import LeaveStatus from '../screens/main/stacks/HCM/LeaveStatus';
 import Policy from '../screens/main/stacks/HCM/Policy';
 import PolicyViewer from '../screens/main/stacks/HCM/PolicyViewer';
 
@@ -241,6 +242,7 @@ const Main = () => {
       <Stack.Screen name="DVRInquiry" component={DVRInquiry} />
       <Stack.Screen name="Leave" component={Leave} />
       <Stack.Screen name="LeaveInquiry" component={LeaveInquiry} />
+      <Stack.Screen name="LeaveStatus" component={LeaveStatus} />
       <Stack.Screen name="Policy" component={Policy} />
       <Stack.Screen name="PolicyViewer" component={PolicyViewer} />
     </Stack.Navigator>

@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as Animatable from 'react-native-animatable';
-import {Dropdown} from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
 import Toast from 'react-native-toast-message';
@@ -18,15 +17,17 @@ import {formatDateString, formatToYYYYMMDD} from '../../../../utils/DateUtils';
 import {BASEURL} from '../../../../utils/BaseUrl';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import {useSelector} from 'react-redux';
 
 const Leave = ({navigation}) => {
-  const [employees, setEmployees] = useState([]);
-  const [selectedEmp, setSelectedEmp] = useState(null);
+  const userData = useSelector(state => state.Data.currentData);
+  const employeeId = userData?.employee_id;
+
+  const [selectedEmp, setSelectedEmp] = useState(employeeId || null);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [reason, setReason] = useState('');
 
-  const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // Leave balance history states
@@ -37,10 +38,12 @@ const Leave = ({navigation}) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateField, setDateField] = useState(null); // 'from' or 'to'
 
-  // Fetch employees on component mount
+  // Sync selectedEmp with employeeId when it is resolved from redux
   useEffect(() => {
-    fetchEmployees();
-  }, []);
+    if (employeeId) {
+      setSelectedEmp(employeeId);
+    }
+  }, [employeeId]);
 
   // Fetch leave history when selected employee changes
   useEffect(() => {
@@ -83,34 +86,6 @@ const Leave = ({navigation}) => {
     }
   };
 
-  const fetchEmployees = async () => {
-    setLoadingEmployees(true);
-    try {
-      const response = await axios.get(`${BASEURL}get_all_employees.php`);
-      if (response.data && response.data.status === true) {
-        const formatted = (response.data.data || []).map(emp => ({
-          label: emp.emp_name,
-          value: emp.employee_id,
-        }));
-        setEmployees(formatted);
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Fetch Failed',
-          text2: response.data?.message || 'Failed to fetch employee list',
-        });
-      }
-    } catch (error) {
-      console.log('Error fetching employees:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Network Error',
-        text2: 'Could not retrieve employee list.',
-      });
-    } finally {
-      setLoadingEmployees(false);
-    }
-  };
 
   const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
@@ -275,42 +250,22 @@ const Leave = ({navigation}) => {
           animation="fadeInUp"
           duration={500}
           style={styles.card}>
-          {/* Employee Selection */}
+          {/* Employee Info (Read-only since dropdown is removed) */}
           <View style={styles.inputWrapper}>
             <Text style={styles.label}>
-              Employee <Text style={styles.required}>*</Text>
+              Employee
             </Text>
-            {loadingEmployees ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color={APPCOLORS.Primary} />
-                <Text style={styles.loadingText}>Fetching Employees...</Text>
-              </View>
-            ) : (
-              <Dropdown
-                style={styles.dropdown}
-                placeholderStyle={styles.placeholderStyle}
-                selectedTextStyle={styles.selectedTextStyle}
-                inputSearchStyle={styles.inputSearchStyle}
-                itemTextStyle={styles.itemTextStyle}
-                data={employees}
-                maxHeight={300}
-                labelField="label"
-                valueField="value"
-                placeholder="Select Employee"
-                search
-                searchPlaceholder="Search Employee..."
-                value={selectedEmp}
-                onChange={item => setSelectedEmp(item.value)}
-                renderLeftIcon={() => (
-                  <Icon
-                    name="account"
-                    size={20}
-                    color={APPCOLORS.Secondary}
-                    style={styles.leftIcon}
-                  />
-                )}
+            <View style={[styles.loadingContainer, {backgroundColor: '#e5e7eb', borderColor: '#d1d5db'}]}>
+              <Icon
+                name="account"
+                size={20}
+                color={APPCOLORS.Secondary}
+                style={styles.leftIcon}
               />
-            )}
+              <Text style={[styles.selectedTextStyle, {color: '#6b7280'}]}>
+                {userData?.real_name || 'Loading...'}
+              </Text>
+            </View>
           </View>
 
           {/* Leave Balance History */}

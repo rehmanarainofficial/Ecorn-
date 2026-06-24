@@ -11,6 +11,8 @@ import AlertCards from '../../../../components/AlertCards';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {useSelector} from 'react-redux';
 import {BASEURL} from '../../../../utils/BaseUrl';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {Dropdown} from 'react-native-element-dropdown';
 
 const AlertScreen = ({navigation}) => {
   const mobileAccessData = useSelector(state => state.Data.mobileAccessData);
@@ -192,6 +194,56 @@ const AlertScreen = ({navigation}) => {
 
           return <AlertCards key={idx} {...props} />;
         })}
+
+        {/* Leave Approvals Dropdown */}
+        <View style={{marginTop: 10, marginBottom: 30}}>
+          <Dropdown
+            style={{
+              backgroundColor: APPCOLORS.Primary || '#1a1c22',
+              height: 54,
+              borderRadius: 20,
+              paddingHorizontal: 18,
+              elevation: 2,
+              shadowColor: '#000',
+              shadowOffset: {width: 0, height: 2},
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+            }}
+            placeholderStyle={{
+              color: '#fff',
+              fontSize: 16,
+              fontWeight: '700',
+            }}
+            selectedTextStyle={{
+              color: '#fff',
+              fontSize: 16,
+              fontWeight: '700',
+            }}
+            itemTextStyle={{
+              color: '#1f2937',
+              fontSize: 15,
+            }}
+            data={[
+              {label: 'Department Approval', value: 'department'},
+              {label: 'HR Approval', value: 'hr'},
+            ]}
+            labelField="label"
+            valueField="value"
+            placeholder="Leave Approvals"
+            value={null}
+            onChange={item => {
+              navigation.navigate('LeaveInquiry', {mode: item.value});
+            }}
+            renderLeftIcon={() => (
+              <Icon
+                name="calendar-search"
+                size={24}
+                color="#fff"
+                style={{marginRight: 12}}
+              />
+            )}
+          />
+        </View>
       </ScrollView>
     </View>
   );

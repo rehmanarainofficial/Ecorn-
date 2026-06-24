@@ -20,7 +20,13 @@ import {BASEURL} from '../../../../utils/BaseUrl';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 
-const LeaveInquiry = () => {
+const LeaveInquiry = ({
+  isNested = false,
+  refreshTrigger = false,
+  route,
+  navigation,
+}) => {
+  const {mode = 'hr'} = route?.params || {};
   const userData = useSelector(state => state.Data.currentData);
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -28,22 +34,24 @@ const LeaveInquiry = () => {
 
   const [loadingOptions, setLoadingOptions] = useState(false);
 
-  // Selected filter states
   const [selectedEmp, setSelectedEmp] = useState('');
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedDesig, setSelectedDesig] = useState('');
 
   const today = new Date();
-  const todayStr = formatToYYYYMMDD(today);
-  const getTwoMonthsAhead = () => {
-    const d = new Date(today);
-    d.setMonth(d.getMonth() + 2);
+  const getFirstDayOfMonth = () => {
+    const d = new Date(today.getFullYear(), today.getMonth(), 1);
     return formatToYYYYMMDD(d);
   };
-  const twoMonthsAheadStr = getTwoMonthsAhead();
+  const getLastDayOfMonth = () => {
+    const d = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    return formatToYYYYMMDD(d);
+  };
+  const firstDayStr = getFirstDayOfMonth();
+  const lastDayStr = getLastDayOfMonth();
 
-  const [fromDate, setFromDate] = useState(todayStr);
-  const [toDate, setToDate] = useState(twoMonthsAheadStr);
+  const [fromDate, setFromDate] = useState(firstDayStr);
+  const [toDate, setToDate] = useState(lastDayStr);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateField, setDateField] = useState(null);
@@ -91,10 +99,16 @@ const LeaveInquiry = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (isNested && refreshTrigger) {
+      fetchLeaveInquiry(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger, isNested]);
+
   const fetchFilterOptions = async () => {
     setLoadingOptions(true);
     try {
-      // 1. Fetch Employees
       const empRes = await axios.get(`${BASEURL}get_all_employees.php`);
       let empData = [];
       if (empRes.data && empRes.data.status === true) {
@@ -104,7 +118,6 @@ const LeaveInquiry = () => {
         }));
       }
 
-      // 2. Fetch Departments
       const deptRes = await axios.get(`${BASEURL}get_all_department.php`);
       let deptData = [];
       if (deptRes.data && deptRes.data.status === true) {
@@ -147,14 +160,24 @@ const LeaveInquiry = () => {
 
     try {
       const formData = new FormData();
-      formData.append('emp_id', selectedEmp || '');
-      formData.append('dept_id', selectedDept || '');
-      formData.append('designation', selectedDesig || '');
-      formData.append('from_date', fromDate);
-      formData.append('to_date', toDate);
-      formData.append('user_id', userData?.id || '');
+      if (mode === 'department') {
+        formData.append('head_id', userData?.employee_id || '');
+        formData.append('employee_id', selectedEmp || '');
+        formData.append('from_date', fromDate);
+        formData.append('to_date', toDate);
+      } else {
+        formData.append('emp_id', selectedEmp || '');
+        formData.append('dept_id', selectedDept || '');
+        formData.append('designation', selectedDesig || '');
+        formData.append('from_date', fromDate);
+        formData.append('to_date', toDate);
+        formData.append('user_id', userData?.id || '');
+      }
 
       console.log('Fetching inquiry with fields:', {
+        mode,
+        head_id: userData?.employee_id,
+        employee_id: selectedEmp,
         emp_id: selectedEmp,
         dept_id: selectedDept,
         designation: selectedDesig,
@@ -163,8 +186,12 @@ const LeaveInquiry = () => {
         user_id: userData?.id,
       });
 
+      const url = mode === 'department'
+        ? `${BASEURL}dept_leave_approval.php`
+        : `${BASEURL}hr_leave_approval.php`;
+
       const response = await axios.post(
-        `${BASEURL}leave_inquiry_dash.php`,
+        url,
         formData,
         {
           headers: {
@@ -238,8 +265,8 @@ const LeaveInquiry = () => {
     setSelectedEmp('');
     setSelectedDept('');
     setSelectedDesig('');
-    setFromDate(todayStr);
-    setToDate(twoMonthsAheadStr);
+    setFromDate(firstDayStr);
+    setToDate(lastDayStr);
     Toast.show({
       type: 'info',
       text1: 'Filters Reset',
@@ -420,68 +447,72 @@ const LeaveInquiry = () => {
           ) : (
             <View style={styles.actionsRowSingle}>
               {/* Manager Approval Toggle */}
-              <TouchableOpacity
-                onPress={() =>
-                  handleApproval(
-                    item.emp_id,
-                    'manager',
-                    item.approve === '1' ? '0' : '1',
-                  )
-                }
-                style={[
-                  styles.toggleBtn,
-                  item.approve === '1'
-                    ? styles.toggleActiveBtn
-                    : styles.toggleInactiveBtn,
-                ]}>
-                <Icon
-                  name={
-                    item.approve === '1' ? 'check-decagram' : 'decagram-outline'
+              {mode === 'department' && (
+                <TouchableOpacity
+                  onPress={() =>
+                    handleApproval(
+                      item.emp_id,
+                      'manager',
+                      item.approve === '1' ? '0' : '1',
+                    )
                   }
-                  size={16}
-                  color={item.approve === '1' ? '#fff' : '#4b5563'}
-                />
-                <Text
                   style={[
-                    styles.toggleBtnText,
-                    {color: item.approve === '1' ? '#fff' : '#4b5563'},
+                    styles.toggleBtn,
+                    item.approve === '1'
+                      ? styles.toggleActiveBtn
+                      : styles.toggleInactiveBtn,
                   ]}>
-                  {item.approve === '1' ? 'Mgr Unapprove' : 'Mgr Approve'}
-                </Text>
-              </TouchableOpacity>
+                  <Icon
+                    name={
+                      item.approve === '1' ? 'check-decagram' : 'decagram-outline'
+                    }
+                    size={16}
+                    color={item.approve === '1' ? '#fff' : '#4b5563'}
+                  />
+                  <Text
+                    style={[
+                      styles.toggleBtnText,
+                      {color: item.approve === '1' ? '#fff' : '#4b5563'},
+                    ]}>
+                    {item.approve === '1' ? 'Mgr Unapprove' : 'Mgr Approve'}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               {/* HR Approval Toggle */}
-              <TouchableOpacity
-                onPress={() =>
-                  handleApproval(
-                    item.emp_id,
-                    'hr',
-                    item.hr_approve === '1' ? '0' : '1',
-                  )
-                }
-                style={[
-                  styles.toggleBtn,
-                  item.hr_approve === '1'
-                    ? styles.toggleActiveBtn
-                    : styles.toggleInactiveBtn,
-                ]}>
-                <Icon
-                  name={
-                    item.hr_approve === '1'
-                      ? 'check-decagram'
-                      : 'decagram-outline'
+              {mode === 'hr' && (
+                <TouchableOpacity
+                  onPress={() =>
+                    handleApproval(
+                      item.emp_id,
+                      'hr',
+                      item.hr_approve === '1' ? '0' : '1',
+                    )
                   }
-                  size={16}
-                  color={item.hr_approve === '1' ? '#fff' : '#4b5563'}
-                />
-                <Text
                   style={[
-                    styles.toggleBtnText,
-                    {color: item.hr_approve === '1' ? '#fff' : '#4b5563'},
+                    styles.toggleBtn,
+                    item.hr_approve === '1'
+                      ? styles.toggleActiveBtn
+                      : styles.toggleInactiveBtn,
                   ]}>
-                  {item.hr_approve === '1' ? 'HR Unapprove' : 'HR Approve'}
-                </Text>
-              </TouchableOpacity>
+                  <Icon
+                    name={
+                      item.hr_approve === '1'
+                        ? 'check-decagram'
+                        : 'decagram-outline'
+                    }
+                    size={16}
+                    color={item.hr_approve === '1' ? '#fff' : '#4b5563'}
+                  />
+                  <Text
+                    style={[
+                      styles.toggleBtnText,
+                      {color: item.hr_approve === '1' ? '#fff' : '#4b5563'},
+                    ]}>
+                    {item.hr_approve === '1' ? 'HR Unapprove' : 'HR Approve'}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
         </View>
@@ -490,8 +521,16 @@ const LeaveInquiry = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <SimpleHeader title="Leave Inquiry" />
+    <View
+      style={
+        isNested
+          ? [
+              styles.container,
+              {flex: 0, backgroundColor: 'transparent', paddingBottom: 20},
+            ]
+          : styles.container
+      }>
+      {!isNested && <SimpleHeader title="Leave Inquiry" />}
 
       {/* Collapsible Filter Bar */}
       <View style={styles.filterHeaderContainer}>
@@ -542,47 +581,51 @@ const LeaveInquiry = () => {
                   />
                 </View>
 
-                {/* Department Filter */}
-                <View style={styles.filterGroup}>
-                  <Text style={styles.filterLabel}>Department</Text>
-                  <Dropdown
-                    style={styles.dropdown}
-                    placeholderStyle={styles.placeholderStyle}
-                    selectedTextStyle={styles.selectedTextStyle}
-                    inputSearchStyle={styles.inputSearchStyle}
-                    itemTextStyle={styles.itemTextStyle}
-                    data={departments}
-                    maxHeight={250}
-                    labelField="label"
-                    valueField="value"
-                    placeholder="All Departments"
-                    search
-                    searchPlaceholder="Search Department..."
-                    value={selectedDept}
-                    onChange={item => setSelectedDept(item.value)}
-                  />
-                </View>
+                {mode !== 'department' && (
+                  <>
+                    {/* Department Filter */}
+                    <View style={styles.filterGroup}>
+                      <Text style={styles.filterLabel}>Department</Text>
+                      <Dropdown
+                        style={styles.dropdown}
+                        placeholderStyle={styles.placeholderStyle}
+                        selectedTextStyle={styles.selectedTextStyle}
+                        inputSearchStyle={styles.inputSearchStyle}
+                        itemTextStyle={styles.itemTextStyle}
+                        data={departments}
+                        maxHeight={250}
+                        labelField="label"
+                        valueField="value"
+                        placeholder="All Departments"
+                        search
+                        searchPlaceholder="Search Department..."
+                        value={selectedDept}
+                        onChange={item => setSelectedDept(item.value)}
+                      />
+                    </View>
 
-                {/* Designation Filter */}
-                <View style={styles.filterGroup}>
-                  <Text style={styles.filterLabel}>Designation</Text>
-                  <Dropdown
-                    style={styles.dropdown}
-                    placeholderStyle={styles.placeholderStyle}
-                    selectedTextStyle={styles.selectedTextStyle}
-                    inputSearchStyle={styles.inputSearchStyle}
-                    itemTextStyle={styles.itemTextStyle}
-                    data={designations}
-                    maxHeight={250}
-                    labelField="label"
-                    valueField="value"
-                    placeholder="All Designations"
-                    search
-                    searchPlaceholder="Search Designation..."
-                    value={selectedDesig}
-                    onChange={item => setSelectedDesig(item.value)}
-                  />
-                </View>
+                    {/* Designation Filter */}
+                    <View style={styles.filterGroup}>
+                      <Text style={styles.filterLabel}>Designation</Text>
+                      <Dropdown
+                        style={styles.dropdown}
+                        placeholderStyle={styles.placeholderStyle}
+                        selectedTextStyle={styles.selectedTextStyle}
+                        inputSearchStyle={styles.inputSearchStyle}
+                        itemTextStyle={styles.itemTextStyle}
+                        data={designations}
+                        maxHeight={250}
+                        labelField="label"
+                        valueField="value"
+                        placeholder="All Designations"
+                        search
+                        searchPlaceholder="Search Designation..."
+                        value={selectedDesig}
+                        onChange={item => setSelectedDesig(item.value)}
+                      />
+                    </View>
+                  </>
+                )}
 
                 {/* Date Ranges */}
                 <View style={styles.dateRow}>
@@ -649,37 +692,41 @@ const LeaveInquiry = () => {
 
       {/* Tabs Bar */}
       <View style={styles.tabBarContainer}>
-        {['Department', 'HR', 'Approve'].map(tab => {
-          const isActive = activeTab === tab;
-          const count = getTabCount(tab);
-          return (
-            <TouchableOpacity
-              key={tab}
-              style={[styles.tabButton, isActive && styles.activeTabButton]}
-              onPress={() => setActiveTab(tab)}>
-              <Text
-                style={[
-                  styles.tabButtonText,
-                  isActive && styles.activeTabButtonText,
-                ]}>
-                {tab}
-              </Text>
-              <View
-                style={[
-                  styles.tabBadge,
-                  isActive ? styles.activeTabBadge : styles.inactiveTabBadge,
-                ]}>
+        {['Department', 'HR', 'Approve']
+          .filter(tab => mode !== 'department' || tab !== 'HR')
+          .map(tab => {
+            const isActive = activeTab === tab;
+            const count = getTabCount(tab);
+            return (
+              <TouchableOpacity
+                key={tab}
+                style={[styles.tabButton, isActive && styles.activeTabButton]}
+                onPress={() => setActiveTab(tab)}>
                 <Text
                   style={[
-                    styles.tabBadgeText,
-                    isActive ? styles.activeTabBadgeText : styles.inactiveTabBadgeText,
+                    styles.tabButtonText,
+                    isActive && styles.activeTabButtonText,
                   ]}>
-                  {count}
+                  {tab}
                 </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+                <View
+                  style={[
+                    styles.tabBadge,
+                    isActive ? styles.activeTabBadge : styles.inactiveTabBadge,
+                  ]}>
+                  <Text
+                    style={[
+                      styles.tabBadgeText,
+                      isActive
+                        ? styles.activeTabBadgeText
+                        : styles.inactiveTabBadgeText,
+                    ]}>
+                    {count}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
       </View>
 
       {/* Inquiry List */}
@@ -698,12 +745,15 @@ const LeaveInquiry = () => {
             item.id ? item.id.toString() : index.toString()
           }
           contentContainerStyle={styles.listContainer}
+          scrollEnabled={!isNested}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => fetchLeaveInquiry(true)}
-              colors={[APPCOLORS.Primary]}
-            />
+            isNested ? undefined : (
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => fetchLeaveInquiry(true)}
+                colors={[APPCOLORS.Primary]}
+              />
+            )
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>

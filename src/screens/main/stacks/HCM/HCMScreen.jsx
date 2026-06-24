@@ -54,11 +54,11 @@ export default function HCMScreen({navigation}) {
       accessKey: 'hcm_leave',
     },
     {
-      name: 'Leave Inquiry',
-      icon: 'file-search-outline',
-      screen: 'LeaveInquiry',
+      name: 'Leave Status',
+      icon: 'calendar-text-outline',
+      screen: 'LeaveStatus',
       color: '#3B82F6',
-      accessKey: 'hcm_leave_inquiry',
+      accessKey: 'hcm_leave_status',
     },
     {
       name: 'Policy',
