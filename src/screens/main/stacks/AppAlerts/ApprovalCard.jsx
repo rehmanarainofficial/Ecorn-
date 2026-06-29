@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   View,
   ActivityIndicator,
 } from 'react-native';
@@ -10,7 +9,6 @@ import * as Animatable from 'react-native-animatable';
 import PlatformGradient from '../../../../components/PlatformGradient';
 import AppText from '../../../../components/AppText';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import axios from 'axios';
 import Toast from 'react-native-toast-message';
 import {generateAndDownloadPDF} from '../../../../components/PDFGenerator';
 import {BASEURL} from '../../../../utils/BaseUrl';
@@ -45,12 +43,7 @@ const ApprovalCard = ({
     screenType === 'electrocal_job_cards' ||
     screenType === 'mechnical_job_cards';
 
-  // ✅ Check if this is Location Transfer screen
   const isLocationTransferScreen = screenType === 'location_transfer_app';
-
-  const formatAmount = amount => {
-    return formatNumber(amount);
-  };
 
   const handleGLView = async () => {
     if (!isVoucherScreen) return;
@@ -113,7 +106,6 @@ const ApprovalCard = ({
           screenType: screenType,
         });
       } else {
-        // For other screens (Quotation, Order, PO, etc.)
         const formData = new FormData();
         formData.append('trans_no', trans_no);
         formData.append('type', type);

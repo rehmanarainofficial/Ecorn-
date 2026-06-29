@@ -42,7 +42,7 @@ const AlertScreen = ({navigation}) => {
     setRefreshing(false);
   };
 
-  // 🔑 Modules Config
+  // Modules Config
   const moduleGroups = [
     {
       title: 'Sales Alert',
@@ -166,7 +166,7 @@ const AlertScreen = ({navigation}) => {
                   listKey: item.key,
                   title: item.heading,
                 }),
-              disabled: isRestricted, // Section level restriction
+              disabled: isRestricted,
             };
 
             if (i === 0) {

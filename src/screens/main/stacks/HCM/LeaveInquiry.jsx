@@ -24,7 +24,6 @@ const LeaveInquiry = ({
   isNested = false,
   refreshTrigger = false,
   route,
-  navigation,
 }) => {
   const {mode = 'hr'} = route?.params || {};
   const userData = useSelector(state => state.Data.currentData);
@@ -96,14 +95,12 @@ const LeaveInquiry = ({
   useEffect(() => {
     fetchFilterOptions();
     fetchLeaveInquiry(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (isNested && refreshTrigger) {
       fetchLeaveInquiry(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshTrigger, isNested]);
 
   const fetchFilterOptions = async () => {

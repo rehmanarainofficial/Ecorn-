@@ -30,22 +30,18 @@ const Leave = ({navigation}) => {
 
   const [submitting, setSubmitting] = useState(false);
 
-  // Leave balance history states
   const [leaveHistory, setLeaveHistory] = useState(null);
   const [loadingLeaveHistory, setLoadingLeaveHistory] = useState(false);
 
-  // DatePicker states
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [dateField, setDateField] = useState(null); // 'from' or 'to'
+  const [dateField, setDateField] = useState(null);
 
-  // Sync selectedEmp with employeeId when it is resolved from redux
   useEffect(() => {
     if (employeeId) {
       setSelectedEmp(employeeId);
     }
   }, [employeeId]);
 
-  // Fetch leave history when selected employee changes
   useEffect(() => {
     if (selectedEmp) {
       fetchLeaveHistory(selectedEmp);
@@ -73,7 +69,11 @@ const Leave = ({navigation}) => {
           },
         },
       );
-      if (response.data === null || !response.data || response.data === 'null') {
+      if (
+        response.data === null ||
+        !response.data ||
+        response.data === 'null'
+      ) {
         setLeaveHistory(null);
       } else {
         setLeaveHistory(response.data);
@@ -85,7 +85,6 @@ const Leave = ({navigation}) => {
       setLoadingLeaveHistory(false);
     }
   };
-
 
   const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
@@ -252,10 +251,12 @@ const Leave = ({navigation}) => {
           style={styles.card}>
           {/* Employee Info (Read-only since dropdown is removed) */}
           <View style={styles.inputWrapper}>
-            <Text style={styles.label}>
-              Employee
-            </Text>
-            <View style={[styles.loadingContainer, {backgroundColor: '#e5e7eb', borderColor: '#d1d5db'}]}>
+            <Text style={styles.label}>Employee</Text>
+            <View
+              style={[
+                styles.loadingContainer,
+                {backgroundColor: '#e5e7eb', borderColor: '#d1d5db'},
+              ]}>
               <Icon
                 name="account"
                 size={20}

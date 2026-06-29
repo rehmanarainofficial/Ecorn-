@@ -25,10 +25,10 @@ import {BASEURL} from '../../../../utils/BaseUrl';
 const {width} = Dimensions.get('window');
 
 const COLORS = {
-  PRIMARY: '#000000', // Black as requested
+  PRIMARY: '#000000',
   SECONDARY: '#3b82f6',
   WHITE: '#FFFFFF',
-  BACKGROUND: '#f3f4f6', // As requested
+  BACKGROUND: '#f3f4f6',
   TEXT_DARK: '#1f2937',
   TEXT_LIGHT: '#6b7280',
   BORDER: '#e5e7eb',
@@ -277,18 +277,20 @@ const EmployeeRegistration = ({navigation}) => {
     for (let rule of validationRules) {
       // Special handling for fields that can have value 0 (like maritalStatus)
       const fieldValue = formData[rule.field];
-      const isEmpty = rule.field === 'maritalStatus' 
-        ? fieldValue === null || fieldValue === undefined || fieldValue === ''
-        : !fieldValue;
-      
+      const isEmpty =
+        rule.field === 'maritalStatus'
+          ? fieldValue === null || fieldValue === undefined || fieldValue === ''
+          : !fieldValue;
+
       if (isEmpty) {
         // Collect all errors for the current section to highlight them
         const sectionErrors = {};
         validationRules.forEach(r => {
           const val = formData[r.field];
-          const empty = r.field === 'maritalStatus'
-            ? val === null || val === undefined || val === ''
-            : !val;
+          const empty =
+            r.field === 'maritalStatus'
+              ? val === null || val === undefined || val === ''
+              : !val;
           if (empty) sectionErrors[r.field] = true;
         });
         setErrors(sectionErrors);
@@ -350,7 +352,6 @@ const EmployeeRegistration = ({navigation}) => {
           name: formData.profileImage.fileName || 'profile.jpg',
         });
       }
-
 
       const response = await axios.post(
         `${BASEURL}employee_setup_post.php`,

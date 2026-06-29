@@ -29,7 +29,6 @@ const LeaveStatus = () => {
     if (employeeId) {
       fetchSelfLeaves(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employeeId]);
 
   const fetchSelfLeaves = async (isRefresh = false) => {
@@ -125,9 +124,7 @@ const LeaveStatus = () => {
               size={22}
               color={APPCOLORS.Primary || '#1a1c22'}
             />
-            <Text style={styles.leaveTitle}>
-              Leave Request #{item.id}
-            </Text>
+            <Text style={styles.leaveTitle}>Leave Request #{item.id}</Text>
           </View>
           <View style={styles.daysBadge}>
             <Text style={styles.daysText}>
@@ -177,7 +174,10 @@ const LeaveStatus = () => {
 
       {loading && !refreshing ? (
         <View style={styles.centeredContainer}>
-          <ActivityIndicator size="large" color={APPCOLORS.Primary || '#1a1c22'} />
+          <ActivityIndicator
+            size="large"
+            color={APPCOLORS.Primary || '#1a1c22'}
+          />
           <Text style={styles.loadingText}>
             Retrieving your leave applications...
           </Text>
