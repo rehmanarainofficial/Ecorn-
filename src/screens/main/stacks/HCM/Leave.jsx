@@ -58,7 +58,7 @@ const Leave = ({navigation}) => {
     setLoadingLeaveHistory(true);
     try {
       const formData = new FormData();
-      formData.append('emp_id', empId);
+      formData.append('emp_id', String(empId));
 
       const response = await axios.post(
         `${BASEURL}get_employee_leave_history.php`,
@@ -183,11 +183,11 @@ const Leave = ({navigation}) => {
     setSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append('from_date', fromDate);
-      formData.append('to_date', toDate);
-      formData.append('emp_id', selectedEmp);
-      formData.append('reason', reason.trim());
-      formData.append('leave_type', leaveHistory?.id || '');
+      formData.append('from_date', String(fromDate));
+      formData.append('to_date', String(toDate));
+      formData.append('emp_id', String(selectedEmp));
+      formData.append('reason', String(reason.trim()));
+      formData.append('leave_type', String(leaveHistory?.id || ''));
 
       const response = await axios.post(
         `${BASEURL}post_employee_leave.php`,
