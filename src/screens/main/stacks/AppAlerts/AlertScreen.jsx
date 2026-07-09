@@ -11,29 +11,111 @@ import AlertCards from '../../../../components/AlertCards';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {useSelector} from 'react-redux';
 import {BASEURL} from '../../../../utils/BaseUrl';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {Dropdown} from 'react-native-element-dropdown';
 
 const AlertScreen = ({navigation}) => {
   const mobileAccessData = useSelector(state => state.Data.mobileAccessData);
+  const userData = useSelector(state => state.Data.currentData);
   const [AllData, setAllData] = useState({});
+  const [leaveApprovalCount, setLeaveApprovalCount] = useState(0);
   const [Loading, setLoading] = useState(false);
   const [Refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     getAllData();
-  }, []);
+  }, [userData?.employee_id]);
+
+  const formatToYYYYMMDD = date => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const getMonthRange = () => {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    return {
+      fromDate: formatToYYYYMMDD(firstDay),
+      toDate: formatToYYYYMMDD(lastDay),
+    };
+  };
+
+  const extractLeaveApprovalList = data => {
+    const userId = userData?.id;
+
+    if (userId && Array.isArray(data?.[userId])) {
+      return data[userId];
+    }
+    if (Array.isArray(data?.data)) {
+      return data.data;
+    }
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    return [];
+  };
+
+  const isPendingLeaveApproval = item => {
+    return (
+      item?.approve === undefined ||
+      item.approve === null ||
+      item.approve === '' ||
+      item.approve === '0' ||
+      item.approve === 0
+    );
+  };
+
+  const getLeaveApprovalCount = async () => {
+    if (!userData?.employee_id) {
+      setLeaveApprovalCount(0);
+      return;
+    }
+
+    const {fromDate, toDate} = getMonthRange();
+    const formData = new FormData();
+    formData.append('head_id', userData.employee_id);
+    formData.append('employee_id', '');
+    formData.append('from_date', fromDate);
+    formData.append('to_date', toDate);
+
+    try {
+      const res = await axios.post(
+        `${BASEURL}dept_leave_approval.php`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+
+      const pendingLeaves = extractLeaveApprovalList(res.data).filter(
+        isPendingLeaveApproval,
+      );
+      setLeaveApprovalCount(pendingLeaves.length);
+    } catch (err) {
+      console.log('Leave approval count error: ', err);
+      setLeaveApprovalCount(0);
+    }
+  };
 
   const getAllData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${BASEURL}dash_approval.php`);
+      const [res] = await Promise.all([
+        axios.get(`${BASEURL}dash_approval.php`),
+        getLeaveApprovalCount(),
+      ]);
       const newData = res.data?.approval_data || {};
       setAllData(newData);
     } catch (err) {
       console.log('API Error: ', err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const onRefresh = async () => {
@@ -195,55 +277,15 @@ const AlertScreen = ({navigation}) => {
           return <AlertCards key={idx} {...props} />;
         })}
 
-        {/* Leave Approvals Dropdown */}
-        <View style={{marginTop: 10, marginBottom: 30}}>
-          <Dropdown
-            style={{
-              backgroundColor: APPCOLORS.Primary || '#1a1c22',
-              height: 54,
-              borderRadius: 20,
-              paddingHorizontal: 18,
-              elevation: 2,
-              shadowColor: '#000',
-              shadowOffset: {width: 0, height: 2},
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-            }}
-            placeholderStyle={{
-              color: '#fff',
-              fontSize: 16,
-              fontWeight: '700',
-            }}
-            selectedTextStyle={{
-              color: '#fff',
-              fontSize: 16,
-              fontWeight: '700',
-            }}
-            itemTextStyle={{
-              color: '#1f2937',
-              fontSize: 15,
-            }}
-            data={[
-              {label: 'Department Approval', value: 'department'},
-              {label: 'HR Approval', value: 'hr'},
-            ]}
-            labelField="label"
-            valueField="value"
-            placeholder="Leave Approvals"
-            value={null}
-            onChange={item => {
-              navigation.navigate('LeaveInquiry', {mode: item.value});
-            }}
-            renderLeftIcon={() => (
-              <Icon
-                name="calendar-search"
-                size={24}
-                color="#fff"
-                style={{marginRight: 12}}
-              />
-            )}
-          />
-        </View>
+        <AlertCards
+          AlertHeading="Leave Approval"
+          HeadingOne="Department Approval"
+          ValueOne={leaveApprovalCount}
+          IconOne="calendar-check"
+          onValuePressOne={() =>
+            navigation.navigate('LeaveInquiry', {mode: 'department'})
+          }
+        />
       </ScrollView>
     </View>
   );

@@ -16,9 +16,8 @@ import {
 import PlatformGradient from '../../components/PlatformGradient';
 import DashboardTabs from '../../components/DashboardTabs';
 import AppText from '../../components/AppText';
-
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import AppHeader from '../../components/AppHeader';
-import {AppImages} from '../../assets/images/AppImages';
 import Modal from 'react-native-modal';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {BASEURL} from '../../utils/BaseUrl';
@@ -43,7 +42,6 @@ const Dashboard = ({navigation}) => {
 
   console.log('mobileAccessData', mobileAccessData);
 
-  // Main cards (first 8)
   const mainCards = [
     {
       id: 1,
@@ -103,7 +101,6 @@ const Dashboard = ({navigation}) => {
     },
   ];
 
-  // More cards (shown after clicking More)
   const moreCards = [
     {
       id: 9,
@@ -121,7 +118,6 @@ const Dashboard = ({navigation}) => {
     },
   ];
 
-  // More button card
   const moreButton = {
     id: 'more',
     name: showMore ? 'Less' : 'More',
@@ -130,7 +126,6 @@ const Dashboard = ({navigation}) => {
     isMoreButton: true,
   };
 
-  // Combine cards based on showMore state
   const getDisplayCards = () => {
     if (showMore) {
       return [...mainCards, ...moreCards, moreButton];
@@ -177,7 +172,6 @@ const Dashboard = ({navigation}) => {
 
   const getUserAccess = async () => {
     try {
-      // Fetch Mobile Access based on role_id
       if (userData?.role_id) {
         const mobileRes = await GetMobileAccessData(userData.role_id);
         if (mobileRes.status === 'true') {
@@ -357,14 +351,7 @@ const Dashboard = ({navigation}) => {
             gap: 5,
             marginTop: 20,
           }}>
-          <Image
-            source={AppImages.speak}
-            style={{
-              height: responsiveHeight(2),
-              width: responsiveHeight(2),
-              resizeMode: 'contain',
-            }}
-          />
+          <Icon name="announcement" size={24} color={APPCOLORS.BLACK} />
           <AppText
             title="Announcement"
             titleSize={2.5}

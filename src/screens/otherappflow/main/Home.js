@@ -10,12 +10,12 @@ import React, {useEffect, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import PlatformGradient from '../../../components/PlatformGradient';
 import {useDispatch, useSelector} from 'react-redux';
-// import {setAllProducts, setLoader} from '../../redux/AuthSlice';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BASEURL} from '../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../utils/APPCOLORS';
 import {formatNumber} from '../../../utils/NumberUtils';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 const Home = ({navigation, route}) => {
   const currentData = useSelector(state => state.Data.currentData);
 
@@ -280,10 +280,7 @@ const Home = ({navigation, route}) => {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-              <Image
-                source={require('../../../assets/images/TotalOrder.png')}
-                style={{height: 100, width: 100, resizeMode: 'contain'}}
-              />
+                <Icon name="order" size={24} color={APPCOLORS.WHITE} />
               <Text
                 style={{color: APPCOLORS.WHITE, marginTop: 20, fontSize: 20}}>
                 {type == 'supplier' ? 'New Po' : 'New Order'}
@@ -306,10 +303,7 @@ const Home = ({navigation, route}) => {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-              <Image
-                source={require('../../../assets/images/Recover.png')}
-                style={{height: 100, width: 100, resizeMode: 'contain'}}
-              />
+              <Icon name="restore" size={24} color={APPCOLORS.WHITE} />
               <Text
                 style={{color: APPCOLORS.WHITE, marginTop: 20, fontSize: 20}}>
                 {type == 'supplier' ? 'GRN' : 'Quotation'}
@@ -346,10 +340,7 @@ const Home = ({navigation, route}) => {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-              <Image
-                source={require('../../../assets/images/Pending.png')}
-                style={{height: 100, width: 100, resizeMode: 'contain'}}
-              />
+              <Icon name="pending" size={24} color={APPCOLORS.WHITE} />
               <Text
                 style={{
                   color: APPCOLORS.WHITE,

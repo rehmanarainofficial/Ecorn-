@@ -9,13 +9,13 @@ import {
   Image,
   Dimensions,
   Platform,
+  PermissionsAndroid,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as Animatable from 'react-native-animatable';
 import {Dropdown} from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {launchImageLibrary} from 'react-native-image-picker';
-import {pick, types} from '@react-native-documents/picker';
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import {Modal, SafeAreaView, ActivityIndicator} from 'react-native';
 import axios from 'axios';
 import Toast from 'react-native-toast-message';
@@ -66,6 +66,9 @@ const InputField = ({
   keyboardType = 'default',
   isMandatory = true,
   error = false,
+  maxLength,
+  autoCapitalize = 'words',
+  textContentType = 'none',
 }) => (
   <View style={styles.inputWrapper}>
     <Text style={styles.label}>
@@ -81,7 +84,11 @@ const InputField = ({
       value={formData[field]}
       onChangeText={text => handleInputChange(field, text)}
       keyboardType={keyboardType}
+      maxLength={maxLength}
+      autoCapitalize={autoCapitalize}
+      textContentType={textContentType}
     />
+    {typeof error === 'string' && <Text style={styles.errorText}>{error}</Text>}
   </View>
 );
 
@@ -155,7 +162,19 @@ const EmployeeRegistration = ({navigation}) => {
   const handleInputChange = (field, value) => {
     let finalValue = value;
 
-    // CNIC Masking: XXXXX-XXXXXXX-X
+    if (
+      [
+        'fullName',
+        'fatherName',
+        'motherName',
+        'emergencyName',
+        'emergencyRelation',
+        'accountTitle',
+      ].includes(field)
+    ) {
+      finalValue = value.replace(/[^a-zA-Z\s.'-]/g, '');
+    }
+
     if (field === 'nic') {
       const cleaned = value.replace(/\D/g, '').substring(0, 13);
       let masked = cleaned;
@@ -168,6 +187,25 @@ const EmployeeRegistration = ({navigation}) => {
         )}-${cleaned.substring(12)}`;
       }
       finalValue = masked;
+    }
+
+    if (field === 'mobile' || field === 'emergencyPhone') {
+      const cleaned = value.replace(/\D/g, '').substring(0, 11);
+      finalValue =
+        cleaned.length > 4
+          ? `${cleaned.substring(0, 4)}-${cleaned.substring(4)}`
+          : cleaned;
+    }
+
+    if (field === 'iban') {
+      finalValue = value
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .toUpperCase()
+        .substring(0, 24);
+    }
+
+    if (field === 'passingYear') {
+      finalValue = value.replace(/\D/g, '').substring(0, 4);
     }
 
     setFormData(prev => ({...prev, [field]: finalValue}));
@@ -194,40 +232,121 @@ const EmployeeRegistration = ({navigation}) => {
     setShowDatePicker(true);
   };
 
-  const handleImageSelect = async () => {
-    const options = {
-      mediaType: 'photo',
-      includeBase64: false,
-      maxHeight: 1000,
-      maxWidth: 1000,
-    };
+  const setSelectedImage = asset => {
+    if (!asset) return;
 
-    launchImageLibrary(options, response => {
+    const isImage = !asset.type || asset.type.startsWith('image/');
+    const isAllowedSize = !asset.fileSize || asset.fileSize <= 5 * 1024 * 1024;
+
+    if (!isImage) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Image',
+        text2: 'Please select a valid image file.',
+      });
+      return;
+    }
+
+    if (!isAllowedSize) {
+      Toast.show({
+        type: 'error',
+        text1: 'Image Too Large',
+        text2: 'Please select an image under 5 MB.',
+      });
+      return;
+    }
+
+    setFormData(prev => ({...prev, profileImage: asset}));
+    if (errors.profileImage) {
+      setErrors(prev => {
+        const newErrors = {...prev};
+        delete newErrors.profileImage;
+        return newErrors;
+      });
+    }
+  };
+
+  const getImagePickerOptions = () => ({
+    mediaType: 'photo',
+    includeBase64: false,
+    maxHeight: 1000,
+    maxWidth: 1000,
+    quality: 0.8,
+  });
+
+  const handleImageSelect = async () => {
+    launchImageLibrary(getImagePickerOptions(), response => {
       if (response.didCancel) return;
       if (response.errorCode) {
         console.log('ImagePicker Error: ', response.errorMessage);
+        Toast.show({
+          type: 'error',
+          text1: 'Image Selection Failed',
+          text2: response.errorMessage || 'Unable to select image.',
+        });
         return;
       }
-      if (response.assets && response.assets.length > 0) {
-        setFormData(prev => ({...prev, profileImage: response.assets[0]}));
-      }
+      setSelectedImage(response.assets?.[0]);
     });
   };
 
-  const handleDocumentSelect = async field => {
-    try {
-      const [res] = await pick({
-        type: [types.allFiles],
-      });
-      setFormData(prev => ({...prev, [field]: res}));
-    } catch (err) {
-      if (err?.code === 'DOCUMENT_PICKER_CANCELED') {
-        // User cancelled the picker
-      } else {
-        console.error('DocumentPicker Error: ', err);
-      }
+  const requestCameraPermission = async () => {
+    if (Platform.OS !== 'android') {
+      return true;
     }
+
+    const hasPermission = await PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+    );
+
+    if (hasPermission) {
+      return true;
+    }
+
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+      {
+        title: 'Camera Permission Required',
+        message: 'Please allow camera access to capture employee photo.',
+        buttonPositive: 'Allow',
+        buttonNegative: 'Cancel',
+      },
+    );
+
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
   };
+
+  const handleCameraCapture = async () => {
+    const hasCameraPermission = await requestCameraPermission();
+    if (!hasCameraPermission) {
+      Toast.show({
+        type: 'error',
+        text1: 'Camera Permission Denied',
+        text2: 'Please allow camera permission to take a photo.',
+      });
+      return;
+    }
+
+    const options = {
+      ...getImagePickerOptions(),
+      saveToPhotos: false,
+    };
+
+    launchCamera(options, response => {
+      if (response.didCancel) return;
+      if (response.errorCode) {
+        console.log('Camera Error: ', response.errorMessage);
+        Toast.show({
+          type: 'error',
+          text1: 'Camera Failed',
+          text2: response.errorMessage || 'Unable to capture image.',
+        });
+        return;
+      }
+      setSelectedImage(response.assets?.[0]);
+    });
+  };
+
 
   const handleSubmit = async () => {
     // Intelligent Validation Rules
@@ -274,35 +393,223 @@ const EmployeeRegistration = ({navigation}) => {
       {field: 'university', label: 'University', section: 'Qualification'},
     ];
 
-    for (let rule of validationRules) {
-      // Special handling for fields that can have value 0 (like maritalStatus)
-      const fieldValue = formData[rule.field];
-      const isEmpty =
-        rule.field === 'maritalStatus'
-          ? fieldValue === null || fieldValue === undefined || fieldValue === ''
-          : !fieldValue;
+    const newErrors = {};
+    let firstInvalidRule = null;
 
-      if (isEmpty) {
-        // Collect all errors for the current section to highlight them
-        const sectionErrors = {};
-        validationRules.forEach(r => {
-          const val = formData[r.field];
-          const empty =
-            r.field === 'maritalStatus'
-              ? val === null || val === undefined || val === ''
-              : !val;
-          if (empty) sectionErrors[r.field] = true;
-        });
-        setErrors(sectionErrors);
-
-        setActiveSection(rule.section);
-        Toast.show({
-          type: 'error',
-          text1: 'Required Field',
-          text2: `Please provide ${rule.label} in ${rule.section} section.`,
-        });
-        return;
+    const isBlank = (field, value) => {
+      if (field === 'maritalStatus') {
+        return value === null || value === undefined || value === '';
       }
+      return !value;
+    };
+
+    validationRules.forEach(rule => {
+      const fieldValue = formData[rule.field];
+      if (isBlank(rule.field, fieldValue)) {
+        newErrors[rule.field] = `${rule.label} is required.`;
+        if (!firstInvalidRule) {
+          firstInvalidRule = rule;
+        }
+      }
+    });
+
+    const addFormatError = (field, message, section, label) => {
+      if (!newErrors[field]) {
+        newErrors[field] = message;
+      }
+      if (!firstInvalidRule) {
+        firstInvalidRule = {field, section, label};
+      }
+    };
+
+    const nameRegex = /^[a-zA-Z\s.'-]{2,}$/;
+    const phoneRegex = /^03\d{2}-\d{7}$/;
+    const cnicRegex = /^\d{5}-\d{7}-\d$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const ibanRegex = /^PK\d{2}[A-Z0-9]{20}$/;
+    const year = new Date().getFullYear();
+
+    [
+      ['fullName', 'Employee full name', 'Information'],
+      ['fatherName', "Father's name", 'Information'],
+      ['motherName', "Mother's name", 'Information'],
+      ['emergencyName', 'Emergency contact name', 'Emergency'],
+      ['emergencyRelation', 'Emergency relation', 'Emergency'],
+      ['accountTitle', 'Account title', 'Bank'],
+    ].forEach(([field, label, section]) => {
+      if (formData[field] && !nameRegex.test(formData[field].trim())) {
+        addFormatError(
+          field,
+          `${label} should contain valid letters only.`,
+          section,
+          label,
+        );
+      }
+    });
+
+    if (formData.mobile && !phoneRegex.test(formData.mobile)) {
+      addFormatError(
+        'mobile',
+        'Enter a valid Pakistan mobile number, e.g. 03xx-xxxxxxx.',
+        'Information',
+        'Mobile Number',
+      );
+    }
+
+    if (formData.emergencyPhone && !phoneRegex.test(formData.emergencyPhone)) {
+      addFormatError(
+        'emergencyPhone',
+        'Enter a valid Pakistan mobile number, e.g. 03xx-xxxxxxx.',
+        'Emergency',
+        'Emergency Contact Phone',
+      );
+    }
+
+    if (formData.email && !emailRegex.test(formData.email.trim())) {
+      addFormatError(
+        'email',
+        'Enter a valid email address with @ and domain.',
+        'Information',
+        'Email',
+      );
+    }
+
+    if (formData.nic && !cnicRegex.test(formData.nic)) {
+      addFormatError(
+        'nic',
+        'Enter a valid CNIC, e.g. 12345-1234567-1.',
+        'Information',
+        'NIC',
+      );
+    }
+
+    if (formData.iban && !ibanRegex.test(formData.iban)) {
+      addFormatError(
+        'iban',
+        'Enter a valid Pakistan IBAN: PK + 2 digits + 20 characters.',
+        'Bank',
+        'IBAN/Account No',
+      );
+    }
+
+    if (formData.dob && new Date(formData.dob) >= new Date()) {
+      addFormatError(
+        'dob',
+        'Date of birth must be before today.',
+        'Information',
+        'Date of Birth',
+      );
+    }
+
+    if (formData.nicIssue && new Date(formData.nicIssue) > new Date()) {
+      addFormatError(
+        'nicIssue',
+        'NIC issue date cannot be in the future.',
+        'Information',
+        'NIC Issue Date',
+      );
+    }
+
+    if (
+      formData.nicIssue &&
+      formData.nicExpiry &&
+      new Date(formData.nicExpiry) <= new Date(formData.nicIssue)
+    ) {
+      addFormatError(
+        'nicExpiry',
+        'NIC expiry date must be after issue date.',
+        'Information',
+        'NIC Expiry Date',
+      );
+    }
+
+    if (
+      formData.passingYear &&
+      (Number(formData.passingYear) < 1950 ||
+        Number(formData.passingYear) > year)
+    ) {
+      addFormatError(
+        'passingYear',
+        `Passing year should be between 1950 and ${year}.`,
+        'Qualification',
+        'Passing Year',
+      );
+    }
+
+    if (formData.address && formData.address.trim().length < 10) {
+      addFormatError(
+        'address',
+        'Enter a complete address with at least 10 characters.',
+        'Information',
+        'Address',
+      );
+    }
+
+    if (formData.bankBranch && formData.bankBranch.trim().length < 2) {
+      addFormatError(
+        'bankBranch',
+        'Enter a valid bank branch name or code.',
+        'Bank',
+        'Bank Branch',
+      );
+    }
+
+    if (formData.degree && formData.degree.trim().length < 2) {
+      addFormatError(
+        'degree',
+        'Enter a valid qualification degree.',
+        'Qualification',
+        'Degree',
+      );
+    }
+
+    if (formData.university && formData.university.trim().length < 2) {
+      addFormatError(
+        'university',
+        'Enter a valid university or institute name.',
+        'Qualification',
+        'University',
+      );
+    }
+
+    if (
+      formData.cgpa &&
+      !/^(\d(\.\d{1,2})?|10|100%|[1-9]\d%)$/.test(formData.cgpa.trim())
+    ) {
+      addFormatError(
+        'cgpa',
+        'Enter CGPA like 3.5 or percentage like 80%.',
+        'Qualification',
+        'CGPA/Passing%',
+      );
+    }
+
+    if (
+      formData.workFrom &&
+      formData.workTo &&
+      new Date(formData.workTo) < new Date(formData.workFrom)
+    ) {
+      addFormatError(
+        'workTo',
+        'Work history end date must be after start date.',
+        'Work',
+        'Date To',
+      );
+    }
+
+    if (firstInvalidRule) {
+      setErrors(newErrors);
+      setActiveSection(firstInvalidRule.section);
+      Toast.show({
+        type: 'error',
+        text1: newErrors[firstInvalidRule.field]?.includes('required')
+          ? 'Required Field'
+          : 'Invalid Field',
+        text2:
+          newErrors[firstInvalidRule.field] ||
+          `Please check ${firstInvalidRule.label}.`,
+      });
+      return;
     }
 
     setIsSubmitting(true);
@@ -472,6 +779,7 @@ const EmployeeRegistration = ({navigation}) => {
         field="mobile"
         placeholder="03xx-xxxxxxx"
         keyboardType="phone-pad"
+        maxLength={12}
         formData={formData}
         handleInputChange={handleInputChange}
         error={errors.mobile}
@@ -481,9 +789,12 @@ const EmployeeRegistration = ({navigation}) => {
         field="email"
         placeholder="example@domain.com"
         keyboardType="email-address"
+        autoCapitalize="none"
+        textContentType="emailAddress"
         formData={formData}
         handleInputChange={handleInputChange}
         isMandatory={false}
+        error={errors.email}
       />
       <View style={styles.row}>
         <View style={{flex: 1, marginRight: 8}}>
@@ -544,6 +855,7 @@ const EmployeeRegistration = ({navigation}) => {
         field="nic"
         placeholder="xxxxx-xxxxxxx-x"
         keyboardType="numeric"
+        maxLength={15}
         formData={formData}
         handleInputChange={handleInputChange}
         error={errors.nic}
@@ -623,16 +935,23 @@ const EmployeeRegistration = ({navigation}) => {
                 style={styles.previewImage}
               />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleImageSelect}
-              style={styles.changeBtn}>
-              <Icon name="pencil" size={16} color={COLORS.WHITE} />
-              <Text style={styles.changeBtnText}>Change</Text>
-            </TouchableOpacity>
+            <View style={styles.imageActionColumn}>
+              <TouchableOpacity
+                onPress={handleCameraCapture}
+                style={styles.changeBtn}>
+                <Icon name="camera" size={16} color={COLORS.WHITE} />
+                <Text style={styles.changeBtnText}>Camera</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleImageSelect}
+                style={styles.changeBtn}>
+                <Icon name="image" size={16} color={COLORS.WHITE} />
+                <Text style={styles.changeBtnText}>Upload</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         ) : (
-          <TouchableOpacity
-            onPress={handleImageSelect}
+          <View
             style={[
               styles.imagePicker,
               errors.profileImage && {
@@ -641,8 +960,25 @@ const EmployeeRegistration = ({navigation}) => {
               },
             ]}>
             <Icon name="camera-plus" size={32} color={COLORS.PRIMARY} />
-            <Text style={styles.uploadText}>Select Image</Text>
-          </TouchableOpacity>
+            <Text style={styles.uploadText}>Add Employee Image</Text>
+            <View style={styles.imageActionRow}>
+              <TouchableOpacity
+                onPress={handleCameraCapture}
+                style={styles.imageOptionBtn}>
+                <Icon name="camera" size={16} color={COLORS.WHITE} />
+                <Text style={styles.imageOptionText}>Take Photo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleImageSelect}
+                style={styles.imageOptionBtn}>
+                <Icon name="image" size={16} color={COLORS.WHITE} />
+                <Text style={styles.imageOptionText}>Upload</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+        {typeof errors.profileImage === 'string' && (
+          <Text style={styles.errorText}>{errors.profileImage}</Text>
         )}
       </View>
     </Animatable.View>
@@ -678,6 +1014,7 @@ const EmployeeRegistration = ({navigation}) => {
             field="emergencyPhone"
             placeholder="03xx-xxxxxxx"
             keyboardType="phone-pad"
+            maxLength={12}
             formData={formData}
             handleInputChange={handleInputChange}
             error={errors.emergencyPhone}
@@ -696,6 +1033,8 @@ const EmployeeRegistration = ({navigation}) => {
         label="Employee Bank A/C No (IBAN)"
         field="iban"
         placeholder="PKxx XXXX xxxx xxxx xxxx xxxx"
+        maxLength={24}
+        autoCapitalize="characters"
         formData={formData}
         handleInputChange={handleInputChange}
         error={errors.iban}
@@ -760,9 +1099,11 @@ const EmployeeRegistration = ({navigation}) => {
         field="passingYear"
         placeholder="YYYY"
         keyboardType="numeric"
+        maxLength={4}
         formData={formData}
         handleInputChange={handleInputChange}
         isMandatory={false}
+        error={errors.passingYear}
       />
       <InputField
         label="University / Institute"
@@ -778,6 +1119,7 @@ const EmployeeRegistration = ({navigation}) => {
         placeholder="e.g. 3.5 or 80%"
         formData={formData}
         handleInputChange={handleInputChange}
+        error={errors.cgpa}
       />
       <InputField
         label="Qualification Remarks"
@@ -825,7 +1167,13 @@ const EmployeeRegistration = ({navigation}) => {
             <Text style={styles.label}>Date To</Text>
             <TouchableOpacity
               onPress={() => openDatePicker('workTo')}
-              style={styles.dateSelector}>
+              style={[
+                styles.dateSelector,
+                errors.workTo && {
+                  borderColor: COLORS.ERROR,
+                  borderWidth: 1.5,
+                },
+              ]}>
               <Text
                 style={[
                   styles.dateText,
@@ -835,6 +1183,9 @@ const EmployeeRegistration = ({navigation}) => {
               </Text>
               <Icon name="calendar" size={20} color={COLORS.PRIMARY} />
             </TouchableOpacity>
+            {typeof errors.workTo === 'string' && (
+              <Text style={styles.errorText}>{errors.workTo}</Text>
+            )}
           </View>
         </View>
       </View>
@@ -1094,6 +1445,11 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT_DARK,
     backgroundColor: '#fafafa',
   },
+  errorText: {
+    marginTop: 4,
+    fontSize: 12,
+    color: COLORS.ERROR,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1103,7 +1459,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   imagePicker: {
-    height: 120,
+    minHeight: 145,
     borderWidth: 2,
     borderColor: COLORS.BORDER,
     borderStyle: 'dashed',
@@ -1116,6 +1472,29 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: COLORS.PRIMARY,
     fontWeight: '600',
+  },
+  imageActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+  },
+  imageActionColumn: {
+    gap: 10,
+  },
+  imageOptionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: COLORS.PRIMARY,
+  },
+  imageOptionText: {
+    color: COLORS.WHITE,
+    fontWeight: '600',
+    fontSize: 13,
   },
   previewImage: {
     width: '100%',

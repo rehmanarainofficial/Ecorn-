@@ -1,5 +1,5 @@
-import React, {useState, useEffect} from 'react';
-import {useSelector} from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import {
   View,
   Text,
@@ -11,31 +11,27 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as Animatable from 'react-native-animatable';
-import {Dropdown} from 'react-native-element-dropdown';
+import { Dropdown } from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
 import Toast from 'react-native-toast-message';
-import {formatDateString, formatToYYYYMMDD} from '../../../../utils/DateUtils';
-import {BASEURL} from '../../../../utils/BaseUrl';
+import { formatDateString, formatToYYYYMMDD } from '../../../../utils/DateUtils';
+import { BASEURL } from '../../../../utils/BaseUrl';
 import SimpleHeader from '../../../../components/SimpleHeader';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import { APPCOLORS } from '../../../../utils/APPCOLORS';
 
 const LeaveInquiry = ({
   isNested = false,
   refreshTrigger = false,
   route,
 }) => {
-  const {mode = 'hr'} = route?.params || {};
+  const { mode = 'department' } = route?.params || {};
   const userData = useSelector(state => state.Data.currentData);
   const [employees, setEmployees] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [designations, setDesignations] = useState([]);
 
   const [loadingOptions, setLoadingOptions] = useState(false);
 
   const [selectedEmp, setSelectedEmp] = useState('');
-  const [selectedDept, setSelectedDept] = useState('');
-  const [selectedDesig, setSelectedDesig] = useState('');
 
   const today = new Date();
   const getFirstDayOfMonth = () => {
@@ -60,36 +56,10 @@ const LeaveInquiry = ({
   const [showFilters, setShowFilters] = useState(true);
   const [actionLoading, setActionLoading] = useState({});
 
-  const [activeTab, setActiveTab] = useState('Department');
-  const isApproved = val => val === '1' || val === 1;
-
-  const getTabCount = tabName => {
-    return inquiryData.filter(item => {
-      const isDeptApproved = isApproved(item.approve);
-      const isHrApproved = isApproved(item.hr_approve);
-      if (tabName === 'Department') return !isDeptApproved && !isHrApproved;
-      if (tabName === 'HR') return isDeptApproved && !isHrApproved;
-      if (tabName === 'Approve') return isDeptApproved && isHrApproved;
-      return false;
-    }).length;
-  };
-
-  const getFilteredData = () => {
-    return inquiryData.filter(item => {
-      const isDeptApproved = isApproved(item.approve);
-      const isHrApproved = isApproved(item.hr_approve);
-
-      if (activeTab === 'Department') {
-        return !isDeptApproved && !isHrApproved;
-      }
-      if (activeTab === 'HR') {
-        return isDeptApproved && !isHrApproved;
-      }
-      if (activeTab === 'Approve') {
-        return isDeptApproved && isHrApproved;
-      }
-      return true;
-    });
+  const getApprovalStatus = val => {
+    if (val === '1' || val === 1) return 'Approve';
+    if (val === '2' || val === 2) return 'Reject';
+    return 'Pending';
   };
 
   useEffect(() => {
@@ -110,32 +80,12 @@ const LeaveInquiry = ({
       let empData = [];
       if (empRes.data && empRes.data.status === true) {
         empData = (empRes.data.data || []).map(emp => ({
-          label: emp.emp_name,
+          label: emp.emp_code ? `${emp.emp_name} - ${emp.emp_code}` : emp.emp_name,
           value: emp.employee_id,
         }));
       }
 
-      const deptRes = await axios.get(`${BASEURL}get_all_department.php`);
-      let deptData = [];
-      if (deptRes.data && deptRes.data.status === true) {
-        deptData = (deptRes.data.data || []).map(dept => ({
-          label: dept.description,
-          value: dept.id,
-        }));
-      }
-
-      const desigRes = await axios.get(`${BASEURL}get_all_designation.php`);
-      let desigData = [];
-      if (desigRes.data && desigRes.data.status === true) {
-        desigData = (desigRes.data.data || []).map(desig => ({
-          label: desig.description,
-          value: desig.id,
-        }));
-      }
-
-      setEmployees([{label: 'All Employees', value: ''}, ...empData]);
-      setDepartments([{label: 'All Departments', value: ''}, ...deptData]);
-      setDesignations([{label: 'All Designations', value: ''}, ...desigData]);
+      setEmployees([{ label: 'All Employees', value: '' }, ...empData]);
     } catch (error) {
       console.log('Error fetching filters:', error);
       Toast.show({
@@ -157,35 +107,20 @@ const LeaveInquiry = ({
 
     try {
       const formData = new FormData();
-      if (mode === 'department') {
-        formData.append('head_id', userData?.employee_id || '');
-        formData.append('employee_id', selectedEmp || '');
-        formData.append('from_date', fromDate);
-        formData.append('to_date', toDate);
-      } else {
-        formData.append('emp_id', selectedEmp || '');
-        formData.append('dept_id', selectedDept || '');
-        formData.append('designation', selectedDesig || '');
-        formData.append('from_date', fromDate);
-        formData.append('to_date', toDate);
-        formData.append('user_id', userData?.id || '');
-      }
+      formData.append('head_id', userData?.employee_id || '');
+      formData.append('employee_id', selectedEmp || '');
+      formData.append('from_date', fromDate);
+      formData.append('to_date', toDate);
 
       console.log('Fetching inquiry with fields:', {
         mode,
         head_id: userData?.employee_id,
         employee_id: selectedEmp,
-        emp_id: selectedEmp,
-        dept_id: selectedDept,
-        designation: selectedDesig,
         from_date: fromDate,
         to_date: toDate,
-        user_id: userData?.id,
       });
 
-      const url = mode === 'department'
-        ? `${BASEURL}dept_leave_approval.php`
-        : `${BASEURL}hr_leave_approval.php`;
+      const url = `${BASEURL}dept_leave_approval.php`;
 
       const response = await axios.post(
         url,
@@ -198,17 +133,10 @@ const LeaveInquiry = ({
       );
 
       if (response.data) {
-        const userId = userData?.id;
         let listData = [];
-        if (userId && response.data[userId]) {
-          listData = response.data[userId];
-        } else if (response.data.data) {
+        if (response.data) {
           listData = response.data.data;
-        } else if (response.data.status === true) {
-          listData = response.data.data || [];
         }
-
-        console.log('Inquiry Data:', listData);
         setInquiryData(listData || []);
       } else {
         setInquiryData([]);
@@ -260,8 +188,6 @@ const LeaveInquiry = ({
 
   const clearFilters = () => {
     setSelectedEmp('');
-    setSelectedDept('');
-    setSelectedDesig('');
     setFromDate(firstDayStr);
     setToDate(lastDayStr);
     Toast.show({
@@ -271,21 +197,14 @@ const LeaveInquiry = ({
     });
   };
 
-  const handleApproval = async (id, type, value) => {
-    setActionLoading(prev => ({...prev, [id]: true}));
+  const handleApproval = async (empId, value) => {
+    setActionLoading(prev => ({ ...prev, [empId]: true }));
     try {
       const formData = new FormData();
-      formData.append('emp_id', id);
-      if (type === 'manager') {
-        formData.append('approve', value);
-      } else {
-        formData.append('hr_approve', value);
-      }
+      formData.append('emp_id', empId);
+      formData.append('approve', value);
 
-      const url =
-        type === 'manager'
-          ? `${BASEURL}post_leave_approval_manager.php`
-          : `${BASEURL}post_leave_approval_hr.php`;
+      const url = `${BASEURL}post_leave_approval_manager.php`;
 
       const response = await axios.post(url, formData, {
         headers: {
@@ -318,25 +237,24 @@ const LeaveInquiry = ({
         text2: 'Could not connect to the server.',
       });
     } finally {
-      setActionLoading(prev => ({...prev, [id]: false}));
+      setActionLoading(prev => ({ ...prev, [empId]: false }));
     }
   };
 
   const renderStatusBadge = (statusVal, label) => {
-    const isBadgeApproved = isApproved(statusVal);
-    const isPending = statusVal === '0' || statusVal === 0 || !statusVal;
+    const status = getApprovalStatus(statusVal);
 
     let bg = '#FEF3C7';
     let text = '#D97706';
     let icon = 'clock-outline';
     let statusText = 'Pending';
 
-    if (isBadgeApproved) {
+    if (status === 'Approve') {
       bg = '#D1FAE5';
       text = '#059669';
       icon = 'check-circle-outline';
       statusText = 'Approved';
-    } else if (!isPending) {
+    } else if (status === 'Reject') {
       bg = '#FEE2E2';
       text = '#DC2626';
       icon = 'close-circle-outline';
@@ -344,16 +262,16 @@ const LeaveInquiry = ({
     }
 
     return (
-      <View style={[styles.statusBadge, {backgroundColor: bg}]}>
-        <Icon name={icon} size={14} color={text} style={{marginRight: 4}} />
-        <Text style={[styles.statusText, {color: text}]}>
+      <View style={[styles.statusBadge, { backgroundColor: bg }]}>
+        <Icon name={icon} size={14} color={text} style={{ marginRight: 4 }} />
+        <Text style={[styles.statusText, { color: text }]}>
           {label}: {statusText}
         </Text>
       </View>
     );
   };
 
-  const renderLeaveCard = ({item}) => {
+  const renderLeaveCard = ({ item }) => {
     const fromStr = formatDateString(item.from_date);
     const toStr = formatDateString(item.to_date);
 
@@ -388,11 +306,11 @@ const LeaveInquiry = ({
               color={APPCOLORS.Secondary}
               style={styles.cardIcon}
             />
-            <Text style={styles.empName}>{item.emp_name}</Text>
+            <Text style={styles.empName}>{item.emp_name} - {item.emp_code}</Text>
           </View>
 
           {(item.desig || item.grade) && (
-            <View style={[styles.rowItem, {marginLeft: 22, marginTop: 2}]}>
+            <View style={[styles.rowItem, { marginLeft: 22, marginTop: 2 }]}>
               <Text style={styles.subDetailText}>
                 {item.desig || 'Staff'} {item.grade ? `(${item.grade})` : ''}
               </Text>
@@ -400,12 +318,12 @@ const LeaveInquiry = ({
           )}
 
           {item.department && (
-            <View style={[styles.rowItem, {marginLeft: 22, marginTop: 2}]}>
+            <View style={[styles.rowItem, { marginLeft: 22, marginTop: 2 }]}>
               <Text style={styles.subDetailText}>Dept: {item.department}</Text>
             </View>
           )}
 
-          <View style={[styles.rowItem, {marginTop: 10}]}>
+          <View style={[styles.rowItem, { marginTop: 10 }]}>
             <Icon
               name="calendar-range"
               size={16}
@@ -431,85 +349,109 @@ const LeaveInquiry = ({
         {/* Badges Footer */}
         <View style={styles.cardFooter}>
           {renderStatusBadge(item.approve, 'Mgr')}
-          {renderStatusBadge(item.hr_approve, 'HR')}
         </View>
 
         {/* Actions Area */}
         <View style={styles.cardActionsContainer}>
-          {actionLoading[item.id] ? (
+          {actionLoading[item.emp_id] ? (
             <View style={styles.cardLoadingWrapper}>
               <ActivityIndicator size="small" color={APPCOLORS.Primary} />
               <Text style={styles.cardLoadingText}>Updating status...</Text>
             </View>
           ) : (
             <View style={styles.actionsRowSingle}>
-              {/* Manager Approval Toggle */}
-              {mode === 'department' && (
-                <TouchableOpacity
-                  onPress={() =>
-                    handleApproval(
-                      item.emp_id,
-                      'manager',
-                      item.approve === '1' ? '0' : '1',
-                    )
+              <TouchableOpacity
+                onPress={() => handleApproval(item.emp_id, '2')}
+                style={[
+                  styles.toggleBtn,
+                  getApprovalStatus(item.approve) === 'Reject'
+                    ? styles.rejectActiveBtn
+                    : styles.toggleInactiveBtn,
+                ]}>
+                <Icon
+                  name="close-circle-outline"
+                  size={16}
+                  color={
+                    getApprovalStatus(item.approve) === 'Reject'
+                      ? '#fff'
+                      : '#4b5563'
                   }
+                />
+                <Text
                   style={[
-                    styles.toggleBtn,
-                    item.approve === '1'
-                      ? styles.toggleActiveBtn
-                      : styles.toggleInactiveBtn,
+                    styles.toggleBtnText,
+                    {
+                      color:
+                        getApprovalStatus(item.approve) === 'Reject'
+                          ? '#fff'
+                          : '#4b5563',
+                    },
                   ]}>
-                  <Icon
-                    name={
-                      item.approve === '1' ? 'check-decagram' : 'decagram-outline'
-                    }
-                    size={16}
-                    color={item.approve === '1' ? '#fff' : '#4b5563'}
-                  />
-                  <Text
-                    style={[
-                      styles.toggleBtnText,
-                      {color: item.approve === '1' ? '#fff' : '#4b5563'},
-                    ]}>
-                    {item.approve === '1' ? 'Mgr Unapprove' : 'Mgr Approve'}
-                  </Text>
-                </TouchableOpacity>
-              )}
+                  Reject
+                </Text>
+              </TouchableOpacity>
 
-              {/* HR Approval Toggle */}
-              {mode === 'hr' && (
-                <TouchableOpacity
-                  onPress={() =>
-                    handleApproval(
-                      item.emp_id,
-                      'hr',
-                      item.hr_approve === '1' ? '0' : '1',
-                    )
+              <TouchableOpacity
+                onPress={() => handleApproval(item.emp_id, '1')}
+                style={[
+                  styles.toggleBtn,
+                  getApprovalStatus(item.approve) === 'Approve'
+                    ? styles.toggleActiveBtn
+                    : styles.toggleInactiveBtn,
+                ]}>
+                <Icon
+                  name="check-circle-outline"
+                  size={16}
+                  color={
+                    getApprovalStatus(item.approve) === 'Approve'
+                      ? '#fff'
+                      : '#4b5563'
                   }
+                />
+                <Text
                   style={[
-                    styles.toggleBtn,
-                    item.hr_approve === '1'
-                      ? styles.toggleActiveBtn
-                      : styles.toggleInactiveBtn,
+                    styles.toggleBtnText,
+                    {
+                      color:
+                        getApprovalStatus(item.approve) === 'Approve'
+                          ? '#fff'
+                          : '#4b5563',
+                    },
                   ]}>
-                  <Icon
-                    name={
-                      item.hr_approve === '1'
-                        ? 'check-decagram'
-                        : 'decagram-outline'
-                    }
-                    size={16}
-                    color={item.hr_approve === '1' ? '#fff' : '#4b5563'}
-                  />
-                  <Text
-                    style={[
-                      styles.toggleBtnText,
-                      {color: item.hr_approve === '1' ? '#fff' : '#4b5563'},
-                    ]}>
-                    {item.hr_approve === '1' ? 'HR Unapprove' : 'HR Approve'}
-                  </Text>
-                </TouchableOpacity>
-              )}
+                  Approve
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => handleApproval(item.emp_id, '0')}
+                style={[
+                  styles.toggleBtn,
+                  getApprovalStatus(item.approve) === 'Pending'
+                    ? styles.pendingActiveBtn
+                    : styles.toggleInactiveBtn,
+                ]}>
+                <Icon
+                  name="clock-outline"
+                  size={16}
+                  color={
+                    getApprovalStatus(item.approve) === 'Pending'
+                      ? '#fff'
+                      : '#4b5563'
+                  }
+                />
+                <Text
+                  style={[
+                    styles.toggleBtnText,
+                    {
+                      color:
+                        getApprovalStatus(item.approve) === 'Pending'
+                          ? '#fff'
+                          : '#4b5563',
+                    },
+                  ]}>
+                  Pending
+                </Text>
+              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -522,9 +464,9 @@ const LeaveInquiry = ({
       style={
         isNested
           ? [
-              styles.container,
-              {flex: 0, backgroundColor: 'transparent', paddingBottom: 20},
-            ]
+            styles.container,
+            { flex: 0, backgroundColor: 'transparent', paddingBottom: 20 },
+          ]
           : styles.container
       }>
       {!isNested && <SimpleHeader title="Leave Inquiry" />}
@@ -534,7 +476,7 @@ const LeaveInquiry = ({
         <TouchableOpacity
           onPress={() => setShowFilters(!showFilters)}
           style={styles.filterToggleHeader}>
-          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Icon name="filter-variant" size={20} color={APPCOLORS.Primary} />
             <Text style={styles.filterHeaderTitle}>Search Filters</Text>
           </View>
@@ -578,55 +520,9 @@ const LeaveInquiry = ({
                   />
                 </View>
 
-                {mode !== 'department' && (
-                  <>
-                    {/* Department Filter */}
-                    <View style={styles.filterGroup}>
-                      <Text style={styles.filterLabel}>Department</Text>
-                      <Dropdown
-                        style={styles.dropdown}
-                        placeholderStyle={styles.placeholderStyle}
-                        selectedTextStyle={styles.selectedTextStyle}
-                        inputSearchStyle={styles.inputSearchStyle}
-                        itemTextStyle={styles.itemTextStyle}
-                        data={departments}
-                        maxHeight={250}
-                        labelField="label"
-                        valueField="value"
-                        placeholder="All Departments"
-                        search
-                        searchPlaceholder="Search Department..."
-                        value={selectedDept}
-                        onChange={item => setSelectedDept(item.value)}
-                      />
-                    </View>
-
-                    {/* Designation Filter */}
-                    <View style={styles.filterGroup}>
-                      <Text style={styles.filterLabel}>Designation</Text>
-                      <Dropdown
-                        style={styles.dropdown}
-                        placeholderStyle={styles.placeholderStyle}
-                        selectedTextStyle={styles.selectedTextStyle}
-                        inputSearchStyle={styles.inputSearchStyle}
-                        itemTextStyle={styles.itemTextStyle}
-                        data={designations}
-                        maxHeight={250}
-                        labelField="label"
-                        valueField="value"
-                        placeholder="All Designations"
-                        search
-                        searchPlaceholder="Search Designation..."
-                        value={selectedDesig}
-                        onChange={item => setSelectedDesig(item.value)}
-                      />
-                    </View>
-                  </>
-                )}
-
                 {/* Date Ranges */}
                 <View style={styles.dateRow}>
-                  <View style={{flex: 1, marginRight: 6}}>
+                  <View style={{ flex: 1, marginRight: 6 }}>
                     <Text style={styles.filterLabel}>From Date</Text>
                     <TouchableOpacity
                       onPress={() => openDatePicker('from')}
@@ -641,7 +537,7 @@ const LeaveInquiry = ({
                       />
                     </TouchableOpacity>
                   </View>
-                  <View style={{flex: 1, marginLeft: 6}}>
+                  <View style={{ flex: 1, marginLeft: 6 }}>
                     <Text style={styles.filterLabel}>To Date</Text>
                     <TouchableOpacity
                       onPress={() => openDatePicker('to')}
@@ -687,45 +583,6 @@ const LeaveInquiry = ({
         )}
       </View>
 
-      {/* Tabs Bar */}
-      <View style={styles.tabBarContainer}>
-        {['Department', 'HR', 'Approve']
-          .filter(tab => mode !== 'department' || tab !== 'HR')
-          .map(tab => {
-            const isActive = activeTab === tab;
-            const count = getTabCount(tab);
-            return (
-              <TouchableOpacity
-                key={tab}
-                style={[styles.tabButton, isActive && styles.activeTabButton]}
-                onPress={() => setActiveTab(tab)}>
-                <Text
-                  style={[
-                    styles.tabButtonText,
-                    isActive && styles.activeTabButtonText,
-                  ]}>
-                  {tab}
-                </Text>
-                <View
-                  style={[
-                    styles.tabBadge,
-                    isActive ? styles.activeTabBadge : styles.inactiveTabBadge,
-                  ]}>
-                  <Text
-                    style={[
-                      styles.tabBadgeText,
-                      isActive
-                        ? styles.activeTabBadgeText
-                        : styles.inactiveTabBadgeText,
-                    ]}>
-                    {count}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-      </View>
-
       {/* Inquiry List */}
       {loadingList && !refreshing ? (
         <View style={styles.centeredContainer}>
@@ -736,7 +593,7 @@ const LeaveInquiry = ({
         </View>
       ) : (
         <FlatList
-          data={getFilteredData()}
+          data={inquiryData}
           renderItem={renderLeaveCard}
           keyExtractor={(item, index) =>
             item.id ? item.id.toString() : index.toString()
@@ -794,7 +651,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
   },
@@ -941,7 +798,7 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
   },
@@ -1092,6 +949,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#059669',
     borderColor: '#059669',
   },
+  rejectActiveBtn: {
+    backgroundColor: '#DC2626',
+    borderColor: '#DC2626',
+  },
+  pendingActiveBtn: {
+    backgroundColor: '#D97706',
+    borderColor: '#D97706',
+  },
   toggleInactiveBtn: {
     backgroundColor: '#f9fafb',
     borderColor: '#e5e7eb',
@@ -1100,66 +965,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     marginLeft: 6,
-  },
-  tabBarContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#ffffff',
-    marginHorizontal: 12,
-    marginTop: 10,
-    borderRadius: 10,
-    padding: 4,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    justifyContent: 'space-between',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-  },
-  tabButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 8,
-    gap: 6,
-  },
-  activeTabButton: {
-    backgroundColor: APPCOLORS.Primary || '#1a1c22',
-  },
-  tabButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#4b5563',
-  },
-  activeTabButtonText: {
-    color: '#ffffff',
-    fontWeight: '700',
-  },
-  tabBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 10,
-    minWidth: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  inactiveTabBadge: {
-    backgroundColor: '#f3f4f6',
-  },
-  activeTabBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  tabBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  inactiveTabBadgeText: {
-    color: '#4b5563',
-  },
-  activeTabBadgeText: {
-    color: '#ffffff',
   },
 });

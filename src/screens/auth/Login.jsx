@@ -9,6 +9,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from 'react-native';
 import React, {useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -20,6 +21,7 @@ const Login = ({navigation}) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
 
   const dispatch = useDispatch();
   const Loading = useSelector(state => state.Data.Loading);
@@ -59,16 +61,15 @@ const Login = ({navigation}) => {
         showsVerticalScrollIndicator={false}>
         {/* Company Logo */}
         <Image
-          source={require('../../assets/images/Rider.png')}
+          source={require('../../assets/images/logo.png')}
           style={{
-            height: 160,
-            width: 160,
-            borderRadius: 80,
+            height: 130,
+            width: 300,
             marginBottom: 15,
             alignSelf: 'center',
           }}
         />
-        {/* Company Name */}
+        {/* Company Name
         <View style={{alignItems: 'center', marginBottom: 35}}>
           <Text
             style={{
@@ -79,7 +80,7 @@ const Login = ({navigation}) => {
             }}>
             Ercon Industries PVT Ltd
           </Text>
-        </View>
+        </View> */}
 
         {/* Login Card */}
         <View
@@ -138,7 +139,14 @@ const Login = ({navigation}) => {
               <Text style={styles.text}>Sign in</Text>
             )}
           </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setShowForgotModal(true)}
+            style={{marginTop: 10, alignItems: 'center'}}>
+            <Text style={{color: '#666', fontSize: 15}}>Forgot Password?</Text>
+          </TouchableOpacity>
         </View>
+
+
 
         {/* Sign Up Link */}
         <TouchableOpacity
@@ -150,6 +158,30 @@ const Login = ({navigation}) => {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <Modal
+        visible={showForgotModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowForgotModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.forgotModalCard}>
+            <View style={styles.modalIconWrapper}>
+              <Ionicons name="lock-closed-outline" size={28} color="#1a1c22" />
+            </View>
+            <Text style={styles.modalTitle}>Password Assistance</Text>
+            <Text style={styles.modalMessage}>
+              For password reset or account access support, please contact your
+              system administrator.
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowForgotModal(false)}
+              style={styles.modalButton}>
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -200,5 +232,58 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  forgotModalCard: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  modalIconWrapper: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1c22',
+    marginBottom: 8,
+  },
+  modalMessage: {
+    fontSize: 15,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 22,
+  },
+  modalButton: {
+    width: '100%',
+    backgroundColor: '#1a1c22',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });

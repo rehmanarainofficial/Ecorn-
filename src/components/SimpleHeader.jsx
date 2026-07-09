@@ -3,7 +3,7 @@ import React from 'react';
 import AppText from './AppText';
 import {APPCOLORS} from '../utils/APPCOLORS';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {responsiveFontSize, responsiveHeight} from '../utils/Responsive';
+import {responsiveFontSize} from '../utils/Responsive';
 import PlatformGradient from './PlatformGradient';
 import {useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';

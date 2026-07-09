@@ -264,7 +264,7 @@ const Leave = ({navigation}) => {
                 style={styles.leftIcon}
               />
               <Text style={[styles.selectedTextStyle, {color: '#6b7280'}]}>
-                {userData?.real_name || 'Loading...'}
+                {userData?.real_name + ' - ' + userData?.emp_code || 'Loading...'}
               </Text>
             </View>
           </View>

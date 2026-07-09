@@ -15,14 +15,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const AppHeader = ({ title, onPress }) => {
   const userData = useSelector(state => state.Data.currentData);
+  console.log(userData);
+  
   const dispatch = useDispatch();
   const nav = useNavigation();
   const insets = useSafeAreaInsets();
 
-  // iOS ke liye proper padding, Android ke liye extra vertical padding
   const paddingTop = Platform.OS === 'ios' 
       ? insets.top + 10 
-      : insets.top + 15; // Android ke liye extra padding
+      : insets.top + 15; 
 
   return (
     <PlatformGradient
@@ -32,7 +33,7 @@ const AppHeader = ({ title, onPress }) => {
       style={{
         paddingTop: paddingTop,
         paddingHorizontal: 20,
-        paddingBottom: Platform.OS === 'android' ? 10 : 0, // Android ke liye extra padding
+        paddingBottom: Platform.OS === 'android' ? 10 : 0, 
       }}>
       {/* --- Top Icons Row --- */}
       <View
@@ -43,9 +44,9 @@ const AppHeader = ({ title, onPress }) => {
           marginTop: 20,
         }}>
         <AppText
-          title="Ercon Industry"
+          title="Ercon Industries (Pvt) Ltd "
           titleColor={APPCOLORS.WHITE}
-          titleSize={3}
+          titleSize={2.3}
           titleWeight
         />
 
@@ -99,33 +100,20 @@ const AppHeader = ({ title, onPress }) => {
           justifyContent: 'space-between',
           paddingTop: 30,
         }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <View
-            style={{
-              height: responsiveHeight(5),
-              width: responsiveHeight(5),
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderWidth: 2,
-              borderRadius: 200,
-              borderColor: APPCOLORS.WHITE,
-            }}>
-            <AppText title="MA" titleColor={APPCOLORS.WHITE} />
-          </View>
-
           <View>
             <AppText
-              title={userData?.real_name || 'User'}
+              title={userData?.real_name + ' - ' + userData?.emp_code}
               titleColor={APPCOLORS.WHITE}
-              titleSize={2}
+              titleSize={3}
+              titleWeight
             />
             <AppText
               title="Dashboard"
               titleColor={APPCOLORS.WHITE}
               titleSize={1.5}
+              titleWeight
             />
           </View>
-        </View>
       </View>
     </PlatformGradient>
   );

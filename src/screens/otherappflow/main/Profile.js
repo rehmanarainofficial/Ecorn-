@@ -2,18 +2,11 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
-  TextInput,
-  FlatList,
   ActivityIndicator,
 } from 'react-native';
 import React, {useState} from 'react';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import PlatformGradient from '../../../components/PlatformGradient';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import Octicons from 'react-native-vector-icons/Octicons';
-import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
 import {useDispatch} from 'react-redux';
 import {setLogout} from '../../../redux/AuthSlice';
@@ -180,11 +173,7 @@ const Profile = ({navigation}) => {
           justifyContent: 'space-between',
         }}>
         <View>
-          <Image
-            source={require('../../../assets/images/Rider.png')}
-            style={{height: 200, width: 200, alignSelf: 'center'}}
-            resizeMode="contain"
-          />
+          <Ionicons name="person" size={24} color={APPCOLORS.BLACK} />
 
           <View
             style={{
