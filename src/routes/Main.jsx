@@ -101,6 +101,7 @@ import LeaveInquiry from '../screens/main/stacks/HCM/LeaveInquiry';
 import LeaveStatus from '../screens/main/stacks/HCM/LeaveStatus';
 import Policy from '../screens/main/stacks/HCM/Policy';
 import PolicyViewer from '../screens/main/stacks/HCM/PolicyViewer';
+import EmployeeDashboard from '../screens/main/stacks/HCM/EmployeeDashboard';
 
 const Stack = createNativeStackNavigator();
 const Main = () => {
@@ -239,6 +240,7 @@ const Main = () => {
         component={ApprovedRecordsScreen}
       />
       <Stack.Screen name="HCMScreen" component={HCMScreen} />
+      <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
       <Stack.Screen name="DVRInquiry" component={DVRInquiry} />
       <Stack.Screen name="Leave" component={Leave} />
       <Stack.Screen name="LeaveInquiry" component={LeaveInquiry} />

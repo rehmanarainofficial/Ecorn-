@@ -19,6 +19,13 @@ export default function HCMScreen({navigation}) {
 
   const buttons = [
     {
+      name: 'Employee Dashboard',
+      icon: 'view-dashboard-outline',
+      screen: 'EmployeeDashboard',
+      color: '#1a1c22',
+      accessKey: 'hcm',
+    },
+    {
       name: 'Attendance',
       icon: 'calendar-check',
       screen: 'Attendance',
