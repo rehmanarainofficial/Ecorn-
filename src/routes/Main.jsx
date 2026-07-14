@@ -102,6 +102,9 @@ import LeaveStatus from '../screens/main/stacks/HCM/LeaveStatus';
 import Policy from '../screens/main/stacks/HCM/Policy';
 import PolicyViewer from '../screens/main/stacks/HCM/PolicyViewer';
 import EmployeeDashboard from '../screens/main/stacks/HCM/EmployeeDashboard';
+import FixAssetScreen from '../screens/main/stacks/FixAsset/FixAssetScreen';
+import AddFixAsset from '../screens/main/stacks/FixAsset/AddFixAsset';
+import SearchFixAsset from '../screens/main/stacks/FixAsset/SearchFixAsset';
 
 const Stack = createNativeStackNavigator();
 const Main = () => {
@@ -247,6 +250,9 @@ const Main = () => {
       <Stack.Screen name="LeaveStatus" component={LeaveStatus} />
       <Stack.Screen name="Policy" component={Policy} />
       <Stack.Screen name="PolicyViewer" component={PolicyViewer} />
+      <Stack.Screen name="FixAssetScreen" component={FixAssetScreen} />
+      <Stack.Screen name="AddFixAsset" component={AddFixAsset} />
+      <Stack.Screen name="SearchFixAsset" component={SearchFixAsset} />
     </Stack.Navigator>
   );
 };

@@ -1,7 +1,6 @@
 import {
   View,
   FlatList,
-  Image,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
@@ -39,9 +38,6 @@ const Dashboard = ({navigation}) => {
 
   const [loader, setLoader] = useState(false);
   const dispatch = useDispatch();
-
-  console.log('mobileAccessData', mobileAccessData);
-
   const mainCards = [
     {
       id: 1,
@@ -115,6 +111,13 @@ const Dashboard = ({navigation}) => {
       icon: 'file-plus',
       onPress: () => navigation.navigate('AttachDocumentScreen'),
       disabled: mobileAccessData?.[0]?.attach_doc === '1',
+    },
+    {
+      id: 11,
+      name: 'Fix Assets',
+      icon: 'archive',
+      onPress: () => navigation.navigate('FixAssetScreen'),
+      disabled: false,
     },
   ];
 
