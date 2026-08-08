@@ -286,6 +286,15 @@ const AlertScreen = ({navigation}) => {
             navigation.navigate('LeaveInquiry', {mode: 'department'})
           }
         />
+
+        <AlertCards
+          AlertHeading="Live Tracking"
+          HeadingOne="Employee Live Tracking"
+          IconOne="map-marker-alt"
+          onValuePressOne={() =>
+            navigation.navigate('LiveTrackingScreen')
+          }
+        />
       </ScrollView>
     </View>
   );

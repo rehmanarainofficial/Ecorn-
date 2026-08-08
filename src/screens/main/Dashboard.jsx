@@ -26,6 +26,7 @@ import GetMobileAccessData from '../../global/GetMobileAccessData';
 import {useDispatch, useSelector} from 'react-redux';
 import {setUserAccess, setMobileAccess} from '../../redux/AuthSlice';
 import {formatNumber} from '../../utils/NumberUtils';
+import {startBackgroundTracking} from '../../services/BackgroundTrackingService';
 
 const Dashboard = ({navigation}) => {
   const [visible, setVisible] = useState(false);
@@ -38,6 +39,13 @@ const Dashboard = ({navigation}) => {
 
   const [loader, setLoader] = useState(false);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    const empCode = userData?.emp_code || userData?.employee_id || userData?.id || userData?.user_id;
+    if (empCode) {
+      startBackgroundTracking(empCode);
+    }
+  }, [userData]);
   const mainCards = [
     {
       id: 1,

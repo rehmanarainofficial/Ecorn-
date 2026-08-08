@@ -79,6 +79,8 @@ import StockSheetScreen from '../screens/main/stacks/Inventory/StockSheetScreen'
 import ViewItem from '../screens/main/stacks/Inventory/ViewItem';
 import GrnAgainst from '../screens/main/stacks/purchase/GrnAgainst';
 import ApprovalListScreen from '../screens/main/stacks/AppAlerts/ApprovalListScreen';
+import LiveTrackingScreen from '../screens/main/stacks/AppAlerts/LiveTrackingScreen';
+import LiveTrackingMapScreen from '../screens/main/stacks/AppAlerts/LiveTrackingMapScreen';
 import GrnDeliveryNote from '../screens/main/stacks/purchase/GrnDeliveryNote';
 import PayableSummary from '../screens/main/stacks/purchase/PayableSummary';
 import PdcDetailScreen from '../screens/main/stacks/purchase/PdcDetailScreen';
@@ -253,6 +255,8 @@ const Main = () => {
       <Stack.Screen name="FixAssetScreen" component={FixAssetScreen} />
       <Stack.Screen name="AddFixAsset" component={AddFixAsset} />
       <Stack.Screen name="SearchFixAsset" component={SearchFixAsset} />
+      <Stack.Screen name="LiveTrackingScreen" component={LiveTrackingScreen} />
+      <Stack.Screen name="LiveTrackingMapScreen" component={LiveTrackingMapScreen} />
     </Stack.Navigator>
   );
 };
