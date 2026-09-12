@@ -25,6 +25,10 @@ import Geolocation from 'react-native-geolocation-service';
 import * as geolib from 'geolib';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import {
+  getAsiaKarachiDateTime,
+  checkAndAutoCheckout,
+} from '../../../../services/AttendanceAutoCheckoutService';
 
 const {width} = Dimensions.get('window');
 
@@ -71,10 +75,18 @@ const Attendance = () => {
 
   const fetchHistory = async () => {
     setRefreshing(true);
-    const currentDateStr = new Date().toISOString().split('T')[0];
+    const empCode = userData?.emp_code || '';
+    const karachiTime = getAsiaKarachiDateTime();
+
+    try {
+      await checkAndAutoCheckout(empCode);
+    } catch (autoErr) {
+      console.log('Auto checkout check in fetchHistory error:', autoErr);
+    }
+
     const formData = new FormData();
-    formData.append('emp_code', userData?.emp_code || '10001');
-    formData.append('date', currentDateStr);
+    formData.append('emp_code', empCode);
+    formData.append('date', karachiTime.dateStr);
     try {
       const response = await axios.post(
         `${BASEURL}get_attendence_detail.php`,
@@ -218,10 +230,9 @@ const Attendance = () => {
     checkOutId = null,
   ) => {
     const formData = new FormData();
-    const currentDateStr = new Date().toISOString().split('T')[0];
-    const currentTimeStr = new Date().toLocaleTimeString('en-GB', {
-      hour12: false,
-    });
+    const karachiTime = getAsiaKarachiDateTime();
+    const currentDateStr = karachiTime.dateStr;
+    const currentTimeStr = karachiTime.timeStr;
 
     // Note: Both In and Out now hit user_attendance_post.php
     if (isOut) {

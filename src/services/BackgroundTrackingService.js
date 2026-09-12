@@ -2,6 +2,7 @@ import { Platform, PermissionsAndroid } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import axios from 'axios';
 import { BASEURL } from '../utils/BaseUrl';
+import { checkAndAutoCheckout } from './AttendanceAutoCheckoutService';
 
 let trackingInterval = null;
 let currentEmpCode = null;
@@ -117,6 +118,12 @@ const sendLiveLocationUpdate = async empCode => {
         });
       } catch (err) {
         console.log('Ercon Live Location Stream Error:', err);
+      }
+
+      try {
+        await checkAndAutoCheckout(empCode);
+      } catch (autoErr) {
+        console.log('Auto-checkout interval check error:', autoErr);
       }
     },
     error => {
