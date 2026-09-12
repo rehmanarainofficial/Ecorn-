@@ -368,6 +368,13 @@ const Detail = ({navigation}) => {
           onPress={() => navigation.navigate('SecurityRule')}>
           <Text style={styles.securityBtnText}>Security Rule</Text>
         </TouchableOpacity>
+
+        {/* User Status Button */}
+        <TouchableOpacity
+          style={[styles.securityBtn, {marginTop: 10}]}
+          onPress={() => navigation.navigate('UserStatus')}>
+          <Text style={styles.securityBtnText}>User Status</Text>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );

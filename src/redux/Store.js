@@ -1,4 +1,4 @@
-import { combineReducers, configureStore , Tuple,  } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
 import counterReducer from './AuthSlice'
 import approvedReducer from './ApprovedSlice'
 import {

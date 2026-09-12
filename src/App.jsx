@@ -1,12 +1,20 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import Routes from './routes/Routes';
 import {Provider} from 'react-redux';
 import {Store} from './redux/Store';
 import Toast from 'react-native-toast-message';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { startSessionWatcher, stopSessionWatcher } from './services/UserSessionService';
 
 const App = () => {
+  useEffect(() => {
+    startSessionWatcher();
+    return () => {
+      stopSessionWatcher();
+    };
+  }, []);
+
   return (
     <Provider store={Store}>
       <SafeAreaProvider style={{flex: 1}}>

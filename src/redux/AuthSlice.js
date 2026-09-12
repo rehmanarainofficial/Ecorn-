@@ -11,15 +11,41 @@ export const CurrentLogin = createAsyncThunk(
         username,
         password,
       });
-      if (response.data.status === 'true') {
-        const user = response.data.data.find(u => u.user_id === username);
+      if (response.data.status === 'true' || response.data.status === true) {
+        const user = response.data.data.find(
+          u => String(u.user_id).toLowerCase() === String(username).toLowerCase(),
+        );
         if (user) {
+          if (String(user.inactive) === '1') {
+            Toast.show({
+              type: 'error',
+              text1: 'Account Inactive',
+              text2: 'Your account is deactivated. Please contact administrator.',
+            });
+            return rejectWithValue('User account is inactive');
+          }
+
+          try {
+            const formData = new FormData();
+            formData.append('id', String(user.id));
+            formData.append('inactive', '0');
+            formData.append('login_status', '0');
+            formData.append('login_active_status', '0');
+
+            await axios.post(`${BASEURL}logout_post.php`, formData, {
+              headers: {'Content-Type': 'multipart/form-data'},
+              timeout: 8000,
+            });
+          } catch (postErr) {
+            console.log('Error updating login status on login:', postErr);
+          }
+
           Toast.show({
             type: 'success',
             text1: 'Login Successful',
             text2: 'Welcome back!',
           });
-          return user;
+          return {...user, login_status: '0', inactive: '0'};
         } else {
           Toast.show({
             type: 'error',
@@ -89,6 +115,12 @@ export const AuthSlice = createSlice({
     setLogout: state => {
       state.token = null;
       state.currentData = null;
+      state.cartData = [];
+      state.GrandCartTotalPrice = '0';
+      state.AllProduct = [];
+      state.accessData = [];
+      state.mobileAccessData = null;
+      state.Loading = false;
     },
   },
 

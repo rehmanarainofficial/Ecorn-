@@ -26,6 +26,7 @@ import AgingAndLedger from '../screens/main/stacks/AgingAndLedger/AgingAndLedger
 import ViewAllTopTen from '../screens/main/stacks/DetailScreens/TopTen/ViewAllTopTen';
 import ShowUnapprovedDetails from '../screens/main/stacks/AppAlerts/ShowUnapprovedDetails';
 import SecurityRule from '../screens/main/stacks/DetailScreens/SecurityRule';
+import UserStatus from '../screens/main/stacks/DetailScreens/UserStatus';
 
 //other app
 import Home from '../screens/otherappflow/main/Home';
@@ -149,6 +150,7 @@ const Main = () => {
       <Stack.Screen name="TopTenScreen" component={TopTenScreen} />
       <Stack.Screen name="ViewAllTopTen" component={ViewAllTopTen} />
       <Stack.Screen name="SecurityRule" component={SecurityRule} />
+      <Stack.Screen name="UserStatus" component={UserStatus} />
 
       <Stack.Screen name="AgingAndLedger" component={AgingAndLedger} />
       <Stack.Screen
